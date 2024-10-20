@@ -1,8 +1,6 @@
 package main
 
 import (
-	"database/sql"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -17,9 +15,7 @@ import (
 )
 
 var (
-	store   *sessions.CookieStore
-	db      *sql.DB
-	connStr string // postgres connection string
+	store *sessions.CookieStore
 )
 
 type SiteData struct {
@@ -60,40 +56,6 @@ type Auth0RegisterResponse struct {
 }
 
 // fetchSiteDataForDomain queries the database for site data based on the domain.
-func fetchSiteDataForDomain(domain string) (SiteData, error) {
-	fmt.Printf("Fetching site data from the database for domain: %s\n", domain)
-
-	var siteDataJSON string
-	var siteData SiteData
-
-	// Ensure that db is not nil before attempting to query
-	if db == nil {
-		log.Println("db is nil")
-		return SiteData{}, fmt.Errorf("database connection is not initialized")
-	}
-
-	log.Printf("Attempting to query the database for domain: %s", domain)
-
-	// Using $1 to safely inject the domain parameter into the query
-	err := db.QueryRow("SELECT data FROM sites WHERE domain = $1", domain).Scan(&siteDataJSON)
-	if err == sql.ErrNoRows {
-		log.Printf("No site data found for domain: %s", domain)
-		return SiteData{}, fmt.Errorf("No site data found for domain: %s", domain)
-	}
-	if err != nil {
-		log.Printf("Failed to fetch site data for domain %s: %v", domain, err)
-		return SiteData{}, err
-	}
-	log.Printf("Raw JSON from database: %s", siteDataJSON)
-	// Unmarshal the JSON data into the siteData struct
-	err = json.Unmarshal([]byte(siteDataJSON), &siteData)
-	if err != nil {
-		log.Printf("Failed to unmarshal site data for domain --> %s: %v", domain, err)
-		return SiteData{}, err
-	}
-
-	return siteData, nil
-}
 
 // Middleware to load site data on the first request
 func loadSiteDataMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
@@ -149,26 +111,13 @@ func init() {
 
 func main() {
 
-	var err error
-
 	// Initialize the database connection
-	log.Println("Attempting to open database connection...")
+	db, err := DBconnect()
 
-	db, err = sql.Open("postgres", connStr)
 	if err != nil {
-		log.Fatalf("Error opening database connection: %v", err)
-	} else {
-		log.Println("Database connection opened successfully.")
+		log.Fatalf("Failed to connect to the database: %v", err)
 	}
 	defer db.Close()
-
-	// Verify the connection
-	err = db.Ping()
-	if err != nil {
-		log.Fatalf("Error pinging database: %v", err)
-	} else {
-		log.Println("Connected to the database successfully")
-	}
 
 	e := echo.New()
 
@@ -363,5 +312,47 @@ func Logout(c echo.Context) error {
 
 // Admin is a protected route that requires a valid session
 func Admin(c echo.Context) error {
-	return c.String(http.StatusOK, "Welcome to the admin page!")
+	// Retrieve the session
+	session, err := store.Get(c.Request(), "session")
+	if err != nil {
+		log.Println("Failed to get session:", err)
+		return c.String(http.StatusInternalServerError, "Failed to retrieve session")
+	}
+
+	// Debug log session values
+	log.Printf("Session values: %+v", session.Values)
+
+	// Get email from session
+	email, ok := session.Values["email"].(string)
+	if !ok || email == "" {
+		log.Fatal("Email is not set or invalid in the session")
+		return c.String(http.StatusUnauthorized, "Unauthorized: Email not found in session")
+	}
+
+	// Fetch sites for the owner (email)
+	sites, err := getSitesForOwner(email)
+	if err != nil {
+		return c.String(http.StatusInternalServerError, "Failed to fetch sites for owner")
+	}
+
+	// Create an HTML list of the sites
+	sitesHTML := "<ul>"
+	for _, site := range sites {
+		sitesHTML += fmt.Sprintf("<li>%s</li>", site)
+	}
+	sitesHTML += "</ul>"
+
+	// Return HTML response
+	return c.HTML(http.StatusOK, fmt.Sprintf(`
+		<Main>
+			<header>
+				Admin page: %s 
+				<a href="/logout">Logout</a>
+			</header>
+			<section>
+				<h2>Your Sites</h2>
+				%s
+			</section>
+		</Main>
+	`, email, sitesHTML))
 }
