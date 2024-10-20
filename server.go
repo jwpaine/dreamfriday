@@ -1,8 +1,7 @@
 package main
 
 import (
-	"bytes"
-	"encoding/json"
+
 	"fmt"
 	"net/http"
 	"os"
@@ -68,6 +67,11 @@ func main() {
 	e.GET("/admin", Admin, isAuthenticated) // Protected route
 	e.GET("/logout", Logout)    			// Display login form
 
+	// Password reset routes
+	e.GET("/reset", PasswordResetForm)  // Display password reset form
+	e.POST("/reset", PasswordReset)     // Handle password reset request
+	
+
 	e.Logger.Fatal(e.Start(":5173"))
 }
 
@@ -113,8 +117,6 @@ func Register(c echo.Context) error {
 		<a href="/login">Go to Login</a>
 	`, email))
 }
-
-
 // LoginForm renders a simple login form
 func LoginForm(c echo.Context) error {
 	session, _ := store.Get(c.Request(), "session")
@@ -133,19 +135,52 @@ func LoginForm(c echo.Context) error {
 		</form>
 	`)
 }
+// PasswordResetForm renders a form to request a password reset
+func PasswordResetForm(c echo.Context) error {
+	return c.HTML(http.StatusOK, `
+		<h1>Reset Password</h1>
+		<form method="POST" action="/reset">
+			<label for="email">Email:</label>
+			<input type="email" id="email" name="email" required>
+			<button type="submit">Reset Password</button>
+		</form>
+	`)
+}
+// PasswordReset handles the password reset form submission and calls auth0PasswordReset
+func PasswordReset(c echo.Context) error {
+	email := c.FormValue("email")
+
+	// Call Auth0 to send the password reset email
+	err := auth0PasswordReset(email)
+	if err != nil {
+		// If there's an error, display a failure message
+		return c.HTML(http.StatusBadRequest, fmt.Sprintf(`
+			<h1>Password Reset Failed</h1>
+			<p>%s</p>
+			<a href="/password-reset">Try again</a>
+		`, err.Error()))
+	}
+
+	// If successful, display a success message
+	return c.HTML(http.StatusOK, fmt.Sprintf(`
+		<h1>Password Reset Requested</h1>
+		<p>A password reset email has been sent to %s. Please check your email to reset your password.</p>
+		<a href="/login">Go to Login</a>
+	`, email))
+}
+
 // Login handles the form submission and sends credentials to Auth0
 func Login(c echo.Context) error {
 	email := c.FormValue("email")
 	password := c.FormValue("password")
 
-	fmt.Printf("Received Email: %s, Password: %s\n", email, password)
+	fmt.Printf("Received Email: %s\n", email)
 
 	// Call Auth0 for authentication
 	tokenResponse, err := auth0Login(email, password)
 	if err != nil {
 		return c.JSON(http.StatusUnauthorized, map[string]string{"error": err.Error()})
 	}
-	fmt.Printf("Access Token: %s\n", tokenResponse.AccessToken)
 	// Store token in session
 	session, _ := store.Get(c.Request(), "session")
 	session.Values["accessToken"] = tokenResponse.AccessToken
@@ -163,10 +198,6 @@ func Login(c echo.Context) error {
 
 	return c.Redirect(http.StatusFound, "/admin")
 }
-// Admin is a protected route that requires a valid session
-func Admin(c echo.Context) error {
-	return c.String(http.StatusOK, "Welcome to the admin page!")
-}
 
 func Logout(c echo.Context) error {
 	fmt.Println("Logging out")
@@ -183,133 +214,11 @@ func Logout(c echo.Context) error {
 	// Redirect to the home page after logging out
 	return c.Redirect(http.StatusFound, "/")
 }
-// Middleware to check if user is authenticated
-func isAuthenticated(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		// Get session
-		session, _ := store.Get(c.Request(), "session")
 
-		// Check if access token is present and not empty
-		accessToken, ok := session.Values["accessToken"].(string)
-		if !ok || accessToken == "" {
-			// Token is missing or empty, redirect to login
-			fmt.Println("Access token is missing or empty")
-			return c.Redirect(http.StatusFound, "/login")
-		}
-
-		// Proceed with the next handler
-		fmt.Println("Access token is present")
-		return next(c)
-	}
-}
-// auth0Login sends credentials to Auth0 and retrieves an access token using standard library
-func auth0Login(email, password string) (*Auth0TokenResponse, error) {
-    auth0Domain := os.Getenv("AUTH0_DOMAIN")
-    clientID := os.Getenv("AUTH0_CLIENT_ID")
-    clientSecret := os.Getenv("AUTH0_CLIENT_SECRET")
-
-    // Debug: Print environment variables to verify they are loaded
-    fmt.Printf("Auth0 Domain: %s\n", auth0Domain)
-    fmt.Printf("Auth0 Client ID: %s\n", clientID)
-    fmt.Printf("Auth0 Client Secret: %s\n", clientSecret)
-
-    if auth0Domain == "" || clientID == "" || clientSecret == "" {
-        return nil, fmt.Errorf("Environment variables are not set properly")
-    }
-
-    // Prepare the request body for the login
-    requestBody, err := json.Marshal(map[string]string{
-        "grant_type":    "password",
-        "client_id":     clientID,
-        "client_secret": clientSecret,
-        "username":      email,
-        "password":      password,
-        "scope":         "openid profile email",
-    })
-    if err != nil {
-        return nil, fmt.Errorf("failed to marshal request body: %v", err)
-    }
-
-    // Construct the full URL for the Auth0 token endpoint
-    url := fmt.Sprintf("https://%s/oauth/token", auth0Domain)
-    fmt.Printf("Auth0 URL: %s\n", url)  // Debug: Print the constructed URL
-
-    // Make the HTTP POST request to Auth0
-    resp, err := http.Post(url, "application/json", bytes.NewBuffer(requestBody))
-    if err != nil {
-        return nil, fmt.Errorf("failed to send request to Auth0: %v", err)
-    }
-    defer resp.Body.Close()
-
-    // Check if the response is successful
-    if resp.StatusCode != http.StatusOK {
-        var errorResponse map[string]interface{}
-        json.NewDecoder(resp.Body).Decode(&errorResponse)
-        return nil, fmt.Errorf("auth0 login failed: %v", errorResponse["error_description"])
-    }
-
-    // Parse the response body
-    var tokenResponse Auth0TokenResponse
-    err = json.NewDecoder(resp.Body).Decode(&tokenResponse)
-    if err != nil {
-        return nil, fmt.Errorf("failed to parse Auth0 login response: %v", err)
-    }
-
-    return &tokenResponse, nil
+// Admin is a protected route that requires a valid session
+func Admin(c echo.Context) error {
+	return c.String(http.StatusOK, "Welcome to the admin page!")
 }
 
 
-// auth0Register sends a registration request to Auth0 and registers a new user
-func auth0Register(email, password string) (*Auth0RegisterResponse, error) {
-	auth0Domain := os.Getenv("AUTH0_DOMAIN")
-	clientID := os.Getenv("AUTH0_CLIENT_ID")
-
-	// Prepare the request body
-	requestBody, err := json.Marshal(map[string]string{
-		"client_id":  clientID,
-		"email":      email,
-		"password":   password,
-		"connection": "Username-Password-Authentication", // Default connection for username/password login
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal request body: %v", err)
-	}
-
-	// Make the HTTP POST request to Auth0
-	url := fmt.Sprintf("%s/dbconnections/signup", auth0Domain)
-	resp, err := http.Post(url, "application/json", bytes.NewBuffer(requestBody))
-	if err != nil {
-		return nil, fmt.Errorf("failed to send request to Auth0: %v", err)
-	}
-	defer resp.Body.Close()
-
-	// Check if the response is successful
-	if resp.StatusCode != http.StatusOK {
-		var errorResponse map[string]interface{}
-		json.NewDecoder(resp.Body).Decode(&errorResponse)
-	
-		// Print the entire error response to examine its structure
-		fmt.Printf("Full error response: %+v\n", errorResponse)
-		if errorCode, ok := errorResponse["code"].(string); ok && errorCode == "invalid_password" {
-			return nil, fmt.Errorf("registration failed: Password is too weak")
-		}
-		// Extract the message from the "error" field (if it exists)
-		if errorMessage, ok := errorResponse["error"].(string); ok {
-			return nil, fmt.Errorf("registration failed: %s", errorMessage)
-		}
-	
-		// Fallback generic message if no specific error field is present
-		return nil, fmt.Errorf("registration failed: unable to process request")
-	}
-	
-
-	// Parse the response body
-	var registerResponse Auth0RegisterResponse
-	err = json.NewDecoder(resp.Body).Decode(&registerResponse)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse Auth0 registration response: %v", err)
-	}
-
-	return &registerResponse, nil
-}
 
