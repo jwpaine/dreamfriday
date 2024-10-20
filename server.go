@@ -1,7 +1,10 @@
 package main
 
 import (
+	"database/sql"
+	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 
@@ -9,11 +12,40 @@ import (
 	"github.com/gorilla/sessions"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
+
+	_ "github.com/lib/pq"
 )
 
 var (
-	store *sessions.CookieStore
+	store   *sessions.CookieStore
+	db      *sql.DB
+	connStr string // postgres connection string
 )
+
+type SiteData struct {
+	Meta  Meta            `json:"meta"`
+	Pages map[string]Page `json:"pages"` // Flexible page names
+}
+
+type Meta struct {
+	Title string `json:"title"`
+}
+
+type Page struct {
+	Elements []PageElement `json:"elements"`
+}
+
+type PageElement struct {
+	Type       string        `json:"type"` // The "type" for each element (e.g., "Div")
+	Attributes Attributes    `json:"attributes"`
+	Elements   []PageElement `json:"elements"` // Nested elements like "H1"
+	Text       string        `json:"text"`     // Text content for elements like "H1"
+}
+
+type Attributes struct {
+	ID    string                 `json:"id"`
+	Style map[string]interface{} `json:"style"` // Flexible styling keys
+}
 
 type Auth0TokenResponse struct {
 	AccessToken string `json:"access_token"`
@@ -25,6 +57,62 @@ type Auth0TokenResponse struct {
 type Auth0RegisterResponse struct {
 	Email   string `json:"email"`
 	Success bool   `json:"success"`
+}
+
+// fetchSiteDataForDomain queries the database for site data based on the domain.
+func fetchSiteDataForDomain(domain string) (SiteData, error) {
+	fmt.Printf("Fetching site data from the database for domain: %s\n", domain)
+
+	var siteDataJSON string
+	var siteData SiteData
+
+	// Ensure that db is not nil before attempting to query
+	if db == nil {
+		log.Println("db is nil")
+		return SiteData{}, fmt.Errorf("database connection is not initialized")
+	}
+
+	log.Printf("Attempting to query the database for domain: %s", domain)
+
+	// Using $1 to safely inject the domain parameter into the query
+	err := db.QueryRow("SELECT data FROM sites WHERE domain = $1", domain).Scan(&siteDataJSON)
+	if err == sql.ErrNoRows {
+		log.Printf("No site data found for domain: %s", domain)
+		return SiteData{}, fmt.Errorf("No site data found for domain: %s", domain)
+	}
+	if err != nil {
+		log.Printf("Failed to fetch site data for domain %s: %v", domain, err)
+		return SiteData{}, err
+	}
+	log.Printf("Raw JSON from database: %s", siteDataJSON)
+	// Unmarshal the JSON data into the siteData struct
+	err = json.Unmarshal([]byte(siteDataJSON), &siteData)
+	if err != nil {
+		log.Printf("Failed to unmarshal site data for domain --> %s: %v", domain, err)
+		return SiteData{}, err
+	}
+
+	return siteData, nil
+}
+
+// Middleware to load site data on the first request
+func loadSiteDataMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		// Extract the domain from the request's Host header
+		//domain := c.Request().Host
+		domain := "dreamfriday.com" // Debug: Hardcoded domain for testing
+
+		// Fetch site data for the current domain from the database
+		siteData, err := fetchSiteDataForDomain(domain)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, fmt.Sprintf("Failed to load site data for domain %s: %v", domain, err))
+		}
+
+		// Store the site data in the request context for use in handlers
+		c.Set("siteData", siteData)
+
+		return next(c)
+	}
 }
 
 // Load environment variables
@@ -41,6 +129,11 @@ func init() {
 	hashKey := []byte(os.Getenv("SESSION_HASH_KEY"))
 	blockKey := []byte(os.Getenv("SESSION_BLOCK_KEY"))
 
+	connStr = os.Getenv("DATABASE_CONNECTION_STRING")
+	if connStr == "" {
+		log.Fatal("DATABASE_CONNECTION_STRING environment variable not set")
+	}
+
 	fmt.Printf("Auth0 Domain: %s\n", os.Getenv("AUTH0_DOMAIN")) // New Debug
 
 	// Initialize the session store with secure hash and block keys
@@ -55,7 +148,32 @@ func init() {
 }
 
 func main() {
+
+	var err error
+
+	// Initialize the database connection
+	log.Println("Attempting to open database connection...")
+
+	db, err = sql.Open("postgres", connStr)
+	if err != nil {
+		log.Fatalf("Error opening database connection: %v", err)
+	} else {
+		log.Println("Database connection opened successfully.")
+	}
+	defer db.Close()
+
+	// Verify the connection
+	err = db.Ping()
+	if err != nil {
+		log.Fatalf("Error pinging database: %v", err)
+	} else {
+		log.Println("Connected to the database successfully")
+	}
+
 	e := echo.New()
+
+	// Add middleware to load site data once
+	e.Use(loadSiteDataMiddleware)
 
 	// Routes
 	e.GET("/", Home)                        // Display login form
@@ -88,63 +206,21 @@ func HTML(c echo.Context, cmp templ.Component) error {
 }
 
 func Home(c echo.Context) error {
+	// Retrieve the site data from the context
+	siteData := c.Get("siteData").(SiteData)
 
-	jsonContent := `
-	[
-		{
-			"type": "Div",
-			  "attributes": {
-					"style": {
-					"background-color": "lightgray",
-					"padding": "15px",
-					"height" : "100vh"
-					}
-				},
-			"elements": [
-				{
-					"type": "H1",
-					"text": "Welcome to DreamFriday",
-					"attributes": {
-						"style": {
-						"color": "#ff0000",
-						"font-size": "85px"
-						}
-					}
-				},
-				{
-					"type": "P",
-					"text": "This is a dynamically generated page.",
-					"attributes": {
-						"style": {
-						"color": "blue",
-						"font-size": "20px"
-						}
-					}
-				},
-				{
-					"type": "Div",
-					"elements": [
-						{
-							"type": "H1",
-							"text": "YUP!"
-						},
-						{
-							"type": "P",
-							"text": "AMAZING!"
-						}
-					]
-				}
-			]
-		}
-	]
-	`
-	return RenderJSONContent(c, jsonContent)
+	// Check if the "home" page exists in the site data
+	homePage, ok := siteData.Pages["home"]
+	if !ok {
+		log.Println("Home page not found in site data")
+		return c.JSON(http.StatusNotFound, "Home page not found")
+	}
 
-	/*
-		component := hello("John")  // Assuming 'hello' is your component function
-		return HTML(c, component)
-	*/
+	// Debug: Check the type and value of homePage.Elements
+	log.Printf("homePage.Elements type: %T, value: %+v", homePage.Elements, homePage.Elements)
 
+	// Pass the homePage.Elements (a slice of PageElement) to RenderJSONContent
+	return RenderJSONContent(c, homePage.Elements)
 }
 
 // RegisterForm renders the registration form

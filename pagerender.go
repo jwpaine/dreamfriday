@@ -2,9 +2,9 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"math/rand"
 	"net/http"
 	"strings"
@@ -141,14 +141,11 @@ type Component interface {
 	Render(ctx context.Context, w io.Writer) error
 }
 
-var componentMap = map[string]func(map[string]interface{}, []Component) Component{
+var componentMap = map[string]func(PageElement, []Component) Component{
 
-	"H1": func(attributes map[string]interface{}, _ []Component) Component {
-		// Extract text content
-		text, ok := attributes["text"].(string)
-		if !ok {
-			text = "" // Default to empty string if "text" is not provided
-		}
+	"H1": func(element PageElement, _ []Component) Component {
+		// Extract text content from the PageElement
+		text := element.Text
 
 		randomClassName := "h1_" + generateRandomClassName(6) // Generate a 6-character random string
 		attr := map[string]string{
@@ -157,14 +154,17 @@ var componentMap = map[string]func(map[string]interface{}, []Component) Componen
 
 		// Extract CSS properties from the "style" field in the attributes
 		cssProps := map[string]string{}
-		if nestedAttributes, ok := attributes["attributes"].(map[string]interface{}); ok {
-			if style, ok := nestedAttributes["style"].(map[string]interface{}); ok {
-				for key, value := range style {
-					if strValue, ok := value.(string); ok {
-						cssProps[key] = strValue
-					}
-				}
+		for key, value := range element.Attributes.Style {
+			if strValue, ok := value.(string); ok {
+				cssProps[key] = strValue
 			}
+		}
+
+		// Debug: Log the extracted CSS properties
+		if len(cssProps) == 0 {
+			log.Println("No CSS properties found")
+		} else {
+			log.Printf("CSS properties: %+v", cssProps)
 		}
 
 		// Return the H1Component with the extracted text, attributes, and CSS
@@ -174,12 +174,10 @@ var componentMap = map[string]func(map[string]interface{}, []Component) Componen
 			CSSProperties: cssProps,
 		}
 	},
-	"P": func(attributes map[string]interface{}, _ []Component) Component {
-		// Extract text content
-		text, ok := attributes["text"].(string)
-		if !ok {
-			text = "" // Default to empty string if "text" is not provided
-		}
+
+	"P": func(element PageElement, _ []Component) Component {
+		// Extract text content from the PageElement
+		text := element.Text
 
 		randomClassName := "p_" + generateRandomClassName(6) // Generate a 6-character random string
 		attr := map[string]string{
@@ -188,93 +186,71 @@ var componentMap = map[string]func(map[string]interface{}, []Component) Componen
 
 		// Extract CSS properties from the "style" field in the attributes
 		cssProps := map[string]string{}
-		if nestedAttributes, ok := attributes["attributes"].(map[string]interface{}); ok {
-			if style, ok := nestedAttributes["style"].(map[string]interface{}); ok {
-				for key, value := range style {
-					if strValue, ok := value.(string); ok {
-						cssProps[key] = strValue
-					}
-				}
+		for key, value := range element.Attributes.Style {
+			if strValue, ok := value.(string); ok {
+				cssProps[key] = strValue
 			}
 		}
 
-		// Return the H1Component with the extracted text, attributes, and CSS
+		// Return the PComponent with the extracted text, attributes, and CSS
 		return &PComponent{
 			Text:          text,
 			Attributes:    attr,
 			CSSProperties: cssProps,
 		}
 	},
-	"Div": func(attributes map[string]interface{}, children []Component) Component {
+
+	"Div": func(element PageElement, children []Component) Component {
 		randomClassName := "div_" + generateRandomClassName(6) // Generate a 6-character random string
 		attr := map[string]string{
 			"class": randomClassName,
 		}
 
-		// Check if the "attributes" key exists, and extract the nested attributes
-		if nestedAttributes, ok := attributes["attributes"].(map[string]interface{}); ok {
-			// Now check if the "style" key exists and is of type map inside the nested attributes
-			if style, ok := nestedAttributes["style"].(map[string]interface{}); ok {
-				fmt.Println("Style found in nested attributes:", style) // Debugging line
-
-				// Extract CSS properties from the "style" field
-				cssProps := map[string]string{}
-				for key, value := range style {
-					if strValue, ok := value.(string); ok {
-						fmt.Printf("Adding CSS property: %s: %s\n", key, strValue) // Debugging line
-						cssProps[key] = strValue
-					}
-				}
-
-				// Return a pointer to DivComponent with CSS properties and children
-				return &DivComponent{
-					Attributes:    attr,
-					CSSProperties: cssProps,
-					Children:      children,
-				}
+		// Extract CSS properties from the "style" field in the attributes
+		cssProps := map[string]string{}
+		for key, value := range element.Attributes.Style {
+			if strValue, ok := value.(string); ok {
+				cssProps[key] = strValue
 			}
 		}
 
-		// If no style is found, return DivComponent with empty CSSProperties
-		fmt.Println("No style found in attributes") // Debugging line
+		// Debug: Log the extracted CSS properties
+		if len(cssProps) == 0 {
+			log.Println("No CSS properties found")
+		} else {
+			log.Printf("CSS properties: %+v", cssProps)
+		}
+
+		// Return a pointer to DivComponent with CSS properties and children
 		return &DivComponent{
 			Attributes:    attr,
-			CSSProperties: map[string]string{},
+			CSSProperties: cssProps,
 			Children:      children,
 		}
 	},
 }
 
 // RenderPageContent recursively renders elements from JSON
-func RenderPageContent(ctx context.Context, elements []map[string]interface{}) ([]Component, error) {
+func RenderPageContent(ctx context.Context, elements []PageElement) ([]Component, error) {
 	var renderedComponents []Component
 
 	// Traverse and render each element
 	for _, element := range elements {
-		elementType, ok := element["type"].(string)
-		if !ok {
-			return nil, fmt.Errorf("missing or invalid element type")
-		}
+		// Retrieve the element type
+		elementType := element.Type
 
 		// Parse child elements if they exist
 		children := []Component{}
-		if childElements, exists := element["elements"].([]interface{}); exists {
-			childElementsMap := make([]map[string]interface{}, len(childElements))
-			for i, child := range childElements {
-				if childMap, ok := child.(map[string]interface{}); ok {
-					childElementsMap[i] = childMap
-				} else {
-					return nil, fmt.Errorf("invalid child element structure")
-				}
-			}
+		if len(element.Elements) > 0 {
+			// Recursively call RenderPageContent for nested elements
 			var err error
-			children, err = RenderPageContent(ctx, childElementsMap)
+			children, err = RenderPageContent(ctx, element.Elements)
 			if err != nil {
 				return nil, err
 			}
 		}
 
-		// Lookup the component constructor
+		// Lookup the component constructor based on the element type
 		if constructor, found := componentMap[elementType]; found {
 			component := constructor(element, children)
 			renderedComponents = append(renderedComponents, component)
@@ -286,15 +262,16 @@ func RenderPageContent(ctx context.Context, elements []map[string]interface{}) (
 	return renderedComponents, nil
 }
 
-// Reusable function to parse JSON, render content, and write to the response
-func RenderJSONContent(c echo.Context, jsonContent string) error {
+func RenderJSONContent(c echo.Context, jsonContent interface{}) error {
 	ctx := c.Request().Context()
 
-	// Parse the JSON content into Go objects
-	var pageContent []map[string]interface{}
-	err := json.Unmarshal([]byte(jsonContent), &pageContent)
-	if err != nil {
-		return c.String(http.StatusBadRequest, "Invalid JSON structure")
+	// Debug: Print the type and content of jsonContent
+	log.Printf("jsonContent type: %T, value: %+v", jsonContent, jsonContent)
+
+	// Assert that jsonContent is a slice of PageElement
+	pageContent, ok := jsonContent.([]PageElement)
+	if !ok {
+		return c.String(http.StatusBadRequest, "Invalid content structure, expected []PageElement")
 	}
 
 	// Call the RenderPageContent function to generate components
