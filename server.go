@@ -1,15 +1,14 @@
 package main
 
 import (
-
 	"fmt"
 	"net/http"
 	"os"
 
+	"github.com/a-h/templ"
 	"github.com/gorilla/sessions"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
-	"github.com/a-h/templ"
 )
 
 var (
@@ -42,8 +41,7 @@ func init() {
 	hashKey := []byte(os.Getenv("SESSION_HASH_KEY"))
 	blockKey := []byte(os.Getenv("SESSION_BLOCK_KEY"))
 
-	fmt.Printf("Auth0 Domain: %s\n", os.Getenv("AUTH0_DOMAIN"))  // New Debug
-
+	fmt.Printf("Auth0 Domain: %s\n", os.Getenv("AUTH0_DOMAIN")) // New Debug
 
 	// Initialize the session store with secure hash and block keys
 	store = sessions.NewCookieStore(hashKey, blockKey)
@@ -60,47 +58,58 @@ func main() {
 	e := echo.New()
 
 	// Routes
-	e.GET("/", Home)    					// Display login form
-	e.GET("/register", RegisterForm) 		// Display the registration form
-	e.POST("/register", Register)    		// Handle form submission and register the user
-	e.GET("/login", LoginForm)    			// Display login form
-	e.POST("/login", Login)       			// Handle form submission and login
+	e.GET("/", Home)                        // Display login form
+	e.GET("/register", RegisterForm)        // Display the registration form
+	e.POST("/register", Register)           // Handle form submission and register the user
+	e.GET("/login", LoginForm)              // Display login form
+	e.POST("/login", Login)                 // Handle form submission and login
 	e.GET("/admin", Admin, isAuthenticated) // Protected route
-	e.GET("/logout", Logout)    			// Display login form
+	e.GET("/logout", Logout)                // Display login form
 
 	// Password reset routes
-	e.GET("/reset", PasswordResetForm)  // Display password reset form
-	e.POST("/reset", PasswordReset)     // Handle password reset request
-	
+	e.GET("/reset", PasswordResetForm) // Display password reset form
+	e.POST("/reset", PasswordReset)    // Handle password reset request
 
 	e.Logger.Fatal(e.Start(":8080"))
 }
 
 func HTML(c echo.Context, cmp templ.Component) error {
-    // Set the Content-Type header to text/html
-    c.Response().Header().Set(echo.HeaderContentType, echo.MIMETextHTMLCharsetUTF8)
+	// Set the Content-Type header to text/html
+	c.Response().Header().Set(echo.HeaderContentType, echo.MIMETextHTMLCharsetUTF8)
 
-    // Render the component directly to the response writer
-    err := cmp.Render(c.Request().Context(), c.Response().Writer)
-    if err != nil {
-        return echo.NewHTTPError(http.StatusInternalServerError, "Error rendering template: "+err.Error())
-    }
+	// Render the component directly to the response writer
+	err := cmp.Render(c.Request().Context(), c.Response().Writer)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "Error rendering template: "+err.Error())
+	}
 
-    // Return nil as rendering is already done
-    return nil
+	// Return nil as rendering is already done
+	return nil
 }
 
 func Home(c echo.Context) error {
-
 
 	jsonContent := `
 	[
 		{
 			"type": "Div",
+			  "attributes": {
+					"style": {
+					"background-color": "lightgray",
+					"padding": "15px",
+					"height" : "100vh"
+					}
+				},
 			"elements": [
 				{
 					"type": "H1",
-					"text": "Welcome to DreamFriday"
+					"text": "Welcome to DreamFriday",
+					"attributes": {
+						"style": {
+						"color": "#ff0000",
+						"font-size": "85px"
+						}
+					}
 				},
 				{
 					"type": "P",
@@ -125,14 +134,13 @@ func Home(c echo.Context) error {
 	`
 	return RenderJSONContent(c, jsonContent)
 
-
 	/*
 		component := hello("John")  // Assuming 'hello' is your component function
 		return HTML(c, component)
 	*/
 
-
 }
+
 // RegisterForm renders the registration form
 func RegisterForm(c echo.Context) error {
 	return c.HTML(http.StatusOK, `
@@ -146,6 +154,7 @@ func RegisterForm(c echo.Context) error {
 		</form>
 	`)
 }
+
 // Register handles the form submission and calls auth0Register to create a new user
 func Register(c echo.Context) error {
 	email := c.FormValue("email")
@@ -169,6 +178,7 @@ func Register(c echo.Context) error {
 		<a href="/login">Go to Login</a>
 	`, email))
 }
+
 // LoginForm renders a simple login form
 func LoginForm(c echo.Context) error {
 	session, _ := store.Get(c.Request(), "session")
@@ -187,6 +197,7 @@ func LoginForm(c echo.Context) error {
 		</form>
 	`)
 }
+
 // PasswordResetForm renders a form to request a password reset
 func PasswordResetForm(c echo.Context) error {
 	return c.HTML(http.StatusOK, `
@@ -198,6 +209,7 @@ func PasswordResetForm(c echo.Context) error {
 		</form>
 	`)
 }
+
 // PasswordReset handles the password reset form submission and calls auth0PasswordReset
 func PasswordReset(c echo.Context) error {
 	email := c.FormValue("email")
@@ -238,7 +250,7 @@ func Login(c echo.Context) error {
 	session.Values["accessToken"] = tokenResponse.AccessToken
 	session.Values["email"] = email
 
-	// Make sure session is saved! 
+	// Make sure session is saved!
 	err = session.Save(c.Request(), c.Response())
 	if err != nil {
 		fmt.Println("Failed to save session:", err)
@@ -271,6 +283,3 @@ func Logout(c echo.Context) error {
 func Admin(c echo.Context) error {
 	return c.String(http.StatusOK, "Welcome to the admin page!")
 }
-
-
-

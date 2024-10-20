@@ -1,0 +1,13 @@
+package main
+
+css styledH1() {
+	color: #ff0000;
+}
+
+templ element_h1(text string) {
+	<h1 class={ styledH1() }>{ text }</h1>
+}
+templ element_p(text string) {
+	<p>{ text }</p>
+}
+
