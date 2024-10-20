@@ -113,7 +113,13 @@ func Home(c echo.Context) error {
 				},
 				{
 					"type": "P",
-					"text": "This is a dynamically generated page."
+					"text": "This is a dynamically generated page.",
+					"attributes": {
+						"style": {
+						"color": "blue",
+						"font-size": "20px"
+						}
+					}
 				},
 				{
 					"type": "Div",

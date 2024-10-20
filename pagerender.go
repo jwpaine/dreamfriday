@@ -26,7 +26,9 @@ type DivComponent struct {
 }
 
 type PComponent struct {
-	Text string
+	Text          string
+	Attributes    map[string]string
+	CSSProperties map[string]string
 }
 
 func generateRandomClassName(n int) string {
@@ -78,8 +80,23 @@ func (h *H1Component) Render(ctx context.Context, w io.Writer) error {
 }
 
 func (p PComponent) Render(ctx context.Context, w io.Writer) error {
-	element_p := element_p(p.Text)
-	return element_p.Render(ctx, w)
+	className := p.Attributes["class"]
+	if className == "" {
+		className = "custom-p" // Fallback if no class is found
+	}
+
+	// Generate and render the CSS block using the generic function
+	css := GenerateCSS(className, p.CSSProperties)
+	if css != "" {
+		_, err := w.Write([]byte(fmt.Sprintf("<style>%s</style>", css)))
+		if err != nil {
+			return err
+		}
+	}
+
+	// Render the H1 tag with attributes
+	_, err := w.Write([]byte(fmt.Sprintf("<p class=\"%s\">%s</p>", className, p.Text)))
+	return err
 }
 
 func (d *DivComponent) Render(ctx context.Context, w io.Writer) error {
@@ -158,12 +175,35 @@ var componentMap = map[string]func(map[string]interface{}, []Component) Componen
 		}
 	},
 	"P": func(attributes map[string]interface{}, _ []Component) Component {
-		// Handle "text" at the top level
+		// Extract text content
 		text, ok := attributes["text"].(string)
 		if !ok {
 			text = "" // Default to empty string if "text" is not provided
 		}
-		return PComponent{Text: text}
+
+		randomClassName := "p_" + generateRandomClassName(6) // Generate a 6-character random string
+		attr := map[string]string{
+			"class": randomClassName,
+		}
+
+		// Extract CSS properties from the "style" field in the attributes
+		cssProps := map[string]string{}
+		if nestedAttributes, ok := attributes["attributes"].(map[string]interface{}); ok {
+			if style, ok := nestedAttributes["style"].(map[string]interface{}); ok {
+				for key, value := range style {
+					if strValue, ok := value.(string); ok {
+						cssProps[key] = strValue
+					}
+				}
+			}
+		}
+
+		// Return the H1Component with the extracted text, attributes, and CSS
+		return &PComponent{
+			Text:          text,
+			Attributes:    attr,
+			CSSProperties: cssProps,
+		}
 	},
 	"Div": func(attributes map[string]interface{}, children []Component) Component {
 		randomClassName := "div_" + generateRandomClassName(6) // Generate a 6-character random string
