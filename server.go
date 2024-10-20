@@ -9,6 +9,7 @@ import (
 	"github.com/gorilla/sessions"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
+	"github.com/a-h/templ"
 )
 
 var (
@@ -72,14 +73,65 @@ func main() {
 	e.POST("/reset", PasswordReset)     // Handle password reset request
 	
 
-	e.Logger.Fatal(e.Start(":5173"))
+	e.Logger.Fatal(e.Start(":8080"))
+}
+
+func HTML(c echo.Context, cmp templ.Component) error {
+    // Set the Content-Type header to text/html
+    c.Response().Header().Set(echo.HeaderContentType, echo.MIMETextHTMLCharsetUTF8)
+
+    // Render the component directly to the response writer
+    err := cmp.Render(c.Request().Context(), c.Response().Writer)
+    if err != nil {
+        return echo.NewHTTPError(http.StatusInternalServerError, "Error rendering template: "+err.Error())
+    }
+
+    // Return nil as rendering is already done
+    return nil
 }
 
 func Home(c echo.Context) error {
-	
-	return c.HTML(http.StatusOK, `
-		<h1>Home Page</h1>
-	`)
+
+
+	jsonContent := `
+	[
+		{
+			"type": "Div",
+			"elements": [
+				{
+					"type": "H1",
+					"text": "Welcome to DreamFriday"
+				},
+				{
+					"type": "P",
+					"text": "This is a dynamically generated page."
+				},
+				{
+					"type": "Div",
+					"elements": [
+						{
+							"type": "H1",
+							"text": "YUP!"
+						},
+						{
+							"type": "P",
+							"text": "AMAZING!"
+						}
+					]
+				}
+			]
+		}
+	]
+	`
+	return RenderJSONContent(c, jsonContent)
+
+
+	/*
+		component := hello("John")  // Assuming 'hello' is your component function
+		return HTML(c, component)
+	*/
+
+
 }
 // RegisterForm renders the registration form
 func RegisterForm(c echo.Context) error {
