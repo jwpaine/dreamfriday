@@ -1,0 +1,31 @@
+package views
+
+templ PasswordResetFailed() {
+    <h1>Password Reset Failed</h1>
+	<a href="/reset">Try again</a>
+}
+
+templ ConfirmPasswordReset(email string) {
+   
+	<h1>Password Reset Requested</h1>
+	<p>
+        A password reset email has been sent to { email }. 
+        Please check your email to reset your password.
+    </p>
+	
+    <a href="/login">Login</a>
+}
+
+templ PasswordReset() {
+    @Root() {
+        <main id="response">
+            <h1>Reset your DreamFriday password</h1>
+            <form hx-post="/reset" hx-target="#response" hx-swap="innerHTML">
+                <label for="email">Email:</label>
+                <input type="text" id="email" name="email" required>
+			    <button type="submit">Reset Password</button>
+            </form>
+        </main>
+    }
+}
+

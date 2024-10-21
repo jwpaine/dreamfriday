@@ -180,84 +180,54 @@ func LoginForm(c echo.Context) error {
 		fmt.Println("Already logged in")
 		return c.Redirect(http.StatusFound, "/admin")
 	}
-
 	return HTML(c, Views.Login())
-
 }
 
 // PasswordResetForm renders a form to request a password reset
 func PasswordResetForm(c echo.Context) error {
-	return c.HTML(http.StatusOK, `
-		<h1>Reset Password</h1>
-		<form method="POST" action="/reset">
-			<label for="email">Email:</label>
-			<input type="email" id="email" name="email" required>
-			<button type="submit">Reset Password</button>
-		</form>
-	`)
+	return HTML(c, Views.PasswordReset())
 }
 
 // PasswordReset handles the password reset form submission and calls auth0PasswordReset
 func PasswordReset(c echo.Context) error {
 	email := c.FormValue("email")
-
-	// Call Auth0 to send the password reset email
 	err := Auth.PasswordReset(email)
 	if err != nil {
-		// If there's an error, display a failure message
-		return c.HTML(http.StatusBadRequest, fmt.Sprintf(`
-			<h1>Password Reset Failed</h1>
-			<p>%s</p>
-			<a href="/password-reset">Try again</a>
-		`, err.Error()))
+		return HTML(c, Views.PasswordResetFailed())
 	}
-
-	// If successful, display a success message
-	return c.HTML(http.StatusOK, fmt.Sprintf(`
-		<h1>Password Reset Requested</h1>
-		<p>A password reset email has been sent to %s. Please check your email to reset your password.</p>
-		<a href="/login">Go to Login</a>
-	`, email))
+	return HTML(c, Views.ConfirmPasswordReset(email))
 }
 
 // Login handles the form submission and sends credentials to Auth0
 func Login(c echo.Context) error {
 	email := c.FormValue("email")
 	password := c.FormValue("password")
-
 	fmt.Printf("Received Email: %s\n", email)
 
-	// Call Auth0 for authentication
 	tokenResponse, err := Auth.Login(email, password)
 	if err != nil {
-		// Return an HTML snippet that will be inserted into the DOM by HTMX
-		//errorHTML := fmt.Sprintf(`<div class="error">Login failed: %s</div>`, err.Error())
-		//return c.HTML(http.StatusOK, errorHTML)
-		// return c.HTML(http.StatusOK, "<span>Login bad</span>")
-
 		msgs := []Models.Message{
 			{Message: "foo", Type: "info"},
 			{Message: "bar", Type: "error"},
 		}
 		return HTML(c, Views.RenderMessages(msgs))
-
 	}
-
 	// Store token in session
 	session, _ := Auth.GetSession(c.Request(), "session")
 	session.Values["accessToken"] = tokenResponse.AccessToken
 	session.Values["email"] = email
-
 	// Make sure session is saved!
 	err = session.Save(c.Request(), c.Response())
 	if err != nil {
-		log.Fatal("Failed to save session:", err)
-		return c.HTML(http.StatusOK, "<span>Failed to save session</span>")
+		msgs := []Models.Message{
+			{Message: "Failed to save session", Type: "info"},
+		}
+		return HTML(c, Views.RenderMessages(msgs))
 	}
 
 	fmt.Println("Session saved with Email:", session.Values["email"])
-
-	return c.Redirect(http.StatusFound, "/admin")
+	// return c.Redirect(http.StatusFound, "/admin")
+	return c.HTML(http.StatusOK, `<script>window.location.href = '/admin';</script>`)
 }
 
 func Logout(c echo.Context) error {
