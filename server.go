@@ -16,6 +16,7 @@ import (
 	Auth "dreamfriday/auth"
 	Database "dreamfriday/database"
 	Models "dreamfriday/models"
+	Views "dreamfriday/views"
 )
 
 // fetchSiteDataForDomain queries the database for site data based on the domain.
@@ -97,6 +98,8 @@ func main() {
 	e.GET("/admin", Admin, Auth.IsAuthenticated)
 	e.GET("/admin/:domain", AdminSite, Auth.IsAuthenticated)
 
+	e.Static("/static", "static")
+
 	e.Logger.Fatal(e.Start(":8080"))
 }
 
@@ -177,16 +180,9 @@ func LoginForm(c echo.Context) error {
 		fmt.Println("Already logged in")
 		return c.Redirect(http.StatusFound, "/admin")
 	}
-	return c.HTML(http.StatusOK, `
-		<h1>Login</h1>
-		<form method="POST" action="/login">
-			<label for="email">Email:</label>
-			<input type="email" id="email" name="email">
-			<label for="password">Password:</label>
-			<input type="password" id="password" name="password">
-			<button type="submit">Login</button>
-		</form>
-	`)
+
+	return HTML(c, Views.Login())
+
 }
 
 // PasswordResetForm renders a form to request a password reset
@@ -234,8 +230,19 @@ func Login(c echo.Context) error {
 	// Call Auth0 for authentication
 	tokenResponse, err := Auth.Login(email, password)
 	if err != nil {
-		return c.JSON(http.StatusUnauthorized, map[string]string{"error": err.Error()})
+		// Return an HTML snippet that will be inserted into the DOM by HTMX
+		//errorHTML := fmt.Sprintf(`<div class="error">Login failed: %s</div>`, err.Error())
+		//return c.HTML(http.StatusOK, errorHTML)
+		// return c.HTML(http.StatusOK, "<span>Login bad</span>")
+
+		msgs := []Models.Message{
+			{Message: "foo", Type: "info"},
+			{Message: "bar", Type: "error"},
+		}
+		return HTML(c, Views.RenderMessages(msgs))
+
 	}
+
 	// Store token in session
 	session, _ := Auth.GetSession(c.Request(), "session")
 	session.Values["accessToken"] = tokenResponse.AccessToken
@@ -244,11 +251,10 @@ func Login(c echo.Context) error {
 	// Make sure session is saved!
 	err = session.Save(c.Request(), c.Response())
 	if err != nil {
-		fmt.Println("Failed to save session:", err)
-		return c.JSON(http.StatusInternalServerError, "Could not save session")
+		log.Fatal("Failed to save session:", err)
+		return c.HTML(http.StatusOK, "<span>Failed to save session</span>")
 	}
-	// Debug: Print session values for confirmation
-	// fmt.Println("Session saved with Access Token:", session.Values["accessToken"])
+
 	fmt.Println("Session saved with Email:", session.Values["email"])
 
 	return c.Redirect(http.StatusFound, "/admin")

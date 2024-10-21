@@ -20,6 +20,11 @@ type PageElement struct {
 	Text       string        `json:"text"`     // Text content for elements like "H1"
 }
 
+type Message struct {
+	Message string
+	Type    string
+}
+
 type Attributes struct {
 	ID    string                 `json:"id"`
 	Style map[string]interface{} `json:"style"` // Flexible styling keys
