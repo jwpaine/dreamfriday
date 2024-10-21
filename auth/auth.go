@@ -1,16 +1,62 @@
-package main
+package auth
 
 import (
-    "bytes"
-    "encoding/json"
-    "fmt"
-    "net/http"
-    "os"
-    "github.com/labstack/echo/v4"
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"log"
+	"net/http"
+	"os"
+
+	"github.com/gorilla/sessions"
+	"github.com/labstack/echo/v4"
+
+	Models "dreamfriday/models"
 )
 
+var store *sessions.CookieStore
+
+// InitSessionStore initializes the session store with a secret
+func InitSessionStore() {
+
+	// Retrieve the session keys from environment variables
+	hashKey := os.Getenv("SESSION_HASH_KEY")
+	blockKey := os.Getenv("SESSION_BLOCK_KEY")
+
+	// Error check if the keys are not set or empty
+	if hashKey == "" {
+		log.Fatal("Error: SESSION_HASH_KEY is not set or is empty")
+	}
+
+	if blockKey == "" {
+		log.Fatal("Error: SESSION_BLOCK_KEY is not set or is empty")
+	}
+
+	// Convert the keys to byte slices (as required by the session store)
+	hashKeyBytes := []byte(hashKey)
+	blockKeyBytes := []byte(blockKey)
+
+	// Proceed with using the keys
+	log.Println("Session keys loaded successfully")
+
+	store = sessions.NewCookieStore(hashKeyBytes, blockKeyBytes)
+	store.Options = &sessions.Options{
+		Path:     "/",
+		MaxAge:   3600 * 1, // 1 hour
+		HttpOnly: true,
+		Secure:   false, // Set to true in production (requires HTTPS)
+		SameSite: http.SameSiteLaxMode,
+	}
+
+}
+
+// GetSession returns the session for the provided request
+func GetSession(r *http.Request, sessionName string) (*sessions.Session, error) {
+	return store.Get(r, sessionName)
+}
+
 // Middleware to check if user is authenticated
-func isAuthenticated(next echo.HandlerFunc) echo.HandlerFunc {
+func IsAuthenticated(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		// Get session
 		session, _ := store.Get(c.Request(), "session")
@@ -30,62 +76,63 @@ func isAuthenticated(next echo.HandlerFunc) echo.HandlerFunc {
 }
 
 // auth0Login sends credentials to Auth0 and retrieves an access token using standard library
-func auth0Login(email, password string) (*Auth0TokenResponse, error) {
-    auth0Domain := os.Getenv("AUTH0_DOMAIN")
-    clientID := os.Getenv("AUTH0_CLIENT_ID")
-    clientSecret := os.Getenv("AUTH0_CLIENT_SECRET")
+func Login(email, password string) (*Models.Auth0TokenResponse, error) {
+	auth0Domain := os.Getenv("AUTH0_DOMAIN")
+	clientID := os.Getenv("AUTH0_CLIENT_ID")
+	clientSecret := os.Getenv("AUTH0_CLIENT_SECRET")
 
-    // Debug: Print environment variables to verify they are loaded
-    fmt.Printf("Auth0 Domain: %s\n", auth0Domain)
-    fmt.Printf("Auth0 Client ID: %s\n", clientID)
-    fmt.Printf("Auth0 Client Secret: %s\n", clientSecret)
+	// Debug: Print environment variables to verify they are loaded
+	fmt.Printf("Auth0 Domain: %s\n", auth0Domain)
+	fmt.Printf("Auth0 Client ID: %s\n", clientID)
+	fmt.Printf("Auth0 Client Secret: %s\n", clientSecret)
 
-    if auth0Domain == "" || clientID == "" || clientSecret == "" {
-        return nil, fmt.Errorf("Environment variables are not set properly")
-    }
+	if auth0Domain == "" || clientID == "" || clientSecret == "" {
+		return nil, fmt.Errorf("Environment variables are not set properly")
+	}
 
-    // Prepare the request body for the login
-    requestBody, err := json.Marshal(map[string]string{
-        "grant_type":    "password",
-        "client_id":     clientID,
-        "client_secret": clientSecret,
-        "username":      email,
-        "password":      password,
-        "scope":         "openid profile email",
-    })
-    if err != nil {
-        return nil, fmt.Errorf("failed to marshal request body: %v", err)
-    }
+	// Prepare the request body for the login
+	requestBody, err := json.Marshal(map[string]string{
+		"grant_type":    "password",
+		"client_id":     clientID,
+		"client_secret": clientSecret,
+		"username":      email,
+		"password":      password,
+		"scope":         "openid profile email",
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal request body: %v", err)
+	}
 
-    // Construct the full URL for the Auth0 token endpoint
-    url := fmt.Sprintf("https://%s/oauth/token", auth0Domain)
-    fmt.Printf("Auth0 URL: %s\n", url)  // Debug: Print the constructed URL
+	// Construct the full URL for the Auth0 token endpoint
+	url := fmt.Sprintf("https://%s/oauth/token", auth0Domain)
+	fmt.Printf("Auth0 URL: %s\n", url) // Debug: Print the constructed URL
 
-    // Make the HTTP POST request to Auth0
-    resp, err := http.Post(url, "application/json", bytes.NewBuffer(requestBody))
-    if err != nil {
-        return nil, fmt.Errorf("failed to send request to Auth0: %v", err)
-    }
-    defer resp.Body.Close()
+	// Make the HTTP POST request to Auth0
+	resp, err := http.Post(url, "application/json", bytes.NewBuffer(requestBody))
+	if err != nil {
+		return nil, fmt.Errorf("failed to send request to Auth0: %v", err)
+	}
+	defer resp.Body.Close()
 
-    // Check if the response is successful
-    if resp.StatusCode != http.StatusOK {
-        var errorResponse map[string]interface{}
-        json.NewDecoder(resp.Body).Decode(&errorResponse)
-        return nil, fmt.Errorf("auth0 login failed: %v", errorResponse["error_description"])
-    }
+	// Check if the response is successful
+	if resp.StatusCode != http.StatusOK {
+		var errorResponse map[string]interface{}
+		json.NewDecoder(resp.Body).Decode(&errorResponse)
+		return nil, fmt.Errorf("auth0 login failed: %v", errorResponse["error_description"])
+	}
 
-    // Parse the response body
-    var tokenResponse Auth0TokenResponse
-    err = json.NewDecoder(resp.Body).Decode(&tokenResponse)
-    if err != nil {
-        return nil, fmt.Errorf("failed to parse Auth0 login response: %v", err)
-    }
+	// Parse the response body
+	var tokenResponse Models.Auth0TokenResponse
+	err = json.NewDecoder(resp.Body).Decode(&tokenResponse)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse Auth0 login response: %v", err)
+	}
 
-    return &tokenResponse, nil
+	return &tokenResponse, nil
 }
+
 // auth0Register sends a registration request to Auth0 and registers a new user
-func auth0Register(email, password string) (*Auth0RegisterResponse, error) {
+func Register(email, password string) (*Models.Auth0RegisterResponse, error) {
 	auth0Domain := os.Getenv("AUTH0_DOMAIN")
 	clientID := os.Getenv("AUTH0_CLIENT_ID")
 
@@ -112,7 +159,7 @@ func auth0Register(email, password string) (*Auth0RegisterResponse, error) {
 	if resp.StatusCode != http.StatusOK {
 		var errorResponse map[string]interface{}
 		json.NewDecoder(resp.Body).Decode(&errorResponse)
-	
+
 		// Print the entire error response to examine its structure
 		fmt.Printf("Full error response: %+v\n", errorResponse)
 		if errorCode, ok := errorResponse["code"].(string); ok && errorCode == "invalid_password" {
@@ -122,14 +169,13 @@ func auth0Register(email, password string) (*Auth0RegisterResponse, error) {
 		if errorMessage, ok := errorResponse["error"].(string); ok {
 			return nil, fmt.Errorf("registration failed: %s", errorMessage)
 		}
-	
+
 		// Fallback generic message if no specific error field is present
 		return nil, fmt.Errorf("registration failed: unable to process request")
 	}
-	
 
 	// Parse the response body
-	var registerResponse Auth0RegisterResponse
+	var registerResponse Models.Auth0RegisterResponse
 	err = json.NewDecoder(resp.Body).Decode(&registerResponse)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse Auth0 registration response: %v", err)
@@ -137,8 +183,9 @@ func auth0Register(email, password string) (*Auth0RegisterResponse, error) {
 
 	return &registerResponse, nil
 }
+
 // auth0PasswordReset sends a password reset request to Auth0
-func auth0PasswordReset(email string) error {
+func PasswordReset(email string) error {
 	auth0Domain := os.Getenv("AUTH0_DOMAIN")
 	clientID := os.Getenv("AUTH0_CLIENT_ID")
 

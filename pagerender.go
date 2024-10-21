@@ -11,6 +11,8 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
+
+	Models "dreamfriday/models"
 )
 
 // Define the H1 component
@@ -141,9 +143,9 @@ type Component interface {
 	Render(ctx context.Context, w io.Writer) error
 }
 
-var componentMap = map[string]func(PageElement, []Component) Component{
+var componentMap = map[string]func(Models.PageElement, []Component) Component{
 
-	"H1": func(element PageElement, _ []Component) Component {
+	"H1": func(element Models.PageElement, _ []Component) Component {
 		// Extract text content from the PageElement
 		text := element.Text
 
@@ -175,7 +177,7 @@ var componentMap = map[string]func(PageElement, []Component) Component{
 		}
 	},
 
-	"P": func(element PageElement, _ []Component) Component {
+	"P": func(element Models.PageElement, _ []Component) Component {
 		// Extract text content from the PageElement
 		text := element.Text
 
@@ -200,7 +202,7 @@ var componentMap = map[string]func(PageElement, []Component) Component{
 		}
 	},
 
-	"Div": func(element PageElement, children []Component) Component {
+	"Div": func(element Models.PageElement, children []Component) Component {
 		randomClassName := "div_" + generateRandomClassName(6) // Generate a 6-character random string
 		attr := map[string]string{
 			"class": randomClassName,
@@ -231,7 +233,7 @@ var componentMap = map[string]func(PageElement, []Component) Component{
 }
 
 // RenderPageContent recursively renders elements from JSON
-func RenderPageContent(ctx context.Context, elements []PageElement) ([]Component, error) {
+func RenderPageContent(ctx context.Context, elements []Models.PageElement) ([]Component, error) {
 	var renderedComponents []Component
 
 	// Traverse and render each element
@@ -269,7 +271,7 @@ func RenderJSONContent(c echo.Context, jsonContent interface{}) error {
 	log.Printf("jsonContent type: %T, value: %+v", jsonContent, jsonContent)
 
 	// Assert that jsonContent is a slice of PageElement
-	pageContent, ok := jsonContent.([]PageElement)
+	pageContent, ok := jsonContent.([]Models.PageElement)
 	if !ok {
 		return c.String(http.StatusBadRequest, "Invalid content structure, expected []PageElement")
 	}

@@ -7,53 +7,16 @@ import (
 	"os"
 
 	"github.com/a-h/templ"
-	"github.com/gorilla/sessions"
+
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 
 	_ "github.com/lib/pq"
+
+	Auth "dreamfriday/auth"
+	Database "dreamfriday/database"
+	Models "dreamfriday/models"
 )
-
-var (
-	store *sessions.CookieStore
-)
-
-type SiteData struct {
-	Meta  Meta            `json:"meta"`
-	Pages map[string]Page `json:"pages"` // Flexible page names
-}
-
-type Meta struct {
-	Title string `json:"title"`
-}
-
-type Page struct {
-	Elements []PageElement `json:"elements"`
-}
-
-type PageElement struct {
-	Type       string        `json:"type"` // The "type" for each element (e.g., "Div")
-	Attributes Attributes    `json:"attributes"`
-	Elements   []PageElement `json:"elements"` // Nested elements like "H1"
-	Text       string        `json:"text"`     // Text content for elements like "H1"
-}
-
-type Attributes struct {
-	ID    string                 `json:"id"`
-	Style map[string]interface{} `json:"style"` // Flexible styling keys
-}
-
-type Auth0TokenResponse struct {
-	AccessToken string `json:"access_token"`
-	IDToken     string `json:"id_token"`
-	ExpiresIn   int    `json:"expires_in"`
-	TokenType   string `json:"token_type"`
-}
-
-type Auth0RegisterResponse struct {
-	Email   string `json:"email"`
-	Success bool   `json:"success"`
-}
 
 // fetchSiteDataForDomain queries the database for site data based on the domain.
 
@@ -65,7 +28,7 @@ func loadSiteDataMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		domain := "dreamfriday.com" // Debug: Hardcoded domain for testing
 
 		// Fetch site data for the current domain from the database
-		siteData, err := fetchSiteDataForDomain(domain)
+		siteData, err := Database.FetchSiteDataForDomain(domain)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, fmt.Sprintf("Failed to load site data for domain %s: %v", domain, err))
 		}
@@ -88,31 +51,23 @@ func init() {
 	}
 
 	// Use the strings directly as raw keys
-	hashKey := []byte(os.Getenv("SESSION_HASH_KEY"))
-	blockKey := []byte(os.Getenv("SESSION_BLOCK_KEY"))
 
-	connStr = os.Getenv("DATABASE_CONNECTION_STRING")
-	if connStr == "" {
+	Database.ConnStr = os.Getenv("DATABASE_CONNECTION_STRING")
+	if Database.ConnStr == "" {
 		log.Fatal("DATABASE_CONNECTION_STRING environment variable not set")
 	}
 
 	fmt.Printf("Auth0 Domain: %s\n", os.Getenv("AUTH0_DOMAIN")) // New Debug
 
-	// Initialize the session store with secure hash and block keys
-	store = sessions.NewCookieStore(hashKey, blockKey)
-	store.Options = &sessions.Options{
-		Path:     "/",
-		MaxAge:   3600 * 1, // 1 hour
-		HttpOnly: true,
-		Secure:   false, // Set to true in production (requires HTTPS)
-		SameSite: http.SameSiteLaxMode,
-	}
+	// Initialize the session store
+	Auth.InitSessionStore()
+
 }
 
 func main() {
 
 	// Initialize the database connection
-	db, err := DBconnect()
+	db, err := Database.Connect()
 
 	if err != nil {
 		log.Fatalf("Failed to connect to the database: %v", err)
@@ -125,17 +80,22 @@ func main() {
 	e.Use(loadSiteDataMiddleware)
 
 	// Routes
-	e.GET("/", Home)                        // Display login form
-	e.GET("/register", RegisterForm)        // Display the registration form
-	e.POST("/register", Register)           // Handle form submission and register the user
-	e.GET("/login", LoginForm)              // Display login form
-	e.POST("/login", Login)                 // Handle form submission and login
-	e.GET("/admin", Admin, isAuthenticated) // Protected route
-	e.GET("/logout", Logout)                // Display login form
+	e.GET("/", Home) // Display login form
+
+	e.GET("/register", RegisterForm) // Display the registration form
+	e.POST("/register", Register)    // Handle form submission and register the user
+
+	e.GET("/login", LoginForm) // Display login form
+	e.POST("/login", Login)    // Handle form submission and login
 
 	// Password reset routes
 	e.GET("/reset", PasswordResetForm) // Display password reset form
 	e.POST("/reset", PasswordReset)    // Handle password reset request
+
+	e.GET("/logout", Logout) // Display login form
+
+	e.GET("/admin", Admin, Auth.IsAuthenticated)
+	e.GET("/admin/:domain", AdminSite, Auth.IsAuthenticated)
 
 	e.Logger.Fatal(e.Start(":8080"))
 }
@@ -156,7 +116,7 @@ func HTML(c echo.Context, cmp templ.Component) error {
 
 func Home(c echo.Context) error {
 	// Retrieve the site data from the context
-	siteData := c.Get("siteData").(SiteData)
+	siteData := c.Get("siteData").(Models.SiteData)
 
 	// Check if the "home" page exists in the site data
 	homePage, ok := siteData.Pages["home"]
@@ -192,7 +152,7 @@ func Register(c echo.Context) error {
 	password := c.FormValue("password")
 
 	// Call Auth0 to register the new user
-	_, err := auth0Register(email, password)
+	_, err := Auth.Register(email, password)
 	if err != nil {
 		// Return a clean error message to the user
 		return c.HTML(http.StatusBadRequest, fmt.Sprintf(`
@@ -212,7 +172,7 @@ func Register(c echo.Context) error {
 
 // LoginForm renders a simple login form
 func LoginForm(c echo.Context) error {
-	session, _ := store.Get(c.Request(), "session")
+	session, _ := Auth.GetSession(c.Request(), "session")
 	if session.Values["accessToken"] != nil {
 		fmt.Println("Already logged in")
 		return c.Redirect(http.StatusFound, "/admin")
@@ -246,7 +206,7 @@ func PasswordReset(c echo.Context) error {
 	email := c.FormValue("email")
 
 	// Call Auth0 to send the password reset email
-	err := auth0PasswordReset(email)
+	err := Auth.PasswordReset(email)
 	if err != nil {
 		// If there's an error, display a failure message
 		return c.HTML(http.StatusBadRequest, fmt.Sprintf(`
@@ -272,12 +232,12 @@ func Login(c echo.Context) error {
 	fmt.Printf("Received Email: %s\n", email)
 
 	// Call Auth0 for authentication
-	tokenResponse, err := auth0Login(email, password)
+	tokenResponse, err := Auth.Login(email, password)
 	if err != nil {
 		return c.JSON(http.StatusUnauthorized, map[string]string{"error": err.Error()})
 	}
 	// Store token in session
-	session, _ := store.Get(c.Request(), "session")
+	session, _ := Auth.GetSession(c.Request(), "session")
 	session.Values["accessToken"] = tokenResponse.AccessToken
 	session.Values["email"] = email
 
@@ -288,7 +248,7 @@ func Login(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, "Could not save session")
 	}
 	// Debug: Print session values for confirmation
-	fmt.Println("Session saved with Access Token:", session.Values["accessToken"])
+	// fmt.Println("Session saved with Access Token:", session.Values["accessToken"])
 	fmt.Println("Session saved with Email:", session.Values["email"])
 
 	return c.Redirect(http.StatusFound, "/admin")
@@ -297,7 +257,7 @@ func Login(c echo.Context) error {
 func Logout(c echo.Context) error {
 	fmt.Println("Logging out")
 	// Get the session
-	session, _ := store.Get(c.Request(), "session")
+	session, _ := Auth.GetSession(c.Request(), "session")
 	// Invalidate the session by setting MaxAge to -1
 	session.Options.MaxAge = -1
 	// Save the session to apply changes (i.e., destroy the session)
@@ -313,14 +273,11 @@ func Logout(c echo.Context) error {
 // Admin is a protected route that requires a valid session
 func Admin(c echo.Context) error {
 	// Retrieve the session
-	session, err := store.Get(c.Request(), "session")
+	session, err := Auth.GetSession(c.Request(), "session")
 	if err != nil {
 		log.Println("Failed to get session:", err)
 		return c.String(http.StatusInternalServerError, "Failed to retrieve session")
 	}
-
-	// Debug log session values
-	log.Printf("Session values: %+v", session.Values)
 
 	// Get email from session
 	email, ok := session.Values["email"].(string)
@@ -330,7 +287,7 @@ func Admin(c echo.Context) error {
 	}
 
 	// Fetch sites for the owner (email)
-	sites, err := getSitesForOwner(email)
+	sites, err := Database.GetSitesForOwner(email)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, "Failed to fetch sites for owner")
 	}
@@ -355,4 +312,35 @@ func Admin(c echo.Context) error {
 			</section>
 		</Main>
 	`, email, sitesHTML))
+}
+
+// /admin/:domain route
+func AdminSite(c echo.Context) error {
+	// Retrieve the session
+	session, err := Auth.GetSession(c.Request(), "session")
+	if err != nil {
+		log.Println("Failed to get session:", err)
+		return c.String(http.StatusInternalServerError, "Failed to retrieve session")
+	}
+
+	// Get email from session
+	// @TODO: add email getter function to Auth package
+	email, ok := session.Values["email"].(string)
+	if !ok || email == "" {
+		log.Fatal("Email is not set or invalid in the session")
+		return c.String(http.StatusUnauthorized, "Unauthorized: Email not found in session")
+	}
+
+	var domain = "test"
+
+	// Return HTML response
+	return c.HTML(http.StatusOK, fmt.Sprintf(`
+		<Main>
+			<header>
+				Manage: %s 
+				<a href="/admin">Back</a>
+			</header>
+			
+		</Main>
+	`, domain))
 }
