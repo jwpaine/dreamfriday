@@ -32,8 +32,15 @@ func loadSiteDataMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			return next(c)
 		}
 		// Extract the domain from the request's Host header
-		//domain := c.Request().Host
-		domain := "dreamfriday.com" // Debug: Hardcoded domain for testing
+		domain := ""
+		if c.Request().Host == "localhost:8080" {
+			domain = "dreamfriday.com"
+		} else {
+			domain = c.Request().Host
+		}
+
+		log.Printf("Domain: %s\n", domain) // Debug: Print the domain
+		// domain := "dreamfriday.com" // Debug: Hardcoded domain for testing
 
 		// Fetch site data for the current domain from the database
 		siteData, err := Database.FetchSiteDataForDomain(domain)
