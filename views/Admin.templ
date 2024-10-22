@@ -1,0 +1,23 @@
+package views
+
+
+templ Admin(email string, sites []string) {
+    @Root() {
+        <main>
+            <header>
+                <span>My Account</span>
+                { email }
+            </header>
+            <section>
+                <h2>My Sites</h2>
+                <ul>
+                for _, site := range sites {
+                    <li><a href={templ.SafeURL("/admin/" + site)}>{ site }</a></li> <!-- Convert to templ.SafeURL -->
+                }
+                </ul>
+            </section>
+        </main>
+    }
+}
+
+

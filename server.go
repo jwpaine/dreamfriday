@@ -279,25 +279,7 @@ func Admin(c echo.Context) error {
 	}
 
 	// Create an HTML list of the sites
-	sitesHTML := "<ul>"
-	for _, site := range sites {
-		sitesHTML += fmt.Sprintf("<li>%s</li>", site)
-	}
-	sitesHTML += "</ul>"
-
-	// Return HTML response
-	return c.HTML(http.StatusOK, fmt.Sprintf(`
-		<Main>
-			<header>
-				Admin page: %s 
-				<a href="/logout">Logout</a>
-			</header>
-			<section>
-				<h2>Your Sites</h2>
-				%s
-			</section>
-		</Main>
-	`, email, sitesHTML))
+	return RenderTemplate(c, http.StatusOK, Views.Admin(email, sites))
 }
 
 // /admin/:domain route
