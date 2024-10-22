@@ -1,5 +1,5 @@
 # Step 1: Build the Go application (builder stage)
-FROM golang:1.20-alpine AS builder
+FROM golang:1.23-alpine AS builder  # Updated to Go 1.23
 
 # Set the working directory inside the container
 WORKDIR /app
@@ -13,7 +13,7 @@ RUN go mod download
 # Copy the source code to the container
 COPY . .
 
-# Build the Go application (templ will be included as part of go.mod)
+# Build the Go application
 RUN go build -o server .
 
 # Step 2: Create a lightweight image to run the application
