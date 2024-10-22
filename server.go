@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"strings"
@@ -117,7 +118,21 @@ func main() {
 
 	e.Static("/static", "static")
 
-	e.Logger.Fatal(e.Start(":8080"))
+	listener, err := net.Listen("tcp4", "0.0.0.0:8080")
+	if err != nil {
+		log.Fatalf("Failed to bind to IPv4: %v", err)
+	}
+
+	// Use http.Server with the custom listener
+	server := &http.Server{
+		Handler: e, // Pass the Echo instance as the handler
+	}
+
+	log.Println("Starting server on IPv4 address 0.0.0.0:8080...")
+	err = server.Serve(listener)
+	if err != nil {
+		log.Fatalf("Server error: %v", err)
+	}
 }
 
 func HTML(c echo.Context, cmp templ.Component) error {
