@@ -23,6 +23,12 @@ func InitSessionStore() {
 	hashKey := os.Getenv("SESSION_HASH_KEY")
 	blockKey := os.Getenv("SESSION_BLOCK_KEY")
 
+	useHTTPS := false
+
+	if os.Getenv("USE_HTTPS") == "true" {
+		useHTTPS = true
+	}
+
 	// Error check if the keys are not set or empty
 	if hashKey == "" {
 		log.Fatal("Error: SESSION_HASH_KEY is not set or is empty")
@@ -43,8 +49,8 @@ func InitSessionStore() {
 	store.Options = &sessions.Options{
 		Path:     "/",
 		MaxAge:   3600 * 1, // 1 hour
-		HttpOnly: true,
-		Secure:   false, // Set to true in production (requires HTTPS)
+		HttpOnly: !useHTTPS,
+		Secure:   useHTTPS, // Set to true in production (requires HTTPS)
 		SameSite: http.SameSiteLaxMode,
 	}
 
