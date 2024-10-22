@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -103,6 +104,7 @@ func main() {
 
 	e.GET("/admin", Admin, Auth.IsAuthenticated)
 	e.GET("/admin/:domain", AdminSite, Auth.IsAuthenticated)
+	e.POST("/admin/:domain", UpdatePreview, Auth.IsAuthenticated)
 
 	e.Static("/static", "static")
 
@@ -308,7 +310,70 @@ func AdminSite(c echo.Context) error {
 
 	// retrieve domain from /admin/:domain route:
 	domain := c.Param("domain")
+	log.Println("Pulling preview data for Domain:", domain)
+
+	previewData, err := Database.FetchPreviewData(domain, email)
+
+	if err != nil {
+		return c.String(http.StatusInternalServerError, "Failed to fetch preview data for domain")
+	}
 
 	// Return HTML response
-	return RenderTemplate(c, http.StatusOK, Views.ManageSite(domain))
+	return RenderTemplate(c, http.StatusOK, Views.ManageSite(domain, previewData))
 }
+
+func UpdatePreview(c echo.Context) error {
+	// Retrieve the session
+	session, err := Auth.GetSession(c.Request(), "session")
+	if err != nil {
+		log.Println("Failed to get session:", err)
+		return c.String(http.StatusInternalServerError, "Failed to retrieve session")
+	}
+
+	email, ok := session.Values["email"].(string)
+	if !ok || email == "" {
+		log.Fatal("Email is not set or invalid in the session")
+		return c.String(http.StatusUnauthorized, "Unauthorized: Email not found in session")
+	}
+
+	domain := c.Param("domain")
+
+	if domain == "" {
+		return c.String(http.StatusBadRequest, "Domain is required")
+	}
+
+	log.Printf("Updating preview data for Domain %s for email %s", domain, email)
+
+	// validate and then update preview data here
+	previewData := c.FormValue("previewData")
+
+	var p_unmarshal Models.SiteData
+
+	// validate previewData
+	err = json.Unmarshal([]byte(previewData), &p_unmarshal)
+	if err != nil {
+		log.Printf("Failed to unmarshal site data for domain --> %s: %v", domain, err)
+		msg := []Models.Message{
+			{Message: "Invalid structure", Type: "error"},
+		}
+		return RenderTemplate(c, http.StatusOK, Views.RenderMessages(msg))
+	}
+
+	//structure valid, save to database (and set status = "unpublished")
+
+	err = Database.UpdatePreviewData(domain, email, previewData)
+	if err != nil {
+		msg := []Models.Message{
+			{Message: "Unable to save to database", Type: "error"},
+		}
+		return RenderTemplate(c, http.StatusOK, Views.RenderMessages(msg))
+	}
+
+	msg := []Models.Message{
+		{Message: "Preview data updated successfully", Type: "success"},
+	}
+	return RenderTemplate(c, http.StatusOK, Views.RenderMessages(msg))
+
+}
+
+// Get email from session

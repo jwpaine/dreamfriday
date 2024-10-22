@@ -8,7 +8,15 @@ templ ManageSite(domain string, previewData string) {
         <main>
             <h1>Manage {domain}</h1>
 
-            { previewData }
+            <form hx-post={"/admin/" + domain} hx-target="#messages" hx-swap="innerHTML">
+                <textarea name="previewData">
+                     { previewData }
+                </textarea>
+                <button type="submit">Save</button>
+            </form>
+            <span id="messages">
+                
+            </span>
             
         </main>
     }

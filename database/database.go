@@ -72,6 +72,32 @@ func FetchSiteDataForDomain(domain string) (Models.SiteData, error) {
 	return siteData, nil
 }
 
+func FetchPreviewData(domain string, email string) (string, error) {
+	fmt.Printf("Fetching site data from the database for domain: %s\n", domain)
+
+	previewDataJSON := ""
+	//	var previewData Models.SiteData
+
+	// Ensure that db is not nil before attempting to query
+	if db == nil {
+		log.Println("db is nil")
+		return "", fmt.Errorf("database connection is not initialized")
+	}
+
+	err := db.QueryRow("SELECT preview FROM sites WHERE domain = $1 AND owner = $2", domain, email).Scan(&previewDataJSON)
+	if err == sql.ErrNoRows {
+		log.Printf("No site data found for domain: %s", domain)
+		return "", fmt.Errorf("No site data found for domain: %s", domain)
+	}
+	if err != nil {
+		log.Printf("Failed to fetch site data for domain %s: %v", domain, err)
+		return "", err
+	}
+
+	return previewDataJSON, nil
+
+}
+
 func GetSitesForOwner(email string) ([]string, error) {
 	if db == nil {
 		return nil, fmt.Errorf("db is not initialized")
@@ -97,4 +123,24 @@ func GetSitesForOwner(email string) ([]string, error) {
 	}
 
 	return domains, nil
+}
+
+func UpdatePreviewData(domain string, email string, previewData string) error {
+	fmt.Printf("Updating preview data for domain: %s\n", domain)
+
+	// Ensure that db is not nil before attempting to query
+	if db == nil {
+		log.Println("db is nil")
+		return fmt.Errorf("database connection is not initialized")
+	}
+
+	// Execute the update query
+	_, err := db.Exec("UPDATE sites SET preview = $1 WHERE domain = $2 AND owner = $3", previewData, domain, email)
+
+	if err != nil {
+		log.Printf("Failed to update preview data for domain: %s, error: %v", domain, err)
+		return err
+	}
+
+	return nil
 }
