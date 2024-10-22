@@ -137,16 +137,24 @@ func Home(c echo.Context) error {
 
 // RegisterForm renders the registration form
 func RegisterForm(c echo.Context) error {
-	return c.HTML(http.StatusOK, `
-		<h1>Register</h1>
-		<form method="POST" action="/register">
-			<label for="email">Email:</label>
-			<input type="email" id="email" name="email" required>
-			<label for="password">Password:</label>
-			<input type="password" id="password" name="password" required>
-			<button type="submit">Register</button>
-		</form>
-	`)
+	return RenderTemplate(c, http.StatusOK, Views.Register())
+}
+
+func RenderTemplate(c echo.Context, status int, cmp templ.Component) error {
+	// Set the Content-Type header to text/html
+	c.Response().Header().Set(echo.HeaderContentType, echo.MIMETextHTMLCharsetUTF8)
+
+	// Set the response status code to the provided status
+	c.Response().WriteHeader(status)
+
+	// Render the component directly to the response writer
+	err := cmp.Render(c.Request().Context(), c.Response().Writer)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, "Error rendering template: "+err.Error())
+	}
+
+	// Return nil as rendering is already done
+	return nil
 }
 
 // Register handles the form submission and calls auth0Register to create a new user
@@ -154,23 +162,26 @@ func Register(c echo.Context) error {
 	email := c.FormValue("email")
 	password := c.FormValue("password")
 
+	if email == "" || password == "" {
+		msgs := []Models.Message{
+			{Message: "Email and password required", Type: "error"},
+		}
+		return RenderTemplate(c, http.StatusOK, Views.RegisterError(msgs))
+	}
+
 	// Call Auth0 to register the new user
 	_, err := Auth.Register(email, password)
 	if err != nil {
 		// Return a clean error message to the user
-		return c.HTML(http.StatusBadRequest, fmt.Sprintf(`
-			<h1>Registration Failed</h1>
-			<p>%s</p>
-			<a href="/register">Try again</a>
-		`, err.Error()))
+		msgs := []Models.Message{
+			{Message: err.Error(), Type: "error"},
+		}
+
+		return RenderTemplate(c, http.StatusOK, Views.RegisterError(msgs))
 	}
 
 	// Successfully registered, render success HTML page
-	return c.HTML(http.StatusOK, fmt.Sprintf(`
-		<h1>Registration Successful</h1>
-		<p>A verification email has been sent to %s. Please check your email to verify your account.</p>
-		<a href="/login">Go to Login</a>
-	`, email))
+	return RenderTemplate(c, http.StatusOK, Views.RegisterSuccess(email))
 }
 
 // LoginForm renders a simple login form
@@ -207,8 +218,7 @@ func Login(c echo.Context) error {
 	tokenResponse, err := Auth.Login(email, password)
 	if err != nil {
 		msgs := []Models.Message{
-			{Message: "foo", Type: "info"},
-			{Message: "bar", Type: "error"},
+			{Message: err.Error(), Type: "error"},
 		}
 		return HTML(c, Views.RenderMessages(msgs))
 	}

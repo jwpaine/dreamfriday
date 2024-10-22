@@ -1,0 +1,46 @@
+package views
+
+import (
+    Models "dreamfriday/models"
+)
+
+templ RegisterSuccess(email string) {
+        
+    <main>
+        <h1>Registration successful!</h1>
+        <p>Confirmation email sent to { email }</p>
+        <a href="/login">Login</a>
+    </main>
+}
+
+templ RegisterForm() {
+        
+     <form hx-post="/register" hx-target="#main-section" hx-swap="outerHTML"> 
+        <label for="email">Email:</label>
+        <input type="text" id="email" name="email" required>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required>
+        <button type="submit">Register</button>
+    </form>
+}
+
+templ Register() {
+    @Root() {
+        <main id="main-section">
+            <h1>Register</h1>
+            @RegisterForm()
+        </main>
+    }
+}
+templ RegisterError(msgs []Models.Message) {
+    <main id="main-section">
+        <h1>Register</h1>
+        @RegisterForm()
+        <span id="messages">
+            @RenderMessages(msgs)
+        </span>
+    </main>
+}
+
+
+

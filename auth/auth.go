@@ -148,7 +148,7 @@ func Register(email, password string) (*Models.Auth0RegisterResponse, error) {
 	}
 
 	// Make the HTTP POST request to Auth0
-	url := fmt.Sprintf("%s/dbconnections/signup", auth0Domain)
+	url := fmt.Sprintf("https://%s/dbconnections/signup", auth0Domain)
 	resp, err := http.Post(url, "application/json", bytes.NewBuffer(requestBody))
 	if err != nil {
 		return nil, fmt.Errorf("failed to send request to Auth0: %v", err)
