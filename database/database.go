@@ -135,10 +135,30 @@ func UpdatePreviewData(domain string, email string, previewData string) error {
 	}
 
 	// Execute the update query
-	_, err := db.Exec("UPDATE sites SET preview = $1 WHERE domain = $2 AND owner = $3", previewData, domain, email)
+	_, err := db.Exec("UPDATE sites SET preview = $1, status = 'unpublished' WHERE domain = $2 AND owner = $3", previewData, domain, email)
 
 	if err != nil {
 		log.Printf("Failed to update preview data for domain: %s, error: %v", domain, err)
+		return err
+	}
+
+	return nil
+}
+
+func Publish(domain string, email string) error {
+	fmt.Printf("publishing domain: %s\n", domain)
+
+	// Ensure that db is not nil before attempting to query
+	if db == nil {
+		log.Println("db is nil")
+		return fmt.Errorf("database connection is not initialized")
+	}
+
+	// Execute the update query
+	_, err := db.Exec("UPDATE sites SET data = preview, status = 'published' WHERE domain = $1 AND owner = $2", domain, email)
+
+	if err != nil {
+		log.Printf("Failed to publish domain: %s, error: %v", domain, err)
 		return err
 	}
 

@@ -106,6 +106,8 @@ func main() {
 	e.GET("/admin/:domain", AdminSite, Auth.IsAuthenticated)
 	e.POST("/admin/:domain", UpdatePreview, Auth.IsAuthenticated)
 
+	e.POST("/publish/:domain", Publish, Auth.IsAuthenticated)
+
 	e.Static("/static", "static")
 
 	e.Logger.Fatal(e.Start(":8080"))
@@ -347,6 +349,8 @@ func UpdatePreview(c echo.Context) error {
 	// validate and then update preview data here
 	previewData := c.FormValue("previewData")
 
+	log.Printf("Preview Data: %s", previewData)
+
 	var p_unmarshal Models.SiteData
 
 	// validate previewData
@@ -376,4 +380,39 @@ func UpdatePreview(c echo.Context) error {
 
 }
 
-// Get email from session
+func Publish(c echo.Context) error {
+	session, err := Auth.GetSession(c.Request(), "session")
+	if err != nil {
+		log.Println("Failed to get session:", err)
+		return c.String(http.StatusInternalServerError, "Failed to retrieve session")
+	}
+
+	email, ok := session.Values["email"].(string)
+	if !ok || email == "" {
+		log.Fatal("Email is not set or invalid in the session")
+		return c.String(http.StatusUnauthorized, "Unauthorized: Email not found in session")
+	}
+
+	domain := c.Param("domain")
+
+	if domain == "" {
+		return c.String(http.StatusBadRequest, "Domain is required")
+	}
+
+	log.Printf("Publishing Domain %s for email %s", domain, email)
+
+	err = Database.Publish(domain, email)
+
+	if err != nil {
+		msg := []Models.Message{
+			{Message: "Unable to publish", Type: "error"},
+		}
+		return RenderTemplate(c, http.StatusOK, Views.RenderMessages(msg))
+	}
+
+	msg := []Models.Message{
+		{Message: "Publish successful", Type: "success"},
+	}
+	return RenderTemplate(c, http.StatusOK, Views.RenderMessages(msg))
+
+}
