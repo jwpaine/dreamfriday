@@ -58,11 +58,11 @@ func loadSiteDataMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 // Load environment variables
 func init() {
 	// Load environment variables from .env file
-	err := godotenv.Load()
-	if err != nil {
-		fmt.Println("Error loading .env file")
-	} else {
-		fmt.Println(".env file loaded successfully")
+	if os.Getenv("ENV") != "production" {
+		err := godotenv.Load()
+		if err != nil {
+			log.Println("Error loading .env file")
+		}
 	}
 
 	// Use the strings directly as raw keys
