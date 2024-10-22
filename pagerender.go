@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"log"
 	"math/rand"
 	"net/http"
 	"strings"
@@ -45,18 +44,18 @@ func generateRandomClassName(n int) string {
 
 func GenerateCSS(className string, cssProperties map[string]string) string {
 	if len(cssProperties) == 0 {
-		fmt.Println("No CSS properties found") // Debugging line
-		return ""                              // No CSS to generate
+		// fmt.Println("No CSS properties found") // Debugging line
+		return "" // No CSS to generate
 	}
 
 	// Generate CSS from the key-value pairs in the CSSProperties map
 	css := fmt.Sprintf(".%s {", className)
 	for property, value := range cssProperties {
-		fmt.Printf("Adding CSS property: %s: %s\n", property, value) // Debugging line
+		// fmt.Printf("Adding CSS property: %s: %s\n", property, value) // Debugging line
 		css += fmt.Sprintf(" %s: %s;", property, value)
 	}
 	css += " }"
-	fmt.Println("Generated CSS:", css) // Debugging line
+	// fmt.Println("Generated CSS:", css) // Debugging line
 	return css
 }
 
@@ -164,9 +163,9 @@ var componentMap = map[string]func(Models.PageElement, []Component) Component{
 
 		// Debug: Log the extracted CSS properties
 		if len(cssProps) == 0 {
-			log.Println("No CSS properties found")
+			// log.Println("No CSS properties found")
 		} else {
-			log.Printf("CSS properties: %+v", cssProps)
+			// log.Printf("CSS properties: %+v", cssProps)
 		}
 
 		// Return the H1Component with the extracted text, attributes, and CSS
@@ -217,11 +216,11 @@ var componentMap = map[string]func(Models.PageElement, []Component) Component{
 		}
 
 		// Debug: Log the extracted CSS properties
-		if len(cssProps) == 0 {
-			log.Println("No CSS properties found")
-		} else {
-			log.Printf("CSS properties: %+v", cssProps)
-		}
+		// if len(cssProps) == 0 {
+		// 	log.Println("No CSS properties found")
+		// } else {
+		// 	log.Printf("CSS properties: %+v", cssProps)
+		// }
 
 		// Return a pointer to DivComponent with CSS properties and children
 		return &DivComponent{
@@ -268,7 +267,7 @@ func RenderJSONContent(c echo.Context, jsonContent interface{}) error {
 	ctx := c.Request().Context()
 
 	// Debug: Print the type and content of jsonContent
-	log.Printf("jsonContent type: %T, value: %+v", jsonContent, jsonContent)
+	// log.Printf("jsonContent type: %T, value: %+v", jsonContent, jsonContent)
 
 	// Assert that jsonContent is a slice of PageElement
 	pageContent, ok := jsonContent.([]Models.PageElement)

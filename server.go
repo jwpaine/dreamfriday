@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/a-h/templ"
 
@@ -19,11 +20,16 @@ import (
 	Views "dreamfriday/views"
 )
 
-// fetchSiteDataForDomain queries the database for site data based on the domain.
-
 // Middleware to load site data on the first request
+// @TODO: Add caching to avoid querying the database on every request
 func loadSiteDataMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
+		// Skip middleware for static files
+		path := c.Request().URL.Path
+		if strings.HasPrefix(path, "/static/") || path == "/favicon.ico" {
+			log.Println("Skipping middleware for static or favicon request:", path)
+			return next(c)
+		}
 		// Extract the domain from the request's Host header
 		//domain := c.Request().Host
 		domain := "dreamfriday.com" // Debug: Hardcoded domain for testing
@@ -129,7 +135,7 @@ func Home(c echo.Context) error {
 	}
 
 	// Debug: Check the type and value of homePage.Elements
-	log.Printf("homePage.Elements type: %T, value: %+v", homePage.Elements, homePage.Elements)
+	// log.Printf("homePage.Elements type: %T, value: %+v", homePage.Elements, homePage.Elements)
 
 	// Pass the homePage.Elements (a slice of PageElement) to RenderJSONContent
 	return RenderJSONContent(c, homePage.Elements)
@@ -280,6 +286,7 @@ func Admin(c echo.Context) error {
 
 	// Create an HTML list of the sites
 	return RenderTemplate(c, http.StatusOK, Views.Admin(email, sites))
+
 }
 
 // /admin/:domain route
@@ -299,16 +306,9 @@ func AdminSite(c echo.Context) error {
 		return c.String(http.StatusUnauthorized, "Unauthorized: Email not found in session")
 	}
 
-	var domain = "test"
+	// retrieve domain from /admin/:domain route:
+	domain := c.Param("domain")
 
 	// Return HTML response
-	return c.HTML(http.StatusOK, fmt.Sprintf(`
-		<Main>
-			<header>
-				Manage: %s 
-				<a href="/admin">Back</a>
-			</header>
-			
-		</Main>
-	`, domain))
+	return RenderTemplate(c, http.StatusOK, Views.ManageSite(domain))
 }

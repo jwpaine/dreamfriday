@@ -51,8 +51,6 @@ func FetchSiteDataForDomain(domain string) (Models.SiteData, error) {
 		return Models.SiteData{}, fmt.Errorf("database connection is not initialized")
 	}
 
-	log.Printf("Attempting to query the database for domain: %s", domain)
-
 	// Using $1 to safely inject the domain parameter into the query
 	err := db.QueryRow("SELECT data FROM sites WHERE domain = $1", domain).Scan(&siteDataJSON)
 	if err == sql.ErrNoRows {

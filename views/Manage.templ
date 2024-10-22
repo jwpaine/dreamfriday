@@ -1,0 +1,15 @@
+package views
+
+
+
+
+templ ManageSite(domain string, previewData string) {
+    @Root() {
+        <main>
+            <h1>Manage {domain}</h1>
+
+            { previewData }
+            
+        </main>
+    }
+}
