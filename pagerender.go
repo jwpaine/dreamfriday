@@ -281,13 +281,49 @@ func RenderJSONContent(c echo.Context, jsonContent interface{}) error {
 		return c.String(http.StatusInternalServerError, "Error rendering page content: "+err.Error())
 	}
 
+	if len(renderedComponents) == 0 {
+		return c.String(http.StatusOK, "No content to render")
+	}
+
+	var renderedHTML strings.Builder
+
+	// Always include a script tag in the header
+	/* scriptTag := `<script src="/static/js/myscript.js"></script>`
+	renderedHTML.WriteString("<head>\n")
+	renderedHTML.WriteString(scriptTag)
+	renderedHTML.WriteString("\n</head>\n")
+	*/
+	// @TODO: pull global defaults from siteData
+	globalStyling := `
+		<style>
+			body {
+				margin: 0;
+				padding: 0;
+			}
+		</style>
+	`
+	renderedHTML.WriteString("<head>\n")
+	renderedHTML.WriteString(globalStyling)
+	renderedHTML.WriteString("\n</head>\n")
+
 	// Write the rendered components to the response
 	for _, component := range renderedComponents {
-		err = component.Render(ctx, c.Response().Writer)
+		err = component.Render(ctx, &renderedHTML)
 		if err != nil {
 			return c.String(http.StatusInternalServerError, "Error rendering component: "+err.Error())
 		}
 	}
 
-	return nil
+	// Output the full HTML content
+	return c.HTML(http.StatusOK, renderedHTML.String())
+
+	// Write the rendered components to the response
+	/* for _, component := range renderedComponents {
+		err = component.Render(ctx, c.Response().Writer)
+		if err != nil {
+			return c.String(http.StatusInternalServerError, "Error rendering component: "+err.Error())
+		}
+	} */
+	// return nil
+
 }

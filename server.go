@@ -154,17 +154,22 @@ func Home(c echo.Context) error {
 	siteData := c.Get("siteData").(Models.SiteData)
 
 	// Check if the "home" page exists in the site data
-	homePage, ok := siteData.Pages["home"]
+	pageData, ok := siteData.Pages["home"]
 	if !ok {
 		log.Println("Home page not found in site data")
-		return c.JSON(http.StatusNotFound, "Home page not found")
+		msgs := []Models.Message{
+			{Message: "page not found", Type: "error"},
+		}
+		return RenderTemplate(c, http.StatusOK, Views.RegisterError(msgs))
 	}
 
 	// Debug: Check the type and value of homePage.Elements
 	// log.Printf("homePage.Elements type: %T, value: %+v", homePage.Elements, homePage.Elements)
 
 	// Pass the homePage.Elements (a slice of PageElement) to RenderJSONContent
-	return RenderJSONContent(c, homePage.Elements)
+
+	return RenderJSONContent(c, pageData.Elements)
+
 }
 
 // RegisterForm renders the registration form
@@ -325,25 +330,37 @@ func AdminSite(c echo.Context) error {
 	}
 
 	// Get email from session
-	// @TODO: add email getter function to Auth package
 	email, ok := session.Values["email"].(string)
 	if !ok || email == "" {
 		log.Fatal("Email is not set or invalid in the session")
 		return c.String(http.StatusUnauthorized, "Unauthorized: Email not found in session")
 	}
 
-	// retrieve domain from /admin/:domain route:
+	// Retrieve domain from /admin/:domain route
 	domain := c.Param("domain")
 	log.Println("Pulling preview data for Domain:", domain)
 
+	// Fetch preview data from the database
 	previewData, err := Database.FetchPreviewData(domain, email)
-
 	if err != nil {
 		return c.String(http.StatusInternalServerError, "Failed to fetch preview data for domain")
 	}
 
-	// Return HTML response
+	// Format the previewData JSON with proper indentation
+	prettyPreviewData, err := json.MarshalIndent(previewData, "", "    ")
+	if err != nil {
+		log.Println("Failed to format preview data:", err)
+		return c.String(http.StatusInternalServerError, "Failed to format preview data")
+	}
+
+	// Convert []byte to string
+	prettyPreviewDataStr := string(prettyPreviewData)
+
+	fmt.Print(prettyPreviewDataStr)
+
+	// Pass the formatted JSON string directly to the view
 	return RenderTemplate(c, http.StatusOK, Views.ManageSite(domain, previewData))
+
 }
 
 func UpdatePreview(c echo.Context) error {
