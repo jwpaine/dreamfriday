@@ -39,7 +39,7 @@ func Connect() (*sql.DB, error) {
 
 }
 
-func FetchSiteDataForDomain(domain string) (Models.SiteData, error) {
+func FetchSiteDataForDomain(domain string) (*Models.SiteData, error) {
 	fmt.Printf("Fetching site data from the database for domain: %s\n", domain)
 
 	var siteDataJSON string
@@ -48,28 +48,28 @@ func FetchSiteDataForDomain(domain string) (Models.SiteData, error) {
 	// Ensure that db is not nil before attempting to query
 	if db == nil {
 		log.Println("db is nil")
-		return Models.SiteData{}, fmt.Errorf("database connection is not initialized")
+		return nil, fmt.Errorf("database connection is not initialized")
 	}
 
 	// Using $1 to safely inject the domain parameter into the query
 	err := db.QueryRow("SELECT data FROM sites WHERE domain = $1", domain).Scan(&siteDataJSON)
 	if err == sql.ErrNoRows {
 		log.Printf("No site data found for domain: %s", domain)
-		return Models.SiteData{}, fmt.Errorf("No site data found for domain: %s", domain)
+		return nil, fmt.Errorf("No site data found for domain: %s", domain)
 	}
 	if err != nil {
 		log.Printf("Failed to fetch site data for domain %s: %v", domain, err)
-		return Models.SiteData{}, err
+		return nil, err
 	}
-	// log.Printf("Raw JSON from database: %s", siteDataJSON)
+
 	// Unmarshal the JSON data into the siteData struct
 	err = json.Unmarshal([]byte(siteDataJSON), &siteData)
 	if err != nil {
 		log.Printf("Failed to unmarshal site data for domain --> %s: %v", domain, err)
-		return Models.SiteData{}, err
+		return nil, err
 	}
 
-	return siteData, nil
+	return &siteData, nil
 }
 
 func FetchPreviewData(domain string, email string) (string, error) {

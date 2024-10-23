@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log"
 	"math/rand"
 	"net/http"
 	"strings"
@@ -266,34 +267,37 @@ func RenderPageContent(ctx context.Context, elements []Models.PageElement) ([]Co
 func RenderJSONContent(c echo.Context, jsonContent interface{}) error {
 	ctx := c.Request().Context()
 
-	// Debug: Print the type and content of jsonContent
-	// log.Printf("jsonContent type: %T, value: %+v", jsonContent, jsonContent)
+	// Debug: Ensure jsonContent is not nil
+	if jsonContent == nil {
+		log.Println("jsonContent is nil")
+		return c.String(http.StatusInternalServerError, "No content provided")
+	}
+
+	// Debug: Log the type of jsonContent to ensure it's correct
+	log.Printf("jsonContent type: %T", jsonContent)
 
 	// Assert that jsonContent is a slice of PageElement
 	pageContent, ok := jsonContent.([]Models.PageElement)
 	if !ok {
+		log.Println("jsonContent is of the wrong type. Expected []PageElement")
 		return c.String(http.StatusBadRequest, "Invalid content structure, expected []PageElement")
 	}
 
 	// Call the RenderPageContent function to generate components
 	renderedComponents, err := RenderPageContent(ctx, pageContent)
 	if err != nil {
+		log.Println("Error rendering page content:", err)
 		return c.String(http.StatusInternalServerError, "Error rendering page content: "+err.Error())
 	}
 
 	if len(renderedComponents) == 0 {
+		log.Println("No components to render")
 		return c.String(http.StatusOK, "No content to render")
 	}
 
 	var renderedHTML strings.Builder
 
 	// Always include a script tag in the header
-	/* scriptTag := `<script src="/static/js/myscript.js"></script>`
-	renderedHTML.WriteString("<head>\n")
-	renderedHTML.WriteString(scriptTag)
-	renderedHTML.WriteString("\n</head>\n")
-	*/
-	// @TODO: pull global defaults from siteData
 	globalStyling := `
 		<style>
 			body {
@@ -310,20 +314,12 @@ func RenderJSONContent(c echo.Context, jsonContent interface{}) error {
 	for _, component := range renderedComponents {
 		err = component.Render(ctx, &renderedHTML)
 		if err != nil {
+			log.Println("Error rendering component:", err)
 			return c.String(http.StatusInternalServerError, "Error rendering component: "+err.Error())
 		}
 	}
 
 	// Output the full HTML content
+	log.Println("Rendering HTML content successfully")
 	return c.HTML(http.StatusOK, renderedHTML.String())
-
-	// Write the rendered components to the response
-	/* for _, component := range renderedComponents {
-		err = component.Render(ctx, c.Response().Writer)
-		if err != nil {
-			return c.String(http.StatusInternalServerError, "Error rendering component: "+err.Error())
-		}
-	} */
-	// return nil
-
 }

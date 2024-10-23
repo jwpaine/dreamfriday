@@ -32,16 +32,14 @@ func loadSiteDataMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			log.Println("Skipping middleware for static or favicon request:", path)
 			return next(c)
 		}
+
 		// Extract the domain from the request's Host header
-		domain := ""
-		if c.Request().Host == "localhost:8080" {
+		domain := c.Request().Host
+		if domain == "localhost:8080" {
 			domain = "dreamfriday.com"
-		} else {
-			domain = c.Request().Host
 		}
 
-		log.Printf("Domain: %s\n", domain) // Debug: Print the domain
-		// domain := "dreamfriday.com" // Debug: Hardcoded domain for testing
+		log.Printf("Domain: %s\n", domain)
 
 		// Fetch site data for the current domain from the database
 		siteData, err := Database.FetchSiteDataForDomain(domain)
@@ -49,7 +47,7 @@ func loadSiteDataMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			return c.JSON(http.StatusInternalServerError, fmt.Sprintf("Failed to load site data for domain %s: %v", domain, err))
 		}
 
-		// Store the site data in the request context for use in handlers
+		// Store the site data as a pointer in the request context
 		c.Set("siteData", siteData)
 
 		return next(c)
@@ -118,6 +116,13 @@ func main() {
 
 	e.Static("/static", "static")
 
+	e.GET("/favicon.ico", func(c echo.Context) error {
+		// Serve the favicon.ico file from the static directory or a default location
+		return c.File("static/favicon.ico")
+	})
+
+	e.GET("/:pageName", Page) // This will match any route that does not match the specific ones above
+
 	listener, err := net.Listen("tcp4", "0.0.0.0:8080")
 	if err != nil {
 		log.Fatalf("Failed to bind to IPv4: %v", err)
@@ -150,26 +155,79 @@ func HTML(c echo.Context, cmp templ.Component) error {
 }
 
 func Home(c echo.Context) error {
-	// Retrieve the site data from the context
-	siteData := c.Get("siteData").(Models.SiteData)
+	log.Println("Page requested: home")
+
+	rawSiteData := c.Get("siteData")
+
+	if rawSiteData == nil {
+		log.Println("Site data is nil in context")
+		return c.String(http.StatusInternalServerError, "Site data is nil")
+	}
+
+	// Perform the type assertion to *Models.SiteData
+	siteData, ok := rawSiteData.(*Models.SiteData)
+	if !ok {
+		log.Println("Type assertion for site data failed")
+		return c.String(http.StatusInternalServerError, "Site data type is invalid")
+	}
+
+	// Ensure the siteData is not nil
+	if siteData == nil {
+		log.Println("siteData is nil after type assertion")
+		return c.String(http.StatusInternalServerError, "Site data is nil after type assertion")
+	}
 
 	// Check if the "home" page exists in the site data
 	pageData, ok := siteData.Pages["home"]
 	if !ok {
 		log.Println("Home page not found in site data")
 		msgs := []Models.Message{
-			{Message: "page not found", Type: "error"},
+			{Message: "Page not found", Type: "error"},
 		}
 		return RenderTemplate(c, http.StatusOK, Views.RegisterError(msgs))
 	}
 
-	// Debug: Check the type and value of homePage.Elements
-	// log.Printf("homePage.Elements type: %T, value: %+v", homePage.Elements, homePage.Elements)
+	// Log the "home" page data for verification
 
-	// Pass the homePage.Elements (a slice of PageElement) to RenderJSONContent
+	// Render the page content
+	return RenderJSONContent(c, pageData.Elements)
+}
+
+func Page(c echo.Context) error {
+	pageName := c.Param("pageName")
+	log.Printf("Page requested: %s\n", pageName)
+
+	rawSiteData := c.Get("siteData")
+
+	if rawSiteData == nil {
+		log.Println("Site data is nil in context")
+		return c.String(http.StatusInternalServerError, "Site data is nil")
+	}
+
+	// Perform the type assertion to *Models.SiteData
+	siteData, ok := rawSiteData.(*Models.SiteData)
+	if !ok {
+		log.Println("Type assertion for site data failed")
+		return c.String(http.StatusInternalServerError, "Site data type is invalid")
+	}
+
+	// Ensure the siteData is not nil
+	if siteData == nil {
+		log.Println("siteData is nil after type assertion")
+		return c.String(http.StatusInternalServerError, "Site data is nil after type assertion")
+	}
+
+	pageData, ok := siteData.Pages[pageName]
+	if !ok {
+		log.Println("not found in site data")
+		// @TODO: Render a 404 page
+		msgs := []Models.Message{
+			{Message: "Page not found", Type: "error"},
+		}
+		return RenderTemplate(c, http.StatusOK, Views.RegisterError(msgs))
+	}
 
 	return RenderJSONContent(c, pageData.Elements)
-
 }
 
 // RegisterForm renders the registration form
