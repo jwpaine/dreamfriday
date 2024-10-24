@@ -186,9 +186,9 @@ func Home(c echo.Context) error {
 		}
 		return RenderTemplate(c, http.StatusOK, Views.RegisterError(msgs))
 	}
-
-	// Log the "home" page data for verification
-
+	header := siteData.Header
+	// append header.Elements to to beginning of pageData.Elements:
+	pageData.Elements = append(header.Elements, pageData.Elements...)
 	// Render the page content
 	return RenderJSONContent(c, pageData.Elements)
 }
@@ -227,6 +227,10 @@ func Page(c echo.Context) error {
 		return RenderTemplate(c, http.StatusOK, Views.RegisterError(msgs))
 	}
 
+	header := siteData.Header
+	// append header.Elements to to beginning of pageData.Elements:
+	pageData.Elements = append(header.Elements, pageData.Elements...)
+	// Render the page content
 	return RenderJSONContent(c, pageData.Elements)
 }
 

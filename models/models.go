@@ -1,8 +1,9 @@
 package models
 
 type SiteData struct {
-	Meta  Meta            `json:"meta"`
-	Pages map[string]Page `json:"pages"` // Flexible page names
+	Meta   Meta            `json:"meta"`
+	Pages  map[string]Page `json:"pages"` // Flexible page names
+	Header Page
 }
 
 type Meta struct {
