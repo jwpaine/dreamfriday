@@ -61,14 +61,9 @@ func GenerateCSS(className string, cssProperties map[string]string) string {
 }
 
 func (h *H1Component) Render(ctx context.Context, w io.Writer) error {
-	// Use the class name from the Attributes map, or default to 'custom-h1'
-	className := h.Attributes["class"]
-	if className == "" {
-		className = "custom-h1" // Fallback if no class is found
-	}
 
 	// Generate and render the CSS block using the generic function
-	css := GenerateCSS(className, h.CSSProperties)
+	css := GenerateCSS(h.Attributes["class"], h.CSSProperties)
 	if css != "" {
 		_, err := w.Write([]byte(fmt.Sprintf("<style>%s</style>", css)))
 		if err != nil {
@@ -76,19 +71,19 @@ func (h *H1Component) Render(ctx context.Context, w io.Writer) error {
 		}
 	}
 
-	// Render the H1 tag with attributes
-	_, err := w.Write([]byte(fmt.Sprintf("<h1 class=\"%s\">%s</h1>", className, h.Text)))
+	var attrs []string
+	for attr, value := range h.Attributes {
+		attrs = append(attrs, fmt.Sprintf("%s=\"%s\"", attr, value))
+	}
+	_, err := w.Write([]byte(fmt.Sprintf("<h1 %s >%s</h1>", strings.Join(attrs, " "), h.Text)))
 	return err
 }
 
 func (p PComponent) Render(ctx context.Context, w io.Writer) error {
-	className := p.Attributes["class"]
-	if className == "" {
-		className = "custom-p" // Fallback if no class is found
-	}
+	// @TODO include class name in attributes
 
 	// Generate and render the CSS block using the generic function
-	css := GenerateCSS(className, p.CSSProperties)
+	css := GenerateCSS(p.Attributes["class"], p.CSSProperties)
 	if css != "" {
 		_, err := w.Write([]byte(fmt.Sprintf("<style>%s</style>", css)))
 		if err != nil {
@@ -97,26 +92,26 @@ func (p PComponent) Render(ctx context.Context, w io.Writer) error {
 	}
 
 	// Render the H1 tag with attributes
-	_, err := w.Write([]byte(fmt.Sprintf("<p class=\"%s\">%s</p>", className, p.Text)))
+	// generate attributes:
+	var attrs []string
+	for attr, value := range p.Attributes {
+		attrs = append(attrs, fmt.Sprintf("%s=\"%s\"", attr, value))
+	}
+	_, err := w.Write([]byte(fmt.Sprintf("<p %s >%s</p>", strings.Join(attrs, " "), p.Text)))
 	return err
 }
 
 func (d *DivComponent) Render(ctx context.Context, w io.Writer) error {
 	// Use the class name from the Attributes map, or default to 'custom-div'
-	className := d.Attributes["class"]
-	if className == "" {
-		className = "custom-div" // Fallback if no class is found
-	}
 
 	// Generate and render the CSS block using the generic function
-	css := GenerateCSS(className, d.CSSProperties)
+	css := GenerateCSS(d.Attributes["class"], d.CSSProperties)
 	if css != "" {
 		_, err := w.Write([]byte(fmt.Sprintf("<style>%s</style>", css)))
 		if err != nil {
 			return err
 		}
 	}
-
 	// Render the opening <div> tag
 	var attrs []string
 	for attr, value := range d.Attributes {
@@ -148,12 +143,12 @@ var componentMap = map[string]func(Models.PageElement, []Component) Component{
 	"H1": func(element Models.PageElement, _ []Component) Component {
 		// Extract text content from the PageElement
 		text := element.Text
-
-		randomClassName := "h1_" + generateRandomClassName(6) // Generate a 6-character random string
-		attr := map[string]string{
-			"class": randomClassName,
+		// set element ID
+		elementID := element.Attributes.ID
+		attr := map[string]string{}
+		if elementID != "" {
+			attr["id"] = elementID
 		}
-
 		// Extract CSS properties from the "style" field in the attributes
 		cssProps := map[string]string{}
 		for key, value := range element.Attributes.Style {
@@ -161,14 +156,15 @@ var componentMap = map[string]func(Models.PageElement, []Component) Component{
 				cssProps[key] = strValue
 			}
 		}
-
-		// Debug: Log the extracted CSS properties
-		if len(cssProps) == 0 {
-			// log.Println("No CSS properties found")
-		} else {
-			// log.Printf("CSS properties: %+v", cssProps)
+		// Generate a random class name if there are CSS properties
+		if len(cssProps) > 0 {
+			attr["class"] = "H1_" + generateRandomClassName(6)
 		}
-
+		// if link set, include hx-get attribute:
+		link := element.Link
+		if link != "" {
+			attr["onclick"] = "window.location.href='" + link + "'"
+		}
 		// Return the H1Component with the extracted text, attributes, and CSS
 		return &H1Component{
 			Text:          text,
@@ -178,20 +174,31 @@ var componentMap = map[string]func(Models.PageElement, []Component) Component{
 	},
 
 	"P": func(element Models.PageElement, _ []Component) Component {
+
 		// Extract text content from the PageElement
 		text := element.Text
-
-		randomClassName := "p_" + generateRandomClassName(6) // Generate a 6-character random string
-		attr := map[string]string{
-			"class": randomClassName,
+		// set element ID
+		elementID := element.Attributes.ID
+		attr := map[string]string{}
+		if elementID != "" {
+			attr["id"] = elementID
 		}
-
 		// Extract CSS properties from the "style" field in the attributes
 		cssProps := map[string]string{}
 		for key, value := range element.Attributes.Style {
 			if strValue, ok := value.(string); ok {
 				cssProps[key] = strValue
 			}
+		}
+		// Generate a random class name if there are CSS properties
+		if len(cssProps) > 0 {
+			attr["class"] = "P_" + generateRandomClassName(6)
+		}
+		// if link set, include hx-get attribute:
+		link := element.Link
+		if link != "" {
+			fmt.Println("link:", link)
+			attr["onclick"] = "window.location.href='" + link + "'"
 		}
 
 		// Return the PComponent with the extracted text, attributes, and CSS
@@ -203,11 +210,14 @@ var componentMap = map[string]func(Models.PageElement, []Component) Component{
 	},
 
 	"Div": func(element Models.PageElement, children []Component) Component {
-		randomClassName := "div_" + generateRandomClassName(6) // Generate a 6-character random string
-		attr := map[string]string{
-			"class": randomClassName,
-		}
 
+		// @TODO: create a helper function to set all of this for each element type:
+		// set element ID
+		elementID := element.Attributes.ID
+		attr := map[string]string{}
+		if elementID != "" {
+			attr["id"] = elementID
+		}
 		// Extract CSS properties from the "style" field in the attributes
 		cssProps := map[string]string{}
 		for key, value := range element.Attributes.Style {
@@ -215,15 +225,16 @@ var componentMap = map[string]func(Models.PageElement, []Component) Component{
 				cssProps[key] = strValue
 			}
 		}
+		// Generate a random class name if there are CSS properties
+		if len(cssProps) > 0 {
+			attr["class"] = "div_" + generateRandomClassName(6)
+		}
+		// if link set, include hx-get attribute:
+		link := element.Link
+		if link != "" {
+			attr["onclick"] = "window.location.href='" + link + "'"
+		}
 
-		// Debug: Log the extracted CSS properties
-		// if len(cssProps) == 0 {
-		// 	log.Println("No CSS properties found")
-		// } else {
-		// 	log.Printf("CSS properties: %+v", cssProps)
-		// }
-
-		// Return a pointer to DivComponent with CSS properties and children
 		return &DivComponent{
 			Attributes:    attr,
 			CSSProperties: cssProps,
@@ -298,7 +309,8 @@ func RenderJSONContent(c echo.Context, jsonContent interface{}) error {
 	var renderedHTML strings.Builder
 
 	// Always include a script tag in the header
-	globalStyling := `
+	globalDefaults := `
+		<script src="/static/htmx.min.js"></script>
 		<style>
 			body {
 				margin: 0;
@@ -307,7 +319,7 @@ func RenderJSONContent(c echo.Context, jsonContent interface{}) error {
 		</style>
 	`
 	renderedHTML.WriteString("<head>\n")
-	renderedHTML.WriteString(globalStyling)
+	renderedHTML.WriteString(globalDefaults)
 	renderedHTML.WriteString("\n</head>\n")
 
 	// Write the rendered components to the response

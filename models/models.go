@@ -19,6 +19,7 @@ type PageElement struct {
 	Attributes Attributes    `json:"attributes"`
 	Elements   []PageElement `json:"elements"` // Nested elements like "H1"
 	Text       string        `json:"text"`     // Text content for elements like "H1"
+	Link       string        `json:"link"`
 }
 
 type Message struct {
