@@ -1,0 +1,67 @@
+body {
+    margin: 0;
+    padding: 0;
+}
+
+header {
+    display: flex;
+    align-items: center;
+    padding: 0px 20px;
+    height: 60px;
+    background: darkslateblue;
+}
+
+header a {
+    color: white;
+   
+}
+
+main {
+    display: flex;
+    flex-direction: column;
+}
+
+#login section, #register section, #reset section {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    top: 100px;
+}
+
+#login form, #register form, #reset form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 350px;
+}
+
+#login form button, input {
+    width: 100%;
+    margin: 10px;
+}
+#register form button, input {
+    width: 100%;
+    margin: 10px;
+}
+#reset form button, input {
+    width: 100%;
+    margin: 10px;
+}
+
+input {
+    height: 25px;
+}
+button {
+    height: 30px;
+    min-width: 120px;
+    border: none;
+    cursor: pointer;
+}
+a {
+    text-decoration: none;
+    color: navy;
+    display: inline;
+}

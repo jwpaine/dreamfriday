@@ -29,7 +29,7 @@ func PasswordResetFailed() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<h1>Password Reset Failed</h1><a href=\"/reset\">Try again</a>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<section><h1>Password Reset Failed</h1><a href=\"/reset\">Try again</a></section>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -58,20 +58,20 @@ func ConfirmPasswordReset(email string) templ.Component {
 			templ_7745c5c3_Var2 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<h1>Password Reset Requested</h1><p>A password reset email has been sent to ")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<section><h1>Password Reset Requested</h1><p>A password reset email has been sent to ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(email)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/Reset.templ`, Line: 12, Col: 55}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/Reset.templ`, Line: 14, Col: 59}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(".  Please check your email to reset your password.</p><a href=\"/login\">Login</a>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(".  Please check your email to reset your password.</p><a href=\"/login\">Login</a></section>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -112,7 +112,7 @@ func PasswordReset() templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<main id=\"response\"><h1>Reset your DreamFriday password</h1><form hx-post=\"/reset\" hx-target=\"#response\" hx-swap=\"innerHTML\"><label for=\"email\">Email:</label> <input type=\"text\" id=\"email\" name=\"email\" required> <button type=\"submit\">Reset Password</button></form></main>")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<main id=\"reset\"><section><h1>Reset your DreamFriday password</h1><form hx-post=\"/reset\" hx-target=\"#reset\" hx-swap=\"innerHTML\"><label for=\"email\">Email:</label> <input type=\"text\" id=\"email\" name=\"email\" required> <button type=\"submit\">Reset Password</button></form></section></main>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

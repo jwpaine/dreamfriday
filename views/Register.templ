@@ -6,16 +6,18 @@ import (
 
 templ RegisterSuccess(email string) {
         
-    <main>
-        <h1>Registration successful!</h1>
-        <p>Confirmation email sent to { email }</p>
-        <a href="/login">Login</a>
+    <main id="register">
+        <section>
+            <h1>Registration successful!</h1>
+            <p>Confirmation email sent to { email }</p>
+            <a href="/login">Login</a>
+        </section>
     </main>
 }
 
 templ RegisterForm() {
         
-     <form hx-post="/register" hx-target="#main-section" hx-swap="outerHTML"> 
+     <form hx-post="/register" hx-target="#register" hx-swap="outerHTML"> 
         <label for="email">Email:</label>
         <input type="text" id="email" name="email" required>
         <label for="password">Password:</label>
@@ -26,21 +28,30 @@ templ RegisterForm() {
 
 templ Register() {
     @Root() {
-        <main id="main-section">
-            <h1>Register</h1>
-            @RegisterForm()
+        <main id="register">
+            <section>
+                <h1>Register</h1>
+                @RegisterForm()
+                <p>Already have an account? <a href="/login">Login</a></p>
+            </section>
         </main>
     }
 }
 templ RegisterError(msgs []Models.Message) {
-    <main id="main-section">
-        <h1>Register</h1>
-        @RegisterForm()
-        <span id="messages">
-            @RenderMessages(msgs)
-        </span>
+    <main id="register">
+        <section>
+            <h1>Register</h1>
+            @RegisterForm()
+            <p>Already have an account? <a href="/login">Login</a></p>
+            <span id="messages">
+                @RenderMessages(msgs)
+            </span>
+        </section>
     </main>
 }
+
+
+
 
 
 

@@ -1,41 +1,6 @@
 package views
 
-templ styling() {
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-        }
-        #manage {
-            padding: 10px;
-        }
-        #manage section {
-            display: flex;
-            justify-content: space-between;
-        }
-        #manage form {
-            display: flex;
-            flex-direction: column;
-        }
-        #manage textarea {
-            background: black;
-            color: lavender;
-            height: 600px;
-            overflow: scroll;
-            scrollbar-color: white black;
-            scrollbar-width: thin;
-            overflow-x: hidden;
-            border: none;
-            margin-bottom: 10px;
-        }
-        button {
-            height: 40px;
-            min-width: 100px;
-            background: black;
-            color: lime;
-        }
-    </style>
-}
+
 
 templ Root() {
     
@@ -43,12 +8,13 @@ templ Root() {
     <html>
         <head>
             <script src="/static/htmx.min.js"></script>
-            @styling()
-
+            <link rel="stylesheet" href="/static/dreamfriday.css">
             <title>Dream Friday - Admin</title>
         </head>
         <body>
-           <header> --Header--</header>
+           <header>
+                <a href="/">Dream Friday</a>
+           </header>
            { children... }
         </body>
     </html>

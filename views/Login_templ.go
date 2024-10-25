@@ -41,7 +41,7 @@ func Login() templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<main><h1>Login</h1><form hx-post=\"/login\" hx-target=\"#messages\" hx-swap=\"innerHTML\"><label for=\"email\">Email:</label> <input type=\"text\" id=\"email\" name=\"email\" required> <label for=\"password\">Password:</label> <input type=\"password\" id=\"password\" name=\"password\" required> <button type=\"submit\">Login</button></form><a href=\"/reset\">Forgot Password?</a> <span id=\"messages\"></span></main>")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<main id=\"login\"><section><h1>Login</h1><form hx-post=\"/login\" hx-target=\"#messages\" hx-swap=\"innerHTML\"><label for=\"email\">Email</label> <input type=\"text\" id=\"email\" name=\"email\" required> <label for=\"password\">Password</label> <input type=\"password\" id=\"password\" name=\"password\" required> <button type=\"submit\">Login</button></form><a href=\"/reset\">Forgot Password</a><p>Don't have an account? <a href=\"/register\">Sign Up</a></p><span id=\"messages\"></span></section></main>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
