@@ -1,28 +1,46 @@
 package views
 
 
-css textArea() {
-    white-space: pre-wrap;
+templ prettify() {
+    <script>
+        const textarea = document.getElementById('previewData');
+        try {
+            // Parse the JSON from the textarea
+            const json = JSON.parse(textarea.value);
+            const prettyJson = JSON.stringify(json, null, 2);
+            textarea.value = prettyJson;
+        } catch (error) {
+        
+        }
+    </script>
 }
+
 
 templ ManageSite(domain string, previewData string) {
     @Root() {
-        <main>
-            <h1>Manage {domain}</h1>
+        <main id="manage">
+            <header style="display: flex; gap: 10px;">
+                <h1>Manage {domain}</h1>
+            </header>
+           
 
-            <form hx-post={"/admin/" + domain} hx-target="#messages" hx-swap="innerHTML">
-                <textarea class={textArea()} name="previewData">
-                     { previewData }
+            <!-- Form with textarea for previewData -->
+            <form id="textareaForm">
+                <textarea name="previewData" id="previewData" style="width: 100%; height: 400px;">
+                    {previewData}
                 </textarea>
-                <button type="submit">Save</button>
             </form>
-            <form hx-post={"/publish/" + domain} hx-target="#messages" hx-swap="innerHTML">
-                <button type="submit">Publish live</button>
-            </form>
-            <span id="messages">
-                
-            </span>
-            
+            <section>
+                <button hx-trigger="click" hx-post={"/admin/" + domain} hx-target="#messages" hx-swap="innerHTML" hx-include="form#textareaForm">
+                    Save
+                </button>
+                <button hx-trigger="click" hx-post={"/publish/" + domain} hx-target="#messages" hx-swap="innerHTML">
+                    Publish live
+                </button>
+            </section>
+           
+            <span id="messages"></span>
         </main>
+        @prettify()
     }
 }

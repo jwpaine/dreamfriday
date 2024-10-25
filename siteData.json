@@ -60,6 +60,7 @@
           {
             "text": "Dream Friday",
             "type": "P",
+            "link" : "/",
             "attributes": { "style": { "color": "white", "font-size": "18px" } }
           }
         ],

@@ -409,16 +409,13 @@ func AdminSite(c echo.Context) error {
 	}
 
 	// Format the previewData JSON with proper indentation
-	prettyPreviewData, err := json.MarshalIndent(previewData, "", "    ")
+	// prettyPreviewData, err := json.MarshalIndent(previewData, "", "    ")
 	if err != nil {
 		log.Println("Failed to format preview data:", err)
 		return c.String(http.StatusInternalServerError, "Failed to format preview data")
 	}
 
 	// Convert []byte to string
-	prettyPreviewDataStr := string(prettyPreviewData)
-
-	fmt.Print(prettyPreviewDataStr)
 
 	// Pass the formatted JSON string directly to the view
 	return RenderTemplate(c, http.StatusOK, Views.ManageSite(domain, previewData))
