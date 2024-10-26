@@ -72,30 +72,32 @@ func FetchSiteDataForDomain(domain string) (*Models.SiteData, error) {
 	return &siteData, nil
 }
 
-func FetchPreviewData(domain string, email string) (string, error) {
+func FetchPreviewData(domain string, email string) (string, string, error) {
 	fmt.Printf("Fetching site data from the database for domain: %s\n", domain)
 
-	previewDataJSON := ""
-	//	var previewData Models.SiteData
+	var previewDataJSON string
+	var status string
 
 	// Ensure that db is not nil before attempting to query
 	if db == nil {
 		log.Println("db is nil")
-		return "", fmt.Errorf("database connection is not initialized")
+		return "", "", fmt.Errorf("database connection is not initialized")
 	}
 
-	err := db.QueryRow("SELECT preview FROM sites WHERE domain = $1 AND owner = $2", domain, email).Scan(&previewDataJSON)
+	// Query for both preview and status fields
+	err := db.QueryRow("SELECT preview, status FROM sites WHERE domain = $1 AND owner = $2", domain, email).Scan(&previewDataJSON, &status)
 	if err == sql.ErrNoRows {
 		log.Printf("No site data found for domain: %s", domain)
-		return "", fmt.Errorf("No site data found for domain: %s", domain)
+		return "", "", fmt.Errorf("No site data found for domain: %s", domain)
 	}
 	if err != nil {
 		log.Printf("Failed to fetch site data for domain %s: %v", domain, err)
-		return "", err
+		return "", "", err
 	}
 
-	return previewDataJSON, nil
+	fmt.Printf("Preview data: %s\nStatus: %s\n", previewDataJSON, status)
 
+	return previewDataJSON, status, nil
 }
 
 func GetSitesForOwner(email string) ([]string, error) {

@@ -1,5 +1,6 @@
 package views
 
+import Models "dreamfriday/models"
 
 templ prettify() {
     <script>
@@ -16,7 +17,7 @@ templ prettify() {
 }
 
 
-templ ManageSite(domain string, previewData string) {
+templ ManageSite(domain string, previewData string, status string) {
     @Root() {
         <main id="manage">
             <header style="display: flex; gap: 10px;">
@@ -30,17 +31,33 @@ templ ManageSite(domain string, previewData string) {
                     {previewData}
                 </textarea>
             </form>
-            <section>
-                <button hx-trigger="click" hx-post={"/admin/" + domain} hx-target="#messages" hx-swap="innerHTML" hx-include="form#textareaForm">
+            <section id="action">
+                <button hx-trigger="click" hx-post={"/admin/" + domain} hx-target="#action" hx-swap="innerHTML" hx-include="form#textareaForm">
                     Save
                 </button>
-                <button hx-trigger="click" hx-post={"/publish/" + domain} hx-target="#messages" hx-swap="innerHTML">
-                    Publish live
-                </button>
+                if status == "unpublished" { 
+                    <button hx-trigger="click" hx-post={"/publish/" + domain} hx-target="#action" hx-swap="innerHTML">
+                        Publish live
+                    </button>
+                }
             </section>
            
-            <span id="messages"></span>
         </main>
         @prettify()
     }
 }
+
+templ ManagedButtonState(domain string, unpublished bool, msgs []Models.Message) {
+        <button hx-trigger="click" hx-post={"/admin/" + domain} hx-target="#action" hx-swap="innerHTML" hx-include="form#textareaForm">
+            Save
+        </button>
+        if unpublished {
+            <button hx-trigger="click" hx-post={"/publish/" + domain} hx-target="#action" hx-swap="innerHTML">
+                Publish live
+            </button>
+        }
+        <section>
+            @RenderMessages(msgs)
+        </section>
+        
+    }

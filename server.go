@@ -63,9 +63,7 @@ func init() {
 			log.Println("Error loading .env file")
 		}
 	}
-
 	// Use the strings directly as raw keys
-
 	Database.ConnStr = os.Getenv("DATABASE_CONNECTION_STRING")
 	if Database.ConnStr == "" {
 		log.Fatal("DATABASE_CONNECTION_STRING environment variable not set")
@@ -403,7 +401,7 @@ func AdminSite(c echo.Context) error {
 	log.Println("Pulling preview data for Domain:", domain)
 
 	// Fetch preview data from the database
-	previewData, err := Database.FetchPreviewData(domain, email)
+	previewData, status, err := Database.FetchPreviewData(domain, email)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, "Failed to fetch preview data for domain")
 	}
@@ -418,7 +416,7 @@ func AdminSite(c echo.Context) error {
 	// Convert []byte to string
 
 	// Pass the formatted JSON string directly to the view
-	return RenderTemplate(c, http.StatusOK, Views.ManageSite(domain, previewData))
+	return RenderTemplate(c, http.StatusOK, Views.ManageSite(domain, previewData, status))
 
 }
 
@@ -458,7 +456,8 @@ func UpdatePreview(c echo.Context) error {
 		msg := []Models.Message{
 			{Message: "Invalid structure", Type: "error"},
 		}
-		return RenderTemplate(c, http.StatusOK, Views.RenderMessages(msg))
+		// domain string, unpublished bool, msgs []Models.Message)
+		return RenderTemplate(c, http.StatusOK, Views.ManagedButtonState(domain, false, msg))
 	}
 
 	//structure valid, save to database (and set status = "unpublished")
@@ -468,13 +467,13 @@ func UpdatePreview(c echo.Context) error {
 		msg := []Models.Message{
 			{Message: "Unable to save to database", Type: "error"},
 		}
-		return RenderTemplate(c, http.StatusOK, Views.RenderMessages(msg))
+		return RenderTemplate(c, http.StatusOK, Views.ManagedButtonState(domain, false, msg))
 	}
 
 	msg := []Models.Message{
 		{Message: "Preview data updated successfully", Type: "success"},
 	}
-	return RenderTemplate(c, http.StatusOK, Views.RenderMessages(msg))
+	return RenderTemplate(c, http.StatusOK, Views.ManagedButtonState(domain, true, msg))
 
 }
 
@@ -505,12 +504,12 @@ func Publish(c echo.Context) error {
 		msg := []Models.Message{
 			{Message: "Unable to publish", Type: "error"},
 		}
-		return RenderTemplate(c, http.StatusOK, Views.RenderMessages(msg))
+		return RenderTemplate(c, http.StatusOK, Views.ManagedButtonState(domain, true, msg))
 	}
 
 	msg := []Models.Message{
 		{Message: "Publish successful", Type: "success"},
 	}
-	return RenderTemplate(c, http.StatusOK, Views.RenderMessages(msg))
+	return RenderTemplate(c, http.StatusOK, Views.ManagedButtonState(domain, false, msg))
 
 }
