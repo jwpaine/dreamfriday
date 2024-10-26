@@ -324,6 +324,9 @@ func RenderJSONContent(c echo.Context, jsonContent interface{}) error {
 				font-family: open-sans-bold; 
 				src: url('/static/font/OpenSans_Bold.ttf') format('truetype');
 			}
+			html {
+				font-size: calc(14px + 0.5vw);
+			}
 		</style>
 	`
 	renderedHTML.WriteString("<head>\n")
