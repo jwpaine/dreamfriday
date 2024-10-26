@@ -94,8 +94,11 @@ func main() {
 	// Routes
 	e.GET("/", Home) // Display login form
 
-	e.GET("/register", RegisterForm) // Display the registration form
-	e.POST("/register", Register)    // Handle form submission and register the user
+	/*
+		temporarily removed registration
+		e.GET("/register", RegisterForm) // Display the registration form
+		e.POST("/register", Register)    // Handle form submission and register the user
+	*/
 
 	e.GET("/login", LoginForm) // Display login form
 	e.POST("/login", Login)    // Handle form submission and login
@@ -222,7 +225,7 @@ func Page(c echo.Context) error {
 		msgs := []Models.Message{
 			{Message: "Page not found", Type: "error"},
 		}
-		return RenderTemplate(c, http.StatusOK, Views.RegisterError(msgs))
+		return RenderTemplate(c, http.StatusOK, Views.RenderMessages(msgs))
 	}
 
 	header := siteData.Header
@@ -233,6 +236,7 @@ func Page(c echo.Context) error {
 }
 
 // RegisterForm renders the registration form
+
 func RegisterForm(c echo.Context) error {
 	return RenderTemplate(c, http.StatusOK, Views.Register())
 }

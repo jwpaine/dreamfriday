@@ -312,9 +312,17 @@ func RenderJSONContent(c echo.Context, jsonContent interface{}) error {
 	globalDefaults := `
 		<script src="/static/htmx.min.js"></script>
 		<style>
-			body {
+			body, p, h1 {
 				margin: 0;
 				padding: 0;
+			}
+			@font-face { 
+				font-family: open-sans-regular; 
+				src: url('/static/font/OpenSans-Regular.ttf') format('truetype');
+			}
+			@font-face { 
+				font-family: open-sans-bold; 
+				src: url('/static/font/OpenSans_Bold.ttf') format('truetype');
 			}
 		</style>
 	`

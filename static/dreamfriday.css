@@ -21,6 +21,10 @@ main {
     flex-direction: column;
 }
 
+main header {
+    background: none;
+}
+
 #login section, #register section, #reset section {
     display: flex;
     flex-direction: column;
