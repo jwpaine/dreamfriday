@@ -15,24 +15,18 @@ import (
 	Models "dreamfriday/models"
 )
 
-// Define the H1 component
-type H1Component struct {
-	Text       string
-	Attributes map[string]string
-	Children   []Component
-	styling    string // Precomputed CSS
-}
 type DivComponent struct {
 	Attributes map[string]string
 	Children   []Component
 	styling    string // Precomputed CSS
 }
 
-type PComponent struct {
+type TextComponent struct {
 	Text       string
+	Type       string // "P", "H1", "H2", etc.
 	Attributes map[string]string
 	Children   []Component
-	styling    string // Precomputed CSS
+	styling    string
 }
 
 func generateRandomClassName(n int) string {
@@ -63,72 +57,6 @@ func GenerateCSS(className string, cssProperties map[string]string, mqType strin
 	return fmt.Sprintf(".%s {%s }", className, cssContent)
 }
 
-func (p *PComponent) Render(ctx context.Context, w io.Writer) error {
-	var attrs []string
-	for attr, value := range p.Attributes {
-		attrs = append(attrs, fmt.Sprintf("%s=\"%s\"", attr, value))
-	}
-
-	// Render the opening <p> tag with attributes
-	_, err := w.Write([]byte(fmt.Sprintf("<p %s>", strings.Join(attrs, " "))))
-	if err != nil {
-		return err
-	}
-
-	// Render the text content, if present
-	if p.Text != "" {
-		_, err = w.Write([]byte(p.Text))
-		if err != nil {
-			return err
-		}
-	}
-
-	// Render child components, if any (e.g., <a> tags within the paragraph)
-	for _, child := range p.Children {
-		err := child.Render(ctx, w)
-		if err != nil {
-			return err
-		}
-	}
-
-	// Render the closing </p> tag
-	_, err = w.Write([]byte("</p>"))
-	return err
-}
-
-func (h *H1Component) Render(ctx context.Context, w io.Writer) error {
-	var attrs []string
-	for attr, value := range h.Attributes {
-		attrs = append(attrs, fmt.Sprintf("%s=\"%s\"", attr, value))
-	}
-
-	// Render the opening <p> tag with attributes
-	_, err := w.Write([]byte(fmt.Sprintf("<h1 %s>", strings.Join(attrs, " "))))
-	if err != nil {
-		return err
-	}
-
-	// Render the text content, if present
-	if h.Text != "" {
-		_, err = w.Write([]byte(h.Text))
-		if err != nil {
-			return err
-		}
-	}
-
-	// Render child components, if any (e.g., <a> tags within the paragraph)
-	for _, child := range h.Children {
-		err := child.Render(ctx, w)
-		if err != nil {
-			return err
-		}
-	}
-
-	// Render the closing </p> tag
-	_, err = w.Write([]byte("</h1>"))
-	return err
-}
-
 func (d *DivComponent) Render(ctx context.Context, w io.Writer) error {
 	// Render the opening <div> tag with attributes
 	var attrs []string
@@ -153,6 +81,39 @@ func (d *DivComponent) Render(ctx context.Context, w io.Writer) error {
 	return err
 }
 
+func (t *TextComponent) Render(ctx context.Context, w io.Writer) error {
+	var attrs []string
+	for attr, value := range t.Attributes {
+		attrs = append(attrs, fmt.Sprintf("%s=\"%s\"", attr, value))
+	}
+
+	// Render the opening <p> tag with attributes
+	_, err := w.Write([]byte(fmt.Sprintf("<%s %s>", t.Type, strings.Join(attrs, " "))))
+	if err != nil {
+		return err
+	}
+
+	// Render the text content, if present
+	if t.Text != "" {
+		_, err = w.Write([]byte(t.Text))
+		if err != nil {
+			return err
+		}
+	}
+
+	// Render child components, if any (e.g., <a> tags within the paragraph)
+	for _, child := range t.Children {
+		err := child.Render(ctx, w)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Render the closing </p> tag
+	_, err = w.Write([]byte(fmt.Sprintf("</%s>", t.Type)))
+	return err
+}
+
 // Component interface for rendering elements
 type Component interface {
 	Render(ctx context.Context, w io.Writer) error
@@ -162,11 +123,9 @@ type Component interface {
 func (d *DivComponent) Styling() string {
 	return d.styling
 }
-func (p *PComponent) Styling() string {
-	return p.styling
-}
-func (h *H1Component) Styling() string {
-	return h.styling
+
+func (t *TextComponent) Styling() string {
+	return t.styling
 }
 
 func extractStyles(styleAttr interface{}) (map[string]string, map[string]map[string]map[string]string) {
@@ -227,14 +186,11 @@ func CreateComponent(componentType string, element Models.PageElement, children 
 	}
 
 	// Debug output to check generated CSS
-	fmt.Printf("Generated CSS for %s with class %s:\n%s\n", componentType, className, styling)
+	// fmt.Printf("Generated CSS for %s with class %s:\n%s\n", componentType, className, styling)
 
-	// Return the appropriate component with precomputed styling
 	switch componentType {
-	case "H1":
-		return &H1Component{Text: element.Text, Attributes: attr, Children: children, styling: styling}, nil
-	case "P":
-		return &PComponent{Text: element.Text, Attributes: attr, Children: children, styling: styling}, nil
+	case "H1", "H2", "H3", "P":
+		return &TextComponent{Type: element.Type, Text: element.Text, Attributes: attr, Children: children, styling: styling}, nil
 	case "Div":
 		return &DivComponent{Attributes: attr, Children: children, styling: styling}, nil
 	default:
@@ -260,10 +216,6 @@ func RenderPageContent(ctx context.Context, elements []Models.PageElement, w io.
 			}
 			allCSS += childCSS
 		}
-
-		// Debug output to confirm the correct component type is passed
-		fmt.Printf("Creating component of type %s\n", elementType)
-
 		// Create the component with its children
 		component, err := CreateComponent(elementType, element, children)
 		if err != nil {
