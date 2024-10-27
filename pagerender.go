@@ -310,7 +310,9 @@ func RenderJSONContent(c echo.Context, jsonContent interface{}) error {
 
 	// Always include a script tag in the header
 	globalDefaults := `
+		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<script src="/static/htmx.min.js"></script>
+
 		<style>
 			body, p, h1 {
 				margin: 0;
