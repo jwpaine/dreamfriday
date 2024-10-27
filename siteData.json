@@ -1,5 +1,7 @@
 {
-  "meta": { "title": "Dream Friday" },
+  "meta": {
+    "title": "Dream Friday"
+  },
   "pages": {
     "home": {
       "elements": [
@@ -8,12 +10,75 @@
           "elements": [
             {
               "type": "Div",
-              "elements": [],
+              "elements": [
+                {
+                  "type": "Div",
+                  "elements": [
+                    {
+                      "text": "Simple",
+                      "type": "H1",
+                      "attributes": {
+                        "style": {
+                          "color": "white",
+                          "media": {
+                            "min-width": {
+                              "1024px": {
+                                "font-size": "8vmax"
+                              }
+                            }
+                          },
+                          "font-size": "10vmax",
+                          "font-family": "open-sans-bold, sans-serif"
+                        }
+                      }
+                    },
+                    {
+                      "text": "Is Better",
+                      "type": "H1",
+                      "attributes": {
+                        "style": {
+                          "left": "100px",
+                          "color": "white",
+                          "bottom": "14px",
+                          "position": "relative",
+                          "font-size": "3vmax",
+                          "font-family": "open-sans-bold, sans-serif"
+                        }
+                      }
+                    },
+                    {
+                      "text": "Dream Friday powers ultra low-cost custom websites for growing businesses in our town and yours.",
+                      "type": "P",
+                      "attributes": {
+                        "style": {
+                          "color": "white",
+                          "margin": "20px 0px",
+                          "font-size": "1.6vmax",
+                          "text-align": "center",
+                          "font-family": "open-sans-regular, sans-serif"
+                        }
+                      }
+                    }
+                  ],
+                  "attributes": {
+                    "style": {
+                      "display": "flex",
+                      "padding": "15vh 20px 0px 20px",
+                      "position": "relative",
+                      "max-width": "50vmax",
+                      "align-items": "center",
+                      "flex-direction": "column"
+                    }
+                  }
+                }
+              ],
               "attributes": {
                 "style": {
                   "width": "100%",
                   "height": "100vh",
-                  "background": "linear-gradient(rgb(0, 0, 0), rgba(0,0,0,0.1))"
+                  "display": "flex",
+                  "background": "rgba(0,80,154,0.7)",
+                  "justify-content": "center"
                 }
               }
             }
@@ -22,7 +87,7 @@
             "id": "hero",
             "style": {
               "height": "100vh",
-              "background": "url('https://images.unsplash.com/photo-1531561751739-85f2186c7fba?q=80&w=2340&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3DD')",
+              "background": "url('https://images.unsplash.com/photo-1712034850190-6b359d42dc79?q=80&w=1932&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')",
               "background-size": "cover",
               "background-position": "center"
             }
@@ -38,7 +103,11 @@
             {
               "text": "Contact Us",
               "type": "H1",
-              "attributes": { "style": { "font-size": "46px" } }
+              "attributes": {
+                "style": {
+                  "font-size": "46px"
+                }
+              }
             }
           ],
           "attributes": {
@@ -58,15 +127,27 @@
         "type": "Div",
         "elements": [
           {
+            "link": "/",
             "text": "Dream Friday",
             "type": "P",
-            "link" : "/",
-            "attributes": { "style": { "color": "white", "font-size": "18px" } }
+            "attributes": {
+              "style": {
+                "color": "white",
+                "cursor": "pointer",
+                "margin": "0",
+                "font-size": "20px",
+                "font-family": "open-sans-regular, sans-serif"
+              }
+            }
           }
         ],
         "attributes": {
           "id": "header",
-          "style": { "top": "0", "padding": "15px", "position": "fixed" }
+          "style": {
+            "top": "0",
+            "padding": "20px",
+            "position": "fixed"
+          }
         }
       }
     ]
