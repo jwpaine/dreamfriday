@@ -20,17 +20,20 @@ type H1Component struct {
 	Text          string
 	Attributes    map[string]string
 	CSSProperties map[string]string
+	MediaQueries  map[string]map[string]map[string]string
 }
 type DivComponent struct {
 	Children      []Component
 	Attributes    map[string]string // Generic map for attributes (e.g., class, id, etc.)
 	CSSProperties map[string]string // Generic map for CSS properties
+	MediaQueries  map[string]map[string]map[string]string
 }
 
 type PComponent struct {
 	Text          string
 	Attributes    map[string]string
 	CSSProperties map[string]string
+	MediaQueries  map[string]map[string]map[string]string
 }
 
 func generateRandomClassName(n int) string {
@@ -43,6 +46,7 @@ func generateRandomClassName(n int) string {
 	return string(b)
 }
 
+/*
 func GenerateCSS(className string, cssProperties map[string]string) string {
 	if len(cssProperties) == 0 {
 		// fmt.Println("No CSS properties found") // Debugging line
@@ -59,13 +63,55 @@ func GenerateCSS(className string, cssProperties map[string]string) string {
 	// fmt.Println("Generated CSS:", css) // Debugging line
 	return css
 }
+*/
 
+func GenerateCSS(className string, cssProperties map[string]string, mqType string, target string) string {
+	// Return empty string if there are no CSS properties
+	if len(cssProperties) == 0 {
+		return ""
+	}
+
+	// Generate the main CSS block from the key-value pairs in the cssProperties map
+	var cssContent string
+	for property, value := range cssProperties {
+		cssContent += fmt.Sprintf(" %s: %s;", property, value)
+	}
+
+	// Check if mqType and target are provided for a media query
+	if mqType != "" && target != "" {
+		// Wrap the CSS in a media query if mqType and target are specified
+		return fmt.Sprintf("@media only screen and (%s: %s) { .%s {%s } }", mqType, target, className, cssContent)
+	}
+
+	// Generate regular CSS if no media query parameters are provided
+	return fmt.Sprintf(".%s {%s }", className, cssContent)
+}
+
+/*
 func (h *H1Component) Render(ctx context.Context, w io.Writer) error {
 
 	// Generate and render the CSS block using the generic function
 	css := GenerateCSS(h.Attributes["class"], h.CSSProperties)
+
+	// Generate media query CSS
+	var mediaCSS []string
+	for mqType, mqTargets := range h.MediaQueries {
+		// mqType is expected to be something like "min-width"
+		fmt.Println("Media Query Type:", mqType)
+		fmt.Println("Media Query Targets:", mqTargets)
+		for target, styles := range mqTargets {
+			fmt.Println("Target:", target)
+			fmt.Println("Styles:", styles)
+			// Generate CSS for the specific styles under this media query
+			// queryCSS := GenerateCSS(h.Attributes["class"], styles)
+			// if queryCSS != "" {
+			// 	mediaCSS = append(mediaCSS, fmt.Sprintf("@media (%s: %s) { .%s { %s } }", mqType, target, h.Attributes["class"], queryCSS))
+			// }
+		}
+	}
+
 	if css != "" {
-		_, err := w.Write([]byte(fmt.Sprintf("<style>%s</style>", css)))
+		_, err := w.Write([]byte(fmt.Sprintf("<style>%s %s</style>", css, strings.Join(mediaCSS, " "))))
 		if err != nil {
 			return err
 		}
@@ -77,15 +123,57 @@ func (h *H1Component) Render(ctx context.Context, w io.Writer) error {
 	}
 	_, err := w.Write([]byte(fmt.Sprintf("<h1 %s >%s</h1>", strings.Join(attrs, " "), h.Text)))
 	return err
+} */
+
+func (h *H1Component) Render(ctx context.Context, w io.Writer) error {
+	// Generate base CSS for non-media query styles
+	baseCSS := GenerateCSS(h.Attributes["class"], h.CSSProperties, "", "")
+
+	// Generate media query CSS
+	var mediaCSS []string
+	for mqType, mqTargets := range h.MediaQueries {
+		for target, styles := range mqTargets {
+			queryCSS := GenerateCSS(h.Attributes["class"], styles, mqType, target)
+			if queryCSS != "" {
+				mediaCSS = append(mediaCSS, queryCSS)
+			}
+		}
+	}
+
+	// Render the complete CSS block
+	if baseCSS != "" || len(mediaCSS) > 0 {
+		_, err := w.Write([]byte(fmt.Sprintf("<style>%s %s</style>", baseCSS, strings.Join(mediaCSS, " "))))
+		if err != nil {
+			return err
+		}
+	}
+
+	// Render the H1 element with its attributes
+	var attrs []string
+	for attr, value := range h.Attributes {
+		attrs = append(attrs, fmt.Sprintf("%s=\"%s\"", attr, value))
+	}
+	_, err := w.Write([]byte(fmt.Sprintf("<h1 %s>%s</h1>", strings.Join(attrs, " "), h.Text)))
+	return err
 }
 
 func (p PComponent) Render(ctx context.Context, w io.Writer) error {
-	// @TODO include class name in attributes
+	baseCSS := GenerateCSS(p.Attributes["class"], p.CSSProperties, "", "")
 
-	// Generate and render the CSS block using the generic function
-	css := GenerateCSS(p.Attributes["class"], p.CSSProperties)
-	if css != "" {
-		_, err := w.Write([]byte(fmt.Sprintf("<style>%s</style>", css)))
+	// Generate media query CSS
+	var mediaCSS []string
+	for mqType, mqTargets := range p.MediaQueries {
+		for target, styles := range mqTargets {
+			queryCSS := GenerateCSS(p.Attributes["class"], styles, mqType, target)
+			if queryCSS != "" {
+				mediaCSS = append(mediaCSS, queryCSS)
+			}
+		}
+	}
+
+	// Render the complete CSS block
+	if baseCSS != "" || len(mediaCSS) > 0 {
+		_, err := w.Write([]byte(fmt.Sprintf("<style>%s %s</style>", baseCSS, strings.Join(mediaCSS, " "))))
 		if err != nil {
 			return err
 		}
@@ -102,12 +190,22 @@ func (p PComponent) Render(ctx context.Context, w io.Writer) error {
 }
 
 func (d *DivComponent) Render(ctx context.Context, w io.Writer) error {
-	// Use the class name from the Attributes map, or default to 'custom-div'
+	baseCSS := GenerateCSS(d.Attributes["class"], d.CSSProperties, "", "")
 
-	// Generate and render the CSS block using the generic function
-	css := GenerateCSS(d.Attributes["class"], d.CSSProperties)
-	if css != "" {
-		_, err := w.Write([]byte(fmt.Sprintf("<style>%s</style>", css)))
+	// Generate media query CSS
+	var mediaCSS []string
+	for mqType, mqTargets := range d.MediaQueries {
+		for target, styles := range mqTargets {
+			queryCSS := GenerateCSS(d.Attributes["class"], styles, mqType, target)
+			if queryCSS != "" {
+				mediaCSS = append(mediaCSS, queryCSS)
+			}
+		}
+	}
+
+	// Render the complete CSS block
+	if baseCSS != "" || len(mediaCSS) > 0 {
+		_, err := w.Write([]byte(fmt.Sprintf("<style>%s %s</style>", baseCSS, strings.Join(mediaCSS, " "))))
 		if err != nil {
 			return err
 		}
@@ -139,37 +237,107 @@ type Component interface {
 }
 
 var componentMap = map[string]func(Models.PageElement, []Component) Component{
+	/*
+		"H1": func(element Models.PageElement, _ []Component) Component {
+			// Extract text content from the PageElement
+			text := element.Text
+			// set element ID
+			elementID := element.Attributes.ID
+			attr := map[string]string{}
+			if elementID != "" {
+				attr["id"] = elementID
+			}
+			// Extract CSS properties from the "style" field in the attributes
+			cssProps := map[string]string{}
+			for key, value := range element.Attributes.Style {
+				if strValue, ok := value.(string); ok {
+					cssProps[key] = strValue
+				}
+			}
+			// Generate a random class name if there are CSS properties
+			if len(cssProps) > 0 {
+				attr["class"] = "H1_" + generateRandomClassName(6)
+			}
+			// if link set, include hx-get attribute:
+			link := element.Link
+			if link != "" {
+				attr["onclick"] = "window.location.href='" + link + "'"
+			}
+			// Return the H1Component with the extracted text, attributes, and CSS
+			return &H1Component{
+				Text:          text,
+				Attributes:    attr,
+				CSSProperties: cssProps,
+			}
+		}, */
 
 	"H1": func(element Models.PageElement, _ []Component) Component {
 		// Extract text content from the PageElement
 		text := element.Text
-		// set element ID
+		// Set element ID
 		elementID := element.Attributes.ID
 		attr := map[string]string{}
 		if elementID != "" {
 			attr["id"] = elementID
 		}
+
 		// Extract CSS properties from the "style" field in the attributes
 		cssProps := map[string]string{}
+		mediaQueries := map[string]map[string]map[string]string{}
+
 		for key, value := range element.Attributes.Style {
-			if strValue, ok := value.(string); ok {
-				cssProps[key] = strValue
+			switch v := value.(type) {
+			case string:
+				// Direct CSS property
+				cssProps[key] = v
+			case map[string]interface{}:
+				// Handle nested media queries
+				if key == "media" {
+					// Iterate through each media query type (e.g., min-width)
+					for mqType, mqSettings := range v {
+						// Initialize inner map for each media query type if not already present
+						if _, exists := mediaQueries[mqType]; !exists {
+							mediaQueries[mqType] = map[string]map[string]string{}
+						}
+
+						// Check if mqSettings is a nested map (e.g., map[800px:map[font-size:50px]])
+						if mqMap, ok := mqSettings.(map[string]interface{}); ok {
+							for target, styleMap := range mqMap {
+								if styleMap, ok := styleMap.(map[string]interface{}); ok {
+									// Collect each style property for the target (e.g., font-size: 50px)
+									queryProps := map[string]string{}
+									for prop, val := range styleMap {
+										if styleValue, ok := val.(string); ok {
+											queryProps[prop] = styleValue
+										}
+									}
+									// Store the styles under the target within the media query type
+									mediaQueries[mqType][target] = queryProps
+								}
+							}
+						}
+					}
+				}
 			}
 		}
+
 		// Generate a random class name if there are CSS properties
-		if len(cssProps) > 0 {
+		if len(cssProps) > 0 || len(mediaQueries) > 0 {
 			attr["class"] = "H1_" + generateRandomClassName(6)
 		}
-		// if link set, include hx-get attribute:
+
+		// If link is set, include hx-get attribute
 		link := element.Link
 		if link != "" {
 			attr["onclick"] = "window.location.href='" + link + "'"
 		}
+
 		// Return the H1Component with the extracted text, attributes, and CSS
 		return &H1Component{
 			Text:          text,
 			Attributes:    attr,
 			CSSProperties: cssProps,
+			MediaQueries:  mediaQueries,
 		}
 	},
 
@@ -177,35 +345,70 @@ var componentMap = map[string]func(Models.PageElement, []Component) Component{
 
 		// Extract text content from the PageElement
 		text := element.Text
-		// set element ID
+		// Set element ID
 		elementID := element.Attributes.ID
 		attr := map[string]string{}
 		if elementID != "" {
 			attr["id"] = elementID
 		}
+
 		// Extract CSS properties from the "style" field in the attributes
 		cssProps := map[string]string{}
+		mediaQueries := map[string]map[string]map[string]string{}
+
 		for key, value := range element.Attributes.Style {
-			if strValue, ok := value.(string); ok {
-				cssProps[key] = strValue
+			switch v := value.(type) {
+			case string:
+				// Direct CSS property
+				cssProps[key] = v
+			case map[string]interface{}:
+				// Handle nested media queries
+				if key == "media" {
+					// Iterate through each media query type (e.g., min-width)
+					for mqType, mqSettings := range v {
+						// Initialize inner map for each media query type if not already present
+						if _, exists := mediaQueries[mqType]; !exists {
+							mediaQueries[mqType] = map[string]map[string]string{}
+						}
+
+						// Check if mqSettings is a nested map (e.g., map[800px:map[font-size:50px]])
+						if mqMap, ok := mqSettings.(map[string]interface{}); ok {
+							for target, styleMap := range mqMap {
+								if styleMap, ok := styleMap.(map[string]interface{}); ok {
+									// Collect each style property for the target (e.g., font-size: 50px)
+									queryProps := map[string]string{}
+									for prop, val := range styleMap {
+										if styleValue, ok := val.(string); ok {
+											queryProps[prop] = styleValue
+										}
+									}
+									// Store the styles under the target within the media query type
+									mediaQueries[mqType][target] = queryProps
+								}
+							}
+						}
+					}
+				}
 			}
 		}
+
 		// Generate a random class name if there are CSS properties
-		if len(cssProps) > 0 {
+		if len(cssProps) > 0 || len(mediaQueries) > 0 {
 			attr["class"] = "P_" + generateRandomClassName(6)
 		}
-		// if link set, include hx-get attribute:
+
+		// If link is set, include hx-get attribute
 		link := element.Link
 		if link != "" {
-			fmt.Println("link:", link)
 			attr["onclick"] = "window.location.href='" + link + "'"
 		}
 
-		// Return the PComponent with the extracted text, attributes, and CSS
+		// Return the H1Component with the extracted text, attributes, and CSS
 		return &PComponent{
 			Text:          text,
 			Attributes:    attr,
 			CSSProperties: cssProps,
+			MediaQueries:  mediaQueries,
 		}
 	},
 
@@ -220,14 +423,46 @@ var componentMap = map[string]func(Models.PageElement, []Component) Component{
 		}
 		// Extract CSS properties from the "style" field in the attributes
 		cssProps := map[string]string{}
+		mediaQueries := map[string]map[string]map[string]string{}
+
 		for key, value := range element.Attributes.Style {
-			if strValue, ok := value.(string); ok {
-				cssProps[key] = strValue
+			switch v := value.(type) {
+			case string:
+				// Direct CSS property
+				cssProps[key] = v
+			case map[string]interface{}:
+				// Handle nested media queries
+				if key == "media" {
+					// Iterate through each media query type (e.g., min-width)
+					for mqType, mqSettings := range v {
+						// Initialize inner map for each media query type if not already present
+						if _, exists := mediaQueries[mqType]; !exists {
+							mediaQueries[mqType] = map[string]map[string]string{}
+						}
+
+						// Check if mqSettings is a nested map (e.g., map[800px:map[font-size:50px]])
+						if mqMap, ok := mqSettings.(map[string]interface{}); ok {
+							for target, styleMap := range mqMap {
+								if styleMap, ok := styleMap.(map[string]interface{}); ok {
+									// Collect each style property for the target (e.g., font-size: 50px)
+									queryProps := map[string]string{}
+									for prop, val := range styleMap {
+										if styleValue, ok := val.(string); ok {
+											queryProps[prop] = styleValue
+										}
+									}
+									// Store the styles under the target within the media query type
+									mediaQueries[mqType][target] = queryProps
+								}
+							}
+						}
+					}
+				}
 			}
 		}
 		// Generate a random class name if there are CSS properties
-		if len(cssProps) > 0 {
-			attr["class"] = "div_" + generateRandomClassName(6)
+		if len(cssProps) > 0 || len(mediaQueries) > 0 {
+			attr["class"] = "Div_" + generateRandomClassName(6)
 		}
 		// if link set, include hx-get attribute:
 		link := element.Link
@@ -239,6 +474,7 @@ var componentMap = map[string]func(Models.PageElement, []Component) Component{
 			Attributes:    attr,
 			CSSProperties: cssProps,
 			Children:      children,
+			MediaQueries:  mediaQueries,
 		}
 	},
 }

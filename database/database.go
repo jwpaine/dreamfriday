@@ -95,7 +95,7 @@ func FetchPreviewData(domain string, email string) (string, string, error) {
 		return "", "", err
 	}
 
-	fmt.Printf("Preview data: %s\nStatus: %s\n", previewDataJSON, status)
+	// fmt.Printf("Preview data: %s\nStatus: %s\n", previewDataJSON, status)
 
 	return previewDataJSON, status, nil
 }
