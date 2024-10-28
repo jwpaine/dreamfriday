@@ -238,7 +238,7 @@ func RenderPageContent(ctx context.Context, elements []Models.PageElement, w io.
 	return renderedComponents, allCSS, nil
 }
 
-func RenderJSONContent(c echo.Context, jsonContent interface{}) error {
+func RenderJSONContent(c echo.Context, jsonContent interface{}, previewMode bool) error {
 	ctx := c.Request().Context()
 
 	// Check that jsonContent is a slice of PageElement
@@ -277,13 +277,31 @@ func RenderJSONContent(c echo.Context, jsonContent interface{}) error {
 			html {
 				font-size: calc(14px + 0.5vw);
 			}
+			div#preview {
+				background-color: #f8d7da;
+				padding: 5px;
+				display: flex;
+				justify-content: space-between;
+				position: fixed;
+				bottom: 0;
+				z-index: 1000;
+				font-size: 16px;
+			}
+			#preview a {
+				margin-left: 10px;
+				cursor: pointer;
+			}
 		</style>
 	`
 
 	renderedHTML.WriteString("<head>\n")
 	renderedHTML.WriteString(globalDefaults)
 	renderedHTML.WriteString(fmt.Sprintf("<style>%s</style>\n", allCSS)) // Write all accumulated CSS
-	renderedHTML.WriteString("</head>\n<body>\n")
+
+	// Conditionally add the preview mode div within the body
+	if previewMode {
+		renderedHTML.WriteString("<div id='preview'><span>Preview Mode Enabled</span><a href='/preview'>Disable</a></div>\n")
+	}
 
 	// Render all components to HTML content
 	for _, component := range renderedComponents {

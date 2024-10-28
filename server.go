@@ -48,7 +48,12 @@ func loadSiteDataMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 
 			email, ok := session.Values["email"].(string)
 			if !ok || email == "" {
-				log.Fatal("Email is not set or invalid in the session")
+				fmt.Println("Email is not set or invalid in the session")
+				session.Values["preview"] = false
+				err := session.Save(c.Request(), c.Response())
+				if err != nil {
+					log.Println("Failed to save session:", err)
+				}
 			} else {
 				fmt.Println("Email in session:", email)
 
@@ -177,45 +182,6 @@ func HTML(c echo.Context, cmp templ.Component) error {
 	return nil
 }
 
-func Home(c echo.Context) error {
-	log.Println("Page requested: home")
-
-	rawSiteData := c.Get("siteData")
-
-	if rawSiteData == nil {
-		log.Println("Site data is nil in context")
-		return c.String(http.StatusInternalServerError, "Site data is nil")
-	}
-
-	// Perform the type assertion to *Models.SiteData
-	siteData, ok := rawSiteData.(*Models.SiteData)
-	if !ok {
-		log.Println("Type assertion for site data failed")
-		return c.String(http.StatusInternalServerError, "Site data type is invalid")
-	}
-
-	// Ensure the siteData is not nil
-	if siteData == nil {
-		log.Println("siteData is nil after type assertion")
-		return c.String(http.StatusInternalServerError, "Site data is nil after type assertion")
-	}
-
-	// Check if the "home" page exists in the site data
-	pageData, ok := siteData.Pages["home"]
-	if !ok {
-		log.Println("Home page not found in site data")
-		msgs := []Models.Message{
-			{Message: "Page not found", Type: "error"},
-		}
-		return RenderTemplate(c, http.StatusOK, Views.RegisterError(msgs))
-	}
-	header := siteData.Header
-	// append header.Elements to to beginning of pageData.Elements:
-	pageData.Elements = append(header.Elements, pageData.Elements...)
-	// Render the page content
-	return RenderJSONContent(c, pageData.Elements)
-}
-
 func TogglePreview(c echo.Context) error {
 	host := c.Request().Host
 	fmt.Println("Toggling preview mode for:", host)
@@ -289,7 +255,14 @@ func Page(c echo.Context) error {
 	// append header.Elements to to beginning of pageData.Elements:
 	pageData.Elements = append(header.Elements, pageData.Elements...)
 	// Render the page content
-	return RenderJSONContent(c, pageData.Elements)
+	session, err := Auth.GetSession(c.Request(), "session")
+	previewMode := false
+	if err == nil {
+		previewMode = session.Values["preview"].(bool)
+	}
+	fmt.Println("rendering page with Preview mode:", previewMode)
+
+	return RenderJSONContent(c, pageData.Elements, previewMode)
 }
 
 // RegisterForm renders the registration form
