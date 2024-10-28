@@ -225,7 +225,7 @@ func Page(c echo.Context) error {
 		msgs := []Models.Message{
 			{Message: "Page not found", Type: "error"},
 		}
-		return RenderTemplate(c, http.StatusOK, Views.RenderMessages(msgs))
+		return RenderTemplate(c, http.StatusNotFound, Views.RenderMessages(msgs))
 	}
 
 	header := siteData.Header
@@ -448,8 +448,6 @@ func UpdatePreview(c echo.Context) error {
 
 	// validate and then update preview data here
 	previewData := c.FormValue("previewData")
-
-	log.Printf("Preview Data: %s", previewData)
 
 	var p_unmarshal Models.SiteData
 
