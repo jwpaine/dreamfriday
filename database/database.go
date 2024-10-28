@@ -72,32 +72,38 @@ func FetchSiteDataForDomain(domain string) (*Models.SiteData, error) {
 	return &siteData, nil
 }
 
-func FetchPreviewData(domain string, email string) (string, string, error) {
-	fmt.Printf("Fetching site data from the database for domain: %s\n", domain)
+func FetchPreviewData(domain string, email string) (*Models.SiteData, string, error) {
+	fmt.Printf("Fetching preview data from the database for domain: %s\n", domain)
 
 	var previewDataJSON string
+	var previewData Models.SiteData
 	var status string
 
 	// Ensure that db is not nil before attempting to query
 	if db == nil {
 		log.Println("db is nil")
-		return "", "", fmt.Errorf("database connection is not initialized")
+		return nil, "", fmt.Errorf("database connection is not initialized")
 	}
 
-	// Query for both preview and status fields
+	// Query for both preview (as JSON) and status fields
 	err := db.QueryRow("SELECT preview, status FROM sites WHERE domain = $1 AND owner = $2", domain, email).Scan(&previewDataJSON, &status)
 	if err == sql.ErrNoRows {
-		log.Printf("No site data found for domain: %s", domain)
-		return "", "", fmt.Errorf("No site data found for domain: %s", domain)
+		log.Printf("No preview data found for domain: %s", domain)
+		return nil, "", fmt.Errorf("No preview data found for domain: %s", domain)
 	}
 	if err != nil {
-		log.Printf("Failed to fetch site data for domain %s: %v", domain, err)
-		return "", "", err
+		log.Printf("Failed to fetch preview data for domain %s: %v", domain, err)
+		return nil, "", err
 	}
 
-	// fmt.Printf("Preview data: %s\nStatus: %s\n", previewDataJSON, status)
+	// Unmarshal the JSON data into the previewData struct
+	err = json.Unmarshal([]byte(previewDataJSON), &previewData)
+	if err != nil {
+		log.Printf("Failed to unmarshal preview data for domain --> %s: %v", domain, err)
+		return nil, "", fmt.Errorf("Failed to unmarshal preview data: %v", err)
+	}
 
-	return previewDataJSON, status, nil
+	return &previewData, status, nil
 }
 
 func GetSitesForOwner(email string) ([]string, error) {

@@ -24,6 +24,7 @@ import (
 
 // Middleware to load site data on the first request
 // @TODO: Add caching to avoid querying the database on every request
+
 func loadSiteDataMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		// Skip middleware for static files
@@ -41,10 +42,37 @@ func loadSiteDataMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 
 		log.Printf("Domain: %s\n", domain)
 
+		session, _ := Auth.GetSession(c.Request(), "session")
+		if session.Values["preview"] == true {
+			fmt.Println("Preview mode enabled")
+
+			email, ok := session.Values["email"].(string)
+			if !ok || email == "" {
+				log.Fatal("Email is not set or invalid in the session")
+			} else {
+				fmt.Println("Email in session:", email)
+
+				previewData, _, err := Database.FetchPreviewData(domain, email)
+				if err != nil {
+					fmt.Println("Failed to fetch preview data for domain:", domain)
+				} else {
+					fmt.Println("Preview data fetched for domain:", domain)
+					c.Set("siteData", previewData)
+					return next(c)
+				}
+			}
+		}
+
 		// Fetch site data for the current domain from the database
 		siteData, err := Database.FetchSiteDataForDomain(domain)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, fmt.Sprintf("Failed to load site data for domain %s: %v", domain, err))
+		}
+
+		// Ensure siteData is not nil before setting it in context
+		if siteData == nil {
+			log.Println("Fetched siteData is nil")
+			return c.String(http.StatusInternalServerError, "Fetched site data is nil")
 		}
 
 		// Store the site data as a pointer in the request context
@@ -91,15 +119,6 @@ func main() {
 	// Add middleware to load site data once
 	e.Use(loadSiteDataMiddleware)
 
-	// Routes
-	e.GET("/", Home) // Display login form
-
-	/*
-		temporarily removed registration
-		e.GET("/register", RegisterForm) // Display the registration form
-		e.POST("/register", Register)    // Handle form submission and register the user
-	*/
-
 	e.GET("/login", LoginForm) // Display login form
 	e.POST("/login", Login)    // Handle form submission and login
 
@@ -122,7 +141,10 @@ func main() {
 		return c.File("static/favicon.ico")
 	})
 
+	e.GET("/", Page)          // This will match any route that does not match the specific ones above
 	e.GET("/:pageName", Page) // This will match any route that does not match the specific ones above
+
+	e.GET("/preview", TogglePreview)
 
 	listener, err := net.Listen("tcp4", "0.0.0.0:8080")
 	if err != nil {
@@ -194,8 +216,43 @@ func Home(c echo.Context) error {
 	return RenderJSONContent(c, pageData.Elements)
 }
 
+func TogglePreview(c echo.Context) error {
+	host := c.Request().Host
+	fmt.Println("Toggling preview mode for:", host)
+
+	session, err := Auth.GetSession(c.Request(), "session")
+	if err != nil {
+		log.Println("Failed to get session:", err)
+		return c.String(http.StatusInternalServerError, "You need to be logged in to toggle preview mode")
+	}
+
+	previewMode := session.Values["preview"]
+	if previewMode == nil {
+		previewMode = true
+	} else {
+		previewMode = !previewMode.(bool)
+	}
+	session.Values["preview"] = previewMode
+	err = session.Save(c.Request(), c.Response())
+	if err != nil {
+		msgs := []Models.Message{
+			{Message: "Failed to enable preview mode", Type: "info"},
+		}
+		return HTML(c, Views.RenderMessages(msgs))
+	}
+	fmt.Println("Preview mode enabled:", previewMode)
+
+	return c.Redirect(http.StatusFound, "/")
+
+	// set preview mode to true in session:
+
+}
+
 func Page(c echo.Context) error {
 	pageName := c.Param("pageName")
+	if pageName == "" {
+		pageName = "home"
+	}
 	log.Printf("Page requested: %s\n", pageName)
 
 	rawSiteData := c.Get("siteData")
@@ -420,7 +477,18 @@ func AdminSite(c echo.Context) error {
 	// Convert []byte to string
 
 	// Pass the formatted JSON string directly to the view
-	return RenderTemplate(c, http.StatusOK, Views.ManageSite(domain, previewData, status))
+	// convert previewData (*Models.SiteData) to string:
+	previewDataBytes, err := json.MarshalIndent(previewData, "", "    ")
+	if err != nil {
+		log.Println("Failed to format preview data:", err)
+		return c.String(http.StatusInternalServerError, "Failed to format preview data")
+	}
+
+	// Convert JSON byte array to string
+	previewDataString := string(previewDataBytes)
+
+	// Pass the formatted JSON string to the view
+	return RenderTemplate(c, http.StatusOK, Views.ManageSite(domain, previewDataString, status))
 
 }
 
