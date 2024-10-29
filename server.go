@@ -258,7 +258,9 @@ func Page(c echo.Context) error {
 	session, err := Auth.GetSession(c.Request(), "session")
 	previewMode := false
 	if err == nil {
-		previewMode = session.Values["preview"].(bool)
+		if session.Values["preview"] != nil {
+			previewMode = session.Values["preview"].(bool)
+		}
 	}
 	fmt.Println("rendering page with Preview mode:", previewMode)
 
