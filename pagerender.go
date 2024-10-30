@@ -137,6 +137,12 @@ func CreateComponent(componentType string, element Models.PageElement, children 
 	if element.Attributes.ID != "" {
 		attr["id"] = element.Attributes.ID
 	}
+	if element.Attributes.OnClick != "" {
+		attr["onclick"] = element.Attributes.OnClick
+	}
+	if element.Attributes.Href != "" {
+		attr["href"] = element.Attributes.Href
+	}
 
 	// Set up CSS properties and apply className
 	cssProps, mediaQueries := extractStyles(element.Attributes.Style)
@@ -155,7 +161,7 @@ func CreateComponent(componentType string, element Models.PageElement, children 
 	// fmt.Printf("Generated CSS for %s with class %s:\n%s\n", componentType, className, styling)
 
 	switch componentType {
-	case "Div", "H1", "H2", "H3", "P", "Button":
+	case "Div", "Section", "H1", "H2", "H3", "P", "A", "I", "Span", "Button":
 		return &GenericComponent{Type: element.Type, Text: element.Text, Attributes: attr, Children: children, styling: styling}, nil
 	default:
 		return nil, fmt.Errorf("unknown component type: %s", componentType)
@@ -225,7 +231,11 @@ func RenderJSONContent(c echo.Context, jsonContent interface{}, previewMode bool
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<script src="/static/htmx.min.js"></script>
 
+
 		<style>
+			html {
+				scroll-behavior: smooth;
+			}
 			body, p, h1 {
 				margin: 0;
 				padding: 0;

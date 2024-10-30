@@ -28,8 +28,10 @@ type Message struct {
 }
 
 type Attributes struct {
-	ID    string                 `json:"id"`
-	Style map[string]interface{} `json:"style"` // Flexible styling keys
+	ID      string                 `json:"id"`
+	OnClick string                 `json:"onclick"`
+	Href    string                 `json:"href"`
+	Style   map[string]interface{} `json:"style"` // Flexible styling keys
 }
 
 type Auth0TokenResponse struct {
