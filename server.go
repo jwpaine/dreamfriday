@@ -26,6 +26,7 @@ import (
 // @TODO: Add caching to avoid querying the database on every request
 
 func loadSiteDataMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+	fmt.Println("Loading site data middleware")
 	return func(c echo.Context) error {
 		// Skip middleware for static files
 		path := c.Request().URL.Path

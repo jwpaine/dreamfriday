@@ -1,0 +1,52 @@
+{
+  "meta": {
+    "title": "Dream Friday"
+  },
+  "pages": {
+    "home": {
+      "elements": [
+        {
+          "type": "main",
+          "elements": [],
+          "attributes": {
+            "style": {
+              "display": "flex",
+              "justify-content": "center",
+              "align-items": "center",
+              "height": "100vh",
+              "background-color": "#3355ff"
+            }
+          }
+        }
+      ]
+    }
+  },
+  "Header": {
+    "elements": [
+      {
+        "type": "header",
+        "attributes": {
+          "style": {
+            "display": "flex",
+            "justify-content": "center",
+            "position": "fixed",
+            "top": "0"
+          }
+        },
+        "elements": [
+          {
+            "type": "a",
+            "text": "Dream Friday",
+            "attributes": {
+              "href": "/",
+              "style": {
+                "color": "white",
+                "text-decoration": "none"
+              }
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

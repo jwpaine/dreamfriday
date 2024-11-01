@@ -161,7 +161,7 @@ func CreateComponent(componentType string, element Models.PageElement, children 
 	// fmt.Printf("Generated CSS for %s with class %s:\n%s\n", componentType, className, styling)
 
 	switch componentType {
-	case "Div", "Section", "H1", "H2", "H3", "P", "A", "I", "Span", "Button":
+	case "header", "main", "div", "section", "h1", "h2", "h3", "p", "a", "i", "span", "button":
 		return &GenericComponent{Type: element.Type, Text: element.Text, Attributes: attr, Children: children, styling: styling}, nil
 	default:
 		return nil, fmt.Errorf("unknown component type: %s", componentType)
