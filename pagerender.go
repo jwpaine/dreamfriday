@@ -146,8 +146,15 @@ func CreateComponent(componentType string, element Models.PageElement, children 
 
 	// Set up CSS properties and apply className
 	cssProps, mediaQueries := extractStyles(element.Attributes.Style)
+
+	// Generate a random class name for the component
 	className := fmt.Sprintf("%s_%s", componentType, generateRandomClassName(6))
 	attr["class"] = className
+
+	// append additional user-supplied classes
+	if element.Attributes.Class != "" {
+		attr["class"] += " " + element.Attributes.Class
+	}
 
 	// Generate base CSS and media query CSS
 	styling := GenerateCSS(className, cssProps, "", "")
@@ -227,6 +234,8 @@ func RenderJSONContent(c echo.Context, jsonContent interface{}, previewMode bool
 
 	// Prepare HTML with the accumulated CSS
 	var renderedHTML strings.Builder
+	renderedHTML.WriteString("<!DOCTYPE html>\n")
+
 	globalDefaults := `
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<script src="/static/htmx.min.js"></script>
@@ -265,7 +274,40 @@ func RenderJSONContent(c echo.Context, jsonContent interface{}, previewMode bool
 				margin-left: 10px;
 				cursor: pointer;
 			}
+
+			.fade {
+				opacity: 1;
+				transition: opacity 0.3s ease-out;
+			}
 		</style>
+
+ 
+		<script>
+			document.addEventListener("DOMContentLoaded", () => {
+			const fadeElement = document.querySelector(".fade");
+
+			if (fadeElement) {
+				const fadeStart = window.innerHeight;        
+				const fadeEnd = window.innerHeight * 0.75; 
+
+				window.addEventListener("scroll", () => {
+				const elementPosition = fadeElement.getBoundingClientRect().top;
+
+			
+				console.log("elementPosition between fadeStart and fadeEnd");
+					// Gradually adjust opacity between fadeStart and fadeEnd
+					let opacity = (elementPosition - fadeEnd) / (fadeStart - fadeEnd);
+					opacity = Math.min(Math.max(opacity, 0), 1); // Clamp opacity between 0 and 1
+					fadeElement.style.opacity = opacity;
+				
+				});
+			}
+			});
+		</script>
+
+
+
+
 	`
 
 	renderedHTML.WriteString("<head>\n")

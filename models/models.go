@@ -29,6 +29,7 @@ type Message struct {
 
 type Attributes struct {
 	ID      string                 `json:"id"`
+	Class   string                 `json:"class"`
 	OnClick string                 `json:"onclick"`
 	Href    string                 `json:"href"`
 	Style   map[string]interface{} `json:"style"` // Flexible styling keys
