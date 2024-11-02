@@ -7,16 +7,127 @@
       "elements": [
         {
           "type": "main",
-          "elements": [],
           "attributes": {
+            "id": "",
+            "onclick": "",
+            "href": "",
             "style": {
-              "display": "flex",
-              "justify-content": "center",
-              "align-items": "center",
-              "height": "100vh",
-              "background-color": "#3355ff"
+              "display": "block"
             }
-          }
+          },
+          "elements": [
+            {
+              "type": "section",
+              "attributes": {
+                "id": "hero",
+                "onclick": "",
+                "href": "",
+                "style": {
+                  "align-items": "center",
+                  "background-color": "#3355ff",
+                  "display": "flex",
+                  "height": "100vh",
+                  "justify-content": "center",
+                  "padding": "0px 20px",
+                  "position": "sticky",
+                  "top": "0",
+                  "z-index": "0"
+                }
+              },
+              "elements": [
+                {
+                  "type": "h1",
+                  "attributes": {
+                    "id": "",
+                    "onclick": "",
+                    "href": "",
+                    "style": {
+                      "color": "white",
+                      "font-family": "open-sans-bold, sans-serif",
+                      "font-size": "2rem",
+                      "text-align": "center"
+                    }
+                  },
+                  "elements": null,
+                  "text": "micro websites. big impact",
+                  "link": ""
+                }
+              ],
+              "text": "",
+              "link": ""
+            },
+            {
+              "type": "section",
+              "attributes": {
+                "id": "about",
+                "onclick": "",
+                "href": "",
+                "style": {
+                  "background-color": "#3355ff",
+                  "display": "flex",
+                  "flex-direction": "column",
+                  "justify-content": "center",
+                  "min-height": "100vh",
+                  "padding": "0px 20px",
+                  "position": "relative",
+                  "z-index": "1"
+                }
+              },
+              "elements": [
+                {
+                  "type": "div",
+                  "attributes": {
+                    "style": {
+                      "display": "flex",
+                      "flex-direction": "column",
+                      "align-items": "flex-start",
+                      "max-width" : "935px"
+                    }
+                  },
+                  "elements": [
+                    {
+                      "type": "h1",
+                      "attributes": {
+                        "id": "",
+                        "onclick": "",
+                        "href": "",
+                        "style": {
+                          "color": "white",
+                          "font-family": "open-sans-bold, sans-serif",
+                          "font-size": "3.5rem",
+                          "line-height": "1.1"
+                        }
+                      },
+                      "elements": null,
+                      "text": "we build sites that connect and engage",
+                      "link": ""
+                    },
+                    {
+                      "type": "p",
+                      "attributes": {
+                        "id": "",
+                        "onclick": "",
+                        "href": "",
+                        "style": {
+                          "color": "white",
+                          "font-family": "open-sans-bold, sans-serif",
+                          "font-size": "1rem",
+                          "margin-top" : "50px"
+                        }
+                      },
+                      "elements": null,
+                      "text": "Your website is an extension of your brand, connecting with customers wherever they are. It should deliver a seamless experience that reflects who you are and what you do best.",
+                      "link": ""
+                    }
+                  ]
+                }
+              ],
+              "text": "",
+              "link": ""
+            }
+          ],
+          "text": "",
+          "link": ""
         }
       ]
     }
@@ -26,26 +137,50 @@
       {
         "type": "header",
         "attributes": {
+          "id": "",
+          "onclick": "",
+          "href": "",
           "style": {
+            "align-items": "center",
             "display": "flex",
-            "justify-content": "center",
+            "media": {
+              "min-width": {
+                "1000px": {
+                  "justify-content": "center"
+                }
+              }
+            },
+            "padding": "20px 20px 0px 20px",
             "position": "fixed",
-            "top": "0"
+            "top": "0",
+            "width": "100%",
+            "z-index": "99"
           }
         },
         "elements": [
           {
             "type": "a",
-            "text": "Dream Friday",
             "attributes": {
+              "id": "",
+              "onclick": "",
               "href": "/",
               "style": {
+                "background-color": "#1e1e1e",
+                "border-radius": "30px",
                 "color": "white",
+                "font-family": "open-sans-bold, sans-serif",
+                "font-size": "1.2rem",
+                "padding": "5px 12px 7px 12px",
                 "text-decoration": "none"
               }
-            }
+            },
+            "elements": null,
+            "text": "DREAM FRIDAY",
+            "link": ""
           }
-        ]
+        ],
+        "text": "",
+        "link": ""
       }
     ]
   }

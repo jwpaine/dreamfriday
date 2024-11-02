@@ -236,7 +236,7 @@ func RenderJSONContent(c echo.Context, jsonContent interface{}, previewMode bool
 			html {
 				scroll-behavior: smooth;
 			}
-			body, p, h1 {
+			* {
 				margin: 0;
 				padding: 0;
 			}
