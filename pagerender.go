@@ -288,28 +288,36 @@ func RenderJSONContent(c echo.Context, jsonContent interface{}, previewMode bool
 
  
 		<script>
-			document.addEventListener("DOMContentLoaded", () => {
-			const fadeElement = document.querySelector(".fade");
+		document.addEventListener("DOMContentLoaded", () => {
+			const fadeElements = document.querySelectorAll(".fade");
+			const fadeMap = {};
 
-			if (fadeElement) {
-				const fadeStart = window.innerHeight;        
-				const fadeEnd = window.innerHeight * 0.75; 
+			// Store the fadeStart for each element in fadeMap
+			fadeElements.forEach((element) => {
+				const fadeStart = element.getBoundingClientRect().top;
+				const classNameKey = element.className;
+				fadeMap[classNameKey] = {
+					element,
+					fadeStart
+				};
+			});
 
-				window.addEventListener("scroll", () => {
-				const elementPosition = fadeElement.getBoundingClientRect().top;
+			const fadeEnd = window.innerHeight * 0.75;
 
-			
-				console.log("elementPosition between fadeStart and fadeEnd");
-					// Gradually adjust opacity between fadeStart and fadeEnd
+			window.addEventListener("scroll", () => {
+				for (const key in fadeMap) {
+					const { element, fadeStart } = fadeMap[key];
+					const elementPosition = element.getBoundingClientRect().top;
+
+					// Calculate the opacity based on scroll position
 					let opacity = (elementPosition - fadeEnd) / (fadeStart - fadeEnd);
 					opacity = Math.min(Math.max(opacity, 0), 1); // Clamp opacity between 0 and 1
-					fadeElement.style.opacity = opacity;
-				
-				});
-			}
-			});
-		</script>
 
+					element.style.opacity = opacity;
+				}
+			});
+		});
+	</script>
 
 
 
