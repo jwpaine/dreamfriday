@@ -26,6 +26,7 @@
                   "align-items": "center",
                   "background-color": "#3355ff",
                   "display": "flex",
+                  "flex-direction": "column",
                   "height": "100vh",
                   "justify-content": "center",
                   "padding": "0px 20px",
@@ -36,6 +37,23 @@
               },
               "elements": [
                 {
+                  "type": "h2",
+                  "attributes": {
+                    "id": "",
+                    "onclick": "",
+                    "href": "",
+                    "style": {
+                      "color": "white",
+                      "font-family": "open-sans-regular, sans-serif",
+                      "font-size": "1.5rem",
+                      "text-align": "center"
+                    }
+                  },
+                  "elements": null,
+                  "text": "micro websites",
+                  "link": ""
+                },
+                {
                   "type": "h1",
                   "attributes": {
                     "id": "",
@@ -44,12 +62,12 @@
                     "style": {
                       "color": "white",
                       "font-family": "open-sans-bold, sans-serif",
-                      "font-size": "2rem",
+                      "font-size": "clamp(3rem, -3rem + 5vw, 8rem)",
                       "text-align": "center"
                     }
                   },
                   "elements": null,
-                  "text": "micro websites. big impact",
+                  "text": "big impact",
                   "link": ""
                 }
               ],
@@ -63,13 +81,12 @@
                 "onclick": "",
                 "href": "",
                 "style": {
-                  "background-color": "#3355ff",
                   "display": "flex",
                   "flex-direction": "column",
-                  "justify-content": "center",
                   "min-height": "100vh",
                   "padding": "0px 20px",
                   "position": "relative",
+                  "bottom": "200px",
                   "z-index": "1"
                 }
               },
@@ -79,27 +96,89 @@
                   "attributes": {
                     "style": {
                       "display": "flex",
-                      "flex-direction": "column",
-                      "align-items": "flex-start",
-                      "max-width" : "935px"
+                      "justify-content": "center",
+                      "height": "300px",
+                      "width": "100%",
+                      "background": "linear-gradient(rgba(51, 85, 255, 0), rgba(51, 85, 255, 1))"
                     }
                   },
                   "elements": [
                     {
-                      "type": "h1",
+                      "type": "span",
+                      "attributes": {
+                        "class": "material-symbols-outlined",
+                        "onclick": "window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })",
+
+                        "style": {
+                          "color": "rgba(255, 255, 255, 0.7)",
+                          "font-size": "3rem",
+                          "cursor" : "pointer"
+                        }
+                      },
+                      "text": "keyboard_arrow_down"
+                    }
+                  ]
+                },
+                {
+                  "type": "div",
+                  "attributes": {
+                    "id": "",
+                    "onclick": "",
+                    "href": "",
+                    "style": {
+                      "align-items": "flex-start",
+                      "display": "flex",
+                      "flex-direction": "column",
+                      "background": "#3355ff",
+                      "padding-bottom": "500px"
+                    }
+                  },
+                  "elements": [
+                    {
+                      "type": "div",
                       "attributes": {
                         "id": "",
                         "onclick": "",
                         "href": "",
                         "style": {
+                          "display": "flex"
+                        }
+                      },
+                      "elements": [],
+                      "text": "",
+                      "link": ""
+                    },
+                    {
+                      "type": "h1",
+                      "attributes": {
+                        "onclick": "",
+                        "href": "",
+                        "style": {
                           "color": "white",
                           "font-family": "open-sans-bold, sans-serif",
-                          "font-size": "3.5rem",
+                          "font-size": "clamp(4rem, -3rem + 9vw, 10rem)",
                           "line-height": "1.1"
                         }
                       },
                       "elements": null,
-                      "text": "we build sites that connect and engage",
+                      "text": "we build sites that connect <br> and engage.",
+                      "link": ""
+                    },
+                    {
+                      "type": "div",
+                      "attributes": {
+                        "id": "",
+                        "onclick": "",
+                        "href": "",
+                        "style": {
+                          "background": "white",
+                          "height": "10px",
+                          "margin": "35px 0px",
+                          "width": "225px"
+                        }
+                      },
+                      "elements": null,
+                      "text": "",
                       "link": ""
                     },
                     {
@@ -111,15 +190,17 @@
                         "style": {
                           "color": "white",
                           "font-family": "open-sans-bold, sans-serif",
-                          "font-size": "1rem",
-                          "margin-top" : "50px"
+                          "font-size": "clamp(1rem, 0.9rem + 1vw, 1.5rem)",
+                          "max-width": "1000px"
                         }
                       },
                       "elements": null,
                       "text": "Your website is an extension of your brand, connecting with customers wherever they are. It should deliver a seamless experience that reflects who you are and what you do best.",
                       "link": ""
                     }
-                  ]
+                  ],
+                  "text": "",
+                  "link": ""
                 }
               ],
               "text": "",
@@ -166,11 +247,11 @@
               "href": "/",
               "style": {
                 "background-color": "#1e1e1e",
-                "border-radius": "30px",
+                "border-radius": "50px 0px 100px 50px",
                 "color": "white",
                 "font-family": "open-sans-bold, sans-serif",
                 "font-size": "1.2rem",
-                "padding": "5px 12px 7px 12px",
+                "padding": "5px 25px 7px 12px",
                 "text-decoration": "none"
               }
             },

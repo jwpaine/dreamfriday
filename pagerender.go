@@ -239,7 +239,7 @@ func RenderJSONContent(c echo.Context, jsonContent interface{}, previewMode bool
 	globalDefaults := `
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<script src="/static/htmx.min.js"></script>
-
+		<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=keyboard_arrow_down" />
 
 		<style>
 			html {
@@ -279,6 +279,11 @@ func RenderJSONContent(c echo.Context, jsonContent interface{}, previewMode bool
 				opacity: 1;
 				transition: opacity 0.3s ease-out;
 			}
+
+
+
+
+
 		</style>
 
  
