@@ -143,6 +143,9 @@ func CreateComponent(componentType string, element Models.PageElement, children 
 	if element.Attributes.Href != "" {
 		attr["href"] = element.Attributes.Href
 	}
+	if element.Attributes.Src != "" {
+		attr["src"] = element.Attributes.Src
+	}
 
 	// Set up CSS properties and apply className
 	cssProps, mediaQueries := extractStyles(element.Attributes.Style)
@@ -168,7 +171,7 @@ func CreateComponent(componentType string, element Models.PageElement, children 
 	// fmt.Printf("Generated CSS for %s with class %s:\n%s\n", componentType, className, styling)
 
 	switch componentType {
-	case "header", "main", "div", "section", "h1", "h2", "h3", "p", "a", "i", "span", "button":
+	case "header", "main", "div", "section", "img", "h1", "h2", "h3", "p", "a", "i", "span", "button":
 		return &GenericComponent{Type: element.Type, Text: element.Text, Attributes: attr, Children: children, styling: styling}, nil
 	default:
 		return nil, fmt.Errorf("unknown component type: %s", componentType)

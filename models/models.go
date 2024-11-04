@@ -32,6 +32,7 @@ type Attributes struct {
 	Class   string                 `json:"class"`
 	OnClick string                 `json:"onclick"`
 	Href    string                 `json:"href"`
+	Src     string                 `json:"src"`
 	Style   map[string]interface{} `json:"style"` // Flexible styling keys
 }
 

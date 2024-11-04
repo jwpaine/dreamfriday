@@ -9,6 +9,7 @@
           "type": "main",
           "attributes": {
             "id": "",
+            "class": "",
             "onclick": "",
             "href": "",
             "style": {
@@ -20,6 +21,7 @@
               "type": "section",
               "attributes": {
                 "id": "hero",
+                "class": "",
                 "onclick": "",
                 "href": "",
                 "style": {
@@ -40,6 +42,7 @@
                   "type": "h2",
                   "attributes": {
                     "id": "",
+                    "class": "",
                     "onclick": "",
                     "href": "",
                     "style": {
@@ -50,13 +53,14 @@
                     }
                   },
                   "elements": null,
-                  "text": "micro websites",
+                  "text": "a platform powering websites with",
                   "link": ""
                 },
                 {
                   "type": "h1",
                   "attributes": {
                     "id": "",
+                    "class": "",
                     "onclick": "",
                     "href": "",
                     "style": {
@@ -78,15 +82,16 @@
               "type": "section",
               "attributes": {
                 "id": "about",
+                "class": "",
                 "onclick": "",
                 "href": "",
                 "style": {
+                  "bottom": "200px",
                   "display": "flex",
                   "flex-direction": "column",
                   "min-height": "100vh",
                   "padding": "0px 20px",
                   "position": "relative",
-                  "bottom": "200px",
                   "z-index": "1"
                 }
               },
@@ -94,63 +99,61 @@
                 {
                   "type": "div",
                   "attributes": {
+                    "id": "",
+                    "class": "",
+                    "onclick": "",
+                    "href": "",
                     "style": {
+                      "background": "linear-gradient(rgba(51, 85, 255, 0), rgba(51, 85, 255, 1))",
                       "display": "flex",
-                      "justify-content": "center",
                       "height": "300px",
-                      "width": "100%",
-                      "background": "linear-gradient(rgba(51, 85, 255, 0), rgba(51, 85, 255, 1))"
+                      "justify-content": "center",
+                      "width": "100%"
                     }
                   },
                   "elements": [
                     {
                       "type": "span",
                       "attributes": {
-                        "class": "material-symbols-outlined",
+                        "id": "",
+                        "class": "material-symbols-outlined fade",
                         "onclick": "window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })",
-
+                        "href": "",
                         "style": {
                           "color": "rgba(255, 255, 255, 0.7)",
-                          "font-size": "3rem",
-                          "cursor" : "pointer"
+                          "cursor": "pointer",
+                          "font-size": "5rem"
                         }
                       },
-                      "text": "keyboard_arrow_down"
+                      "elements": null,
+                      "text": "keyboard_arrow_down",
+                      "link": ""
                     }
-                  ]
+                  ],
+                  "text": "",
+                  "link": ""
                 },
                 {
                   "type": "div",
                   "attributes": {
                     "id": "",
+                    "class": "",
                     "onclick": "",
                     "href": "",
                     "style": {
-                      "align-items": "flex-start",
+                      "align-items": "center",
+                      "background": "#3355ff",
                       "display": "flex",
                       "flex-direction": "column",
-                      "background": "#3355ff",
                       "padding-bottom": "500px"
                     }
                   },
                   "elements": [
                     {
-                      "type": "div",
-                      "attributes": {
-                        "id": "",
-                        "onclick": "",
-                        "href": "",
-                        "style": {
-                          "display": "flex"
-                        }
-                      },
-                      "elements": [],
-                      "text": "",
-                      "link": ""
-                    },
-                    {
                       "type": "h1",
                       "attributes": {
+                        "id": "",
+                        "class": "",
                         "onclick": "",
                         "href": "",
                         "style": {
@@ -168,35 +171,91 @@
                       "type": "div",
                       "attributes": {
                         "id": "",
+                        "class": "",
                         "onclick": "",
                         "href": "",
                         "style": {
-                          "background": "white",
-                          "height": "10px",
-                          "margin": "35px 0px",
-                          "width": "225px"
+                          "display": "flex",
+                          "margin-top": "50px",
+                          "align-items": "center",
+                          "width": "100%",
+                          "background": "#1e1e1e",
+                          "border-radius": "30px",
+
+                          "max-width": "1200px",
+                          "media": {
+                            "max-width": {
+                              "735px": {
+                                "flex-direction": "column"
+                              }
+                            },
+                            "min-width": {
+                              "735px": {
+                                "height": "400px"
+                              }
+                            }
+                          }
                         }
                       },
-                      "elements": null,
-                      "text": "",
-                      "link": ""
-                    },
-                    {
-                      "type": "p",
-                      "attributes": {
-                        "id": "",
-                        "onclick": "",
-                        "href": "",
-                        "style": {
-                          "color": "white",
-                          "font-family": "open-sans-bold, sans-serif",
-                          "font-size": "clamp(1rem, 0.9rem + 1vw, 1.5rem)",
-                          "max-width": "1000px"
+                      "elements": [
+                        {
+                          "type": "div",
+                          "attributes": {
+                            "src": "/static/img/friends.jpg",
+                            "style": {
+                              "display": "flex",
+                              "background": "url('/static/img/friends.jpg')",
+                              "background-size": "cover !important",
+                              "background-position": "center !important",
+                              "width": "100%",
+                              "max-width": "500px",
+                              "min-width": "330px",
+                              "height": "100%",
+                              "border-radius" : "30px 0 0 30px",
+                              "media": {
+                                "max-width": {
+                                  "735px": {
+                                    "height": "300px",
+                                   "border-radius": "30px 30px 0 0"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        },
+
+                        {
+                          "type": "div",
+                          "attributes": {
+                            "style": {
+                              "display": "flex",
+                              "flex-direction": "column",
+                              "max-width": "600px",
+                              "padding": "0px 35px",
+                              "border-radius": "30px"
+                            }
+                          },
+                          "elements": [
+                            {
+                              "type": "p",
+                              "attributes": {
+                                "id": "",
+                                "class": "",
+                                "onclick": "",
+                                "href": "",
+                                "style": {
+                                  "color": "white",
+                                  "font-family": "open-sans-bold, sans-serif",
+                                  "font-size": "1.5rem"
+                                }
+                              },
+                              "elements": null,
+                              "text": "Your website is an extension of your brand, connecting with customers wherever they are. It should deliver a seamless experience that reflects who you are and what you do best.",
+                              "link": ""
+                            }
+                          ]
                         }
-                      },
-                      "elements": null,
-                      "text": "Your website is an extension of your brand, connecting with customers wherever they are. It should deliver a seamless experience that reflects who you are and what you do best.",
-                      "link": ""
+                      ]
                     }
                   ],
                   "text": "",
@@ -219,6 +278,7 @@
         "type": "header",
         "attributes": {
           "id": "",
+          "class": "",
           "onclick": "",
           "href": "",
           "style": {
@@ -243,6 +303,7 @@
             "type": "a",
             "attributes": {
               "id": "",
+              "class": "",
               "onclick": "",
               "href": "/",
               "style": {
