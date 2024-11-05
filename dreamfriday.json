@@ -12,6 +12,7 @@
             "class": "",
             "onclick": "",
             "href": "",
+            "src": "",
             "style": {
               "display": "block"
             }
@@ -24,6 +25,7 @@
                 "class": "",
                 "onclick": "",
                 "href": "",
+                "src": "",
                 "style": {
                   "align-items": "center",
                   "background-color": "#3355ff",
@@ -45,6 +47,7 @@
                     "class": "",
                     "onclick": "",
                     "href": "",
+                    "src": "",
                     "style": {
                       "color": "white",
                       "font-family": "open-sans-regular, sans-serif",
@@ -53,7 +56,7 @@
                     }
                   },
                   "elements": null,
-                  "text": "a platform powering websites with",
+                  "text": "more than a platform powering sites with",
                   "link": ""
                 },
                 {
@@ -63,6 +66,7 @@
                     "class": "",
                     "onclick": "",
                     "href": "",
+                    "src": "",
                     "style": {
                       "color": "white",
                       "font-family": "open-sans-bold, sans-serif",
@@ -85,6 +89,7 @@
                 "class": "",
                 "onclick": "",
                 "href": "",
+                "src": "",
                 "style": {
                   "bottom": "200px",
                   "display": "flex",
@@ -103,6 +108,7 @@
                     "class": "",
                     "onclick": "",
                     "href": "",
+                    "src": "",
                     "style": {
                       "background": "linear-gradient(rgba(51, 85, 255, 0), rgba(51, 85, 255, 1))",
                       "display": "flex",
@@ -119,6 +125,7 @@
                         "class": "material-symbols-outlined fade",
                         "onclick": "window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })",
                         "href": "",
+                        "src": "",
                         "style": {
                           "color": "rgba(255, 255, 255, 0.7)",
                           "cursor": "pointer",
@@ -140,12 +147,12 @@
                     "class": "",
                     "onclick": "",
                     "href": "",
+                    "src": "",
                     "style": {
                       "align-items": "center",
                       "background": "#3355ff",
                       "display": "flex",
-                      "flex-direction": "column",
-                      "padding-bottom": "500px"
+                      "flex-direction": "column"
                     }
                   },
                   "elements": [
@@ -156,6 +163,7 @@
                         "class": "",
                         "onclick": "",
                         "href": "",
+                        "src": "",
                         "style": {
                           "color": "white",
                           "font-family": "open-sans-bold, sans-serif",
@@ -174,14 +182,13 @@
                         "class": "",
                         "onclick": "",
                         "href": "",
+                        "src": "",
                         "style": {
-                          "display": "flex",
-                          "margin-top": "50px",
                           "align-items": "center",
-                          "width": "100%",
                           "background": "#1e1e1e",
                           "border-radius": "30px",
-
+                          "display": "flex",
+                          "margin-top": "75px",
                           "max-width": "1200px",
                           "media": {
                             "max-width": {
@@ -194,68 +201,429 @@
                                 "height": "400px"
                               }
                             }
-                          }
+                          },
+                          "width": "100%"
                         }
                       },
                       "elements": [
                         {
                           "type": "div",
                           "attributes": {
-                            "src": "/static/img/friends.jpg",
+                            "id": "",
+                            "class": "",
+                            "onclick": "",
+                            "href": "",
+                            "src": "",
                             "style": {
-                              "display": "flex",
                               "background": "url('/static/img/friends.jpg')",
-                              "background-size": "cover !important",
                               "background-position": "center !important",
-                              "width": "100%",
-                              "max-width": "500px",
-                              "min-width": "330px",
+                              "background-size": "cover !important",
+                              "border-radius": "30px 0 0 30px",
+                              "display": "flex",
                               "height": "100%",
-                              "border-radius" : "30px 0 0 30px",
+                              "max-width": "500px",
                               "media": {
                                 "max-width": {
                                   "735px": {
+                                    "border-radius": "30px 30px 0 0",
                                     "height": "300px",
-                                   "border-radius": "30px 30px 0 0"
+                                    "max-width": "none"
                                   }
                                 }
+                              },
+                              "min-width": "330px",
+                              "width": "100%"
+                            }
+                          },
+                          "elements": null,
+                          "text": "",
+                          "link": ""
+                        },
+                        {
+                          "type": "p",
+                          "attributes": {
+                            "id": "",
+                            "class": "",
+                            "onclick": "",
+                            "href": "",
+                            "src": "",
+                            "style": {
+                              "border-radius": "30px",
+                              "color": "white",
+                              "font-family": "open-sans-bold, sans-serif",
+                              "font-size": "1.5rem",
+                              "max-width": "600px",
+                              "padding": "35px"
+                            }
+                          },
+                          "elements": null,
+                          "text": "Your website is an extension of your brand, connecting with customers wherever they are. It should deliver a seamless experience that reflects who you are and what you do best.",
+                          "link": ""
+                        }
+                      ],
+                      "text": "",
+                      "link": ""
+                    },
+                    {
+                      "type": "div",
+                      "attributes": {
+                        "id": "locate",
+                        "class": "",
+                        "onclick": "",
+                        "href": "",
+                        "src": "",
+                        "style": {
+                          "align-items": "center",
+                          "background": "#1e1e1e",
+                          "border-radius": "30px",
+                          "display": "flex",
+                          "margin-top": "75px",
+                          "max-width": "1200px",
+                          "media": {
+                            "max-width": {
+                              "735px": {
+                                "flex-direction": "column"
+                              }
+                            },
+                            "min-width": {
+                              "735px": {
+                                "height": "80px"
                               }
                             }
-                          }
-                        },
-
+                          },
+                          "width": "100%"
+                        }
+                      },
+                      "elements": [
                         {
                           "type": "div",
                           "attributes": {
+                            "id": "",
+                            "class": "",
+                            "onclick": "",
+                            "href": "",
+                            "src": "",
                             "style": {
+                              "background": "url('/static/img/map.png')",
+                              "background-position": "center !important",
+                              "background-size": "cover !important",
+                              "border-radius": "30px 0 0 30px",
                               "display": "flex",
-                              "flex-direction": "column",
-                              "max-width": "600px",
-                              "padding": "0px 35px",
-                              "border-radius": "30px"
+                              "height": "100%",
+                              "max-width": "500px",
+                              "media": {
+                                "max-width": {
+                                  "735px": {
+                                    "border-radius": "30px 30px 0 0",
+                                    "height": "60px",
+                                    "max-width": "none"
+                                  }
+                                }
+                              },
+                              "min-width": "330px",
+                              "width": "100%"
+                            }
+                          },
+                          "elements": null,
+                          "text": "",
+                          "link": ""
+                        },
+                        {
+                          "type": "p",
+                          "attributes": {
+                            "id": "",
+                            "class": "",
+                            "onclick": "",
+                            "href": "",
+                            "src": "",
+                            "style": {
+                              "color": "white",
+                              "font-family": "open-sans-bold, sans-serif",
+                              "font-size": "1.1rem",
+                              "padding": "20px"
+                            }
+                          },
+                          "elements": null,
+                          "text": "Help people locate you",
+                          "link": ""
+                        }
+                      ],
+                      "text": "",
+                      "link": ""
+                    },
+                    {
+                      "type": "div",
+                      "attributes": {
+                        "id": "menus",
+                        "class": "",
+                        "onclick": "",
+                        "href": "",
+                        "src": "",
+                        "style": {
+                          "align-items": "center",
+                          "background": "#1e1e1e",
+                          "border-radius": "30px",
+                          "display": "flex",
+                          "margin-top": "10px",
+                          "max-width": "1200px",
+                          "media": {
+                            "max-width": {
+                              "735px": {
+                                "flex-direction": "column"
+                              }
+                            },
+                            "min-width": {
+                              "735px": {
+                                "height": "80px"
+                              }
+                            }
+                          },
+                          "width": "100%"
+                        }
+                      },
+                      "elements": [
+                        {
+                          "type": "div",
+                          "attributes": {
+                            "id": "",
+                            "class": "",
+                            "onclick": "",
+                            "href": "",
+                            "src": "",
+                            "style": {
+                              "background": "url('/static/img/pizza.jpg')",
+                              "background-position": "center !important",
+                              "background-size": "cover !important",
+                              "border-radius": "30px 0 0 30px",
+                              "display": "flex",
+                              "height": "100%",
+                              "max-width": "700px",
+                              "media": {
+                                "max-width": {
+                                  "735px": {
+                                    "border-radius": "30px 30px 0 0",
+                                    "height": "60px",
+                                    "max-width": "none"
+                                  }
+                                }
+                              },
+                              "min-width": "330px",
+                              "width": "100%"
+                            }
+                          },
+                          "elements": null,
+                          "text": "",
+                          "link": ""
+                        },
+                        {
+                          "type": "p",
+                          "attributes": {
+                            "id": "",
+                            "class": "",
+                            "onclick": "",
+                            "href": "",
+                            "src": "",
+                            "style": {
+                              "color": "white",
+                              "font-family": "open-sans-bold, sans-serif",
+                              "font-size": "1.1rem",
+                              "padding": "20px"
+                            }
+                          },
+                          "elements": null,
+                          "text": "Display interactive menus",
+                          "link": ""
+                        }
+                      ],
+                      "text": "",
+                      "link": ""
+                    },
+                    {
+                      "type": "div",
+                      "attributes": {
+                        "id": "coupons",
+                        "class": "",
+                        "onclick": "",
+                        "href": "",
+                        "src": "",
+                        "style": {
+                          "align-items": "center",
+                          "background": "#1e1e1e",
+                          "border-radius": "30px",
+                          "display": "flex",
+                          "margin-top": "10px",
+                          "max-width": "1200px",
+                          "media": {
+                            "max-width": {
+                              "735px": {
+                                "flex-direction": "column"
+                              }
+                            },
+                            "min-width": {
+                              "735px": {
+                                "height": "80px"
+                              }
+                            }
+                          },
+                          "width": "100%"
+                        }
+                      },
+                      "elements": [
+                        {
+                          "type": "div",
+                          "attributes": {
+                            "id": "",
+                            "class": "",
+                            "onclick": "",
+                            "href": "",
+                            "src": "",
+                            "style": {
+                              "background": "url('/static/img/paper.png')",
+                              "background-position": "center !important",
+                              "background-size": "cover !important",
+                              "border-radius": "30px 0 0 30px",
+                              "display": "flex",
+                              "height": "100%",
+                              "max-width": "345px",
+                              "justify-content": "center",
+                              "align-items": "center",
+                              "media": {
+                                "max-width": {
+                                  "735px": {
+                                    "border-radius": "30px 30px 0 0",
+                                    "height": "60px",
+                                    "max-width": "none"
+                                  }
+                                }
+                              },
+                              "min-width": "330px",
+                              "width": "100%"
                             }
                           },
                           "elements": [
                             {
-                              "type": "p",
+                              "type": "span",
                               "attributes": {
-                                "id": "",
-                                "class": "",
-                                "onclick": "",
-                                "href": "",
                                 "style": {
-                                  "color": "white",
-                                  "font-family": "open-sans-bold, sans-serif",
-                                  "font-size": "1.5rem"
+                                  "color": "#1e1e1e",
+                                  "font-size": "1.1rem",
+                                  "font-family": "open-sans-bold, sans-serif"
                                 }
                               },
-                              "elements": null,
-                              "text": "Your website is an extension of your brand, connecting with customers wherever they are. It should deliver a seamless experience that reflects who you are and what you do best.",
-                              "link": ""
+
+                              "text": "20% OFF!"
                             }
                           ]
+                        },
+                        {
+                          "type": "p",
+                          "attributes": {
+                            "id": "",
+                            "class": "",
+                            "onclick": "",
+                            "href": "",
+                            "src": "",
+                            "style": {
+                              "color": "white",
+                              "font-family": "open-sans-bold, sans-serif",
+                              "font-size": "1.1rem",
+                              "padding": "20px"
+                            }
+                          },
+                          "elements": null,
+                          "text": "Generate coupons to attract new customers",
+                          "link": ""
                         }
-                      ]
+                      ],
+                      "text": "",
+                      "link": ""
+                    },
+                    {
+                      "type": "div",
+                      "attributes": {
+                        "id": "feedback",
+                        "class": "",
+                        "onclick": "",
+                        "href": "",
+                        "src": "",
+                        "style": {
+                          "align-items": "center",
+                          "background": "#1e1e1e",
+                          "border-radius": "30px",
+                          "display": "flex",
+                          "margin-top": "10px",
+                          "max-width": "1200px",
+                          "media": {
+                            "max-width": {
+                              "735px": {
+                                "flex-direction": "column"
+                              }
+                            },
+                            "min-width": {
+                              "735px": {
+                                "height": "80px"
+                              }
+                            }
+                          },
+                          "width": "100%"
+                        }
+                      },
+                      "elements": [
+                        {
+                          "type": "div",
+                          "attributes": {
+                            "id": "",
+                            "class": "",
+                            "onclick": "",
+                            "href": "",
+                            "src": "",
+                            "style": {
+                              "background": "url('/static/img/feedback.png')",
+                              "background-position": "center !important",
+                              "background-size": "cover !important",
+                              "border-radius": "30px 0 0 30px",
+                              "display": "flex",
+                              "height": "100%",
+                              "max-width": "625px",
+                              "media": {
+                                "max-width": {
+                                  "735px": {
+                                    "border-radius": "30px 30px 0 0",
+                                    "height": "60px",
+                                    "max-width": "none"
+                                  }
+                                }
+                              },
+                              "min-width": "330px",
+                              "width": "100%"
+                            }
+                          },
+                          "elements": null,
+                          "text": "",
+                          "link": ""
+                        },
+                        {
+                          "type": "p",
+                          "attributes": {
+                            "id": "",
+                            "class": "",
+                            "onclick": "",
+                            "href": "",
+                            "src": "",
+                            "style": {
+                              "color": "white",
+                              "font-family": "open-sans-bold, sans-serif",
+                              "font-size": "1.1rem",
+                              "padding": "20px"
+                            }
+                          },
+                          "elements": null,
+                          "text": "Capture customer feedback",
+                          "link": ""
+                        }
+                      ],
+                      "text": "",
+                      "link": ""
                     }
                   ],
                   "text": "",
@@ -281,6 +649,7 @@
           "class": "",
           "onclick": "",
           "href": "",
+          "src": "",
           "style": {
             "align-items": "center",
             "display": "flex",
@@ -306,6 +675,7 @@
               "class": "",
               "onclick": "",
               "href": "/",
+              "src": "",
               "style": {
                 "background-color": "#1e1e1e",
                 "border-radius": "50px 0px 100px 50px",
