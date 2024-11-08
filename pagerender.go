@@ -132,53 +132,6 @@ func extractStyles(styleAttr interface{}) (map[string]string, map[string]map[str
 	return cssProps, mediaQueries
 }
 
-/*
-func CreateComponent(componentType string, element Models.PageElement, children []Component) (Component, error) {
-	attr := map[string]string{}
-	if element.Attributes.ID != "" {
-		attr["id"] = element.Attributes.ID
-	}
-	if element.Attributes.OnClick != "" {
-		attr["onclick"] = element.Attributes.OnClick
-	}
-	if element.Attributes.Href != "" {
-		attr["href"] = element.Attributes.Href
-	}
-	if element.Attributes.Src != "" {
-		attr["src"] = element.Attributes.Src
-	}
-
-	// Set up CSS properties and apply className
-	cssProps, mediaQueries := extractStyles(element.Attributes.Style)
-
-	// Generate a random class name for the component
-	className := fmt.Sprintf("%s_%s", componentType, generateRandomClassName(6))
-	attr["class"] = className
-
-	// append additional user-supplied classes
-	if element.Attributes.Class != "" {
-		attr["class"] += " " + element.Attributes.Class
-	}
-
-	// Generate base CSS and media query CSS
-	styling := GenerateCSS(className, cssProps, "", "")
-	for mqType, targets := range mediaQueries {
-		for target, styles := range targets {
-			styling += GenerateCSS(className, styles, mqType, target)
-		}
-	}
-
-	// Debug output to check generated CSS
-	// fmt.Printf("Generated CSS for %s with class %s:\n%s\n", componentType, className, styling)
-
-	switch componentType {
-	case "header", "main", "div", "section", "form", "label", "img", "h1", "h2", "h3", "p", "a", "i", "span", "button":
-		return &GenericComponent{Type: element.Type, Text: element.Text, Attributes: attr, Children: children, styling: styling}, nil
-	default:
-		return nil, fmt.Errorf("unknown component type: %s", componentType)
-	}
-} */
-
 func CreateComponent(componentType string, element Models.PageElement, children []Component) (Component, error) {
 	attr := map[string]string{}
 
