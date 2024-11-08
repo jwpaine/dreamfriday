@@ -8,6 +8,11 @@
         {
           "type": "main",
           "attributes": {
+            "id": "",
+            "class": "",
+            "onclick": "",
+            "href": "",
+            "src": "",
             "style": {
               "display": "block"
             }
@@ -16,9 +21,11 @@
             {
               "type": "section",
               "attributes": {
-                "props": {
-                  "id": "hero"
-                },
+                "id": "hero",
+                "class": "",
+                "onclick": "",
+                "href": "",
+                "src": "",
                 "style": {
                   "align-items": "center",
                   "background-color": "#3355ff",
@@ -36,6 +43,11 @@
                 {
                   "type": "h2",
                   "attributes": {
+                    "id": "",
+                    "class": "",
+                    "onclick": "",
+                    "href": "",
+                    "src": "",
                     "style": {
                       "color": "white",
                       "font-family": "open-sans-regular, sans-serif",
@@ -50,6 +62,11 @@
                 {
                   "type": "h1",
                   "attributes": {
+                    "id": "",
+                    "class": "",
+                    "onclick": "",
+                    "href": "",
+                    "src": "",
                     "style": {
                       "color": "white",
                       "font-family": "open-sans-bold, sans-serif",
@@ -68,9 +85,11 @@
             {
               "type": "section",
               "attributes": {
-                "props": {
-                  "id": "about"
-                },
+                "id": "about",
+                "class": "",
+                "onclick": "",
+                "href": "",
+                "src": "",
                 "style": {
                   "bottom": "200px",
                   "display": "flex",
@@ -85,6 +104,11 @@
                 {
                   "type": "div",
                   "attributes": {
+                    "id": "",
+                    "class": "",
+                    "onclick": "",
+                    "href": "",
+                    "src": "",
                     "style": {
                       "background": "linear-gradient(rgba(51, 85, 255, 0), rgba(51, 85, 255, 1))",
                       "display": "flex",
@@ -97,10 +121,11 @@
                     {
                       "type": "span",
                       "attributes": {
-                        "props": {
-                          "class": "material-symbols-outlined fade",
-                          "onclick": "window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })"
-                        },
+                        "id": "",
+                        "class": "material-symbols-outlined fade",
+                        "onclick": "window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })",
+                        "href": "",
+                        "src": "",
                         "style": {
                           "color": "rgba(255, 255, 255, 0.7)",
                           "cursor": "pointer",
@@ -118,6 +143,11 @@
                 {
                   "type": "div",
                   "attributes": {
+                    "id": "",
+                    "class": "",
+                    "onclick": "",
+                    "href": "",
+                    "src": "",
                     "style": {
                       "align-items": "center",
                       "background": "#3355ff",
@@ -129,6 +159,11 @@
                     {
                       "type": "h1",
                       "attributes": {
+                        "id": "",
+                        "class": "",
+                        "onclick": "",
+                        "href": "",
+                        "src": "",
                         "style": {
                           "color": "white",
                           "font-family": "open-sans-bold, sans-serif",
@@ -143,6 +178,11 @@
                     {
                       "type": "div",
                       "attributes": {
+                        "id": "",
+                        "class": "",
+                        "onclick": "",
+                        "href": "",
+                        "src": "",
                         "style": {
                           "align-items": "center",
                           "background": "#1e1e1e",
@@ -169,6 +209,11 @@
                         {
                           "type": "div",
                           "attributes": {
+                            "id": "",
+                            "class": "",
+                            "onclick": "",
+                            "href": "",
+                            "src": "",
                             "style": {
                               "background": "url('/static/img/friends.jpg')",
                               "background-position": "center !important",
@@ -197,6 +242,11 @@
                         {
                           "type": "p",
                           "attributes": {
+                            "id": "",
+                            "class": "",
+                            "onclick": "",
+                            "href": "",
+                            "src": "",
                             "style": {
                               "border-radius": "30px",
                               "color": "white",
@@ -217,9 +267,11 @@
                     {
                       "type": "div",
                       "attributes": {
-                        "props": {
-                          "id": "locate"
-                        },
+                        "id": "locate",
+                        "class": "",
+                        "onclick": "",
+                        "href": "",
+                        "src": "",
                         "style": {
                           "align-items": "center",
                           "background": "#1E1E1E",
@@ -246,6 +298,11 @@
                         {
                           "type": "div",
                           "attributes": {
+                            "id": "",
+                            "class": "",
+                            "onclick": "",
+                            "href": "",
+                            "src": "",
                             "style": {
                               "background": "url('/static/img/map.png')",
                               "background-position": "center !important",
@@ -277,6 +334,11 @@
                         {
                           "type": "p",
                           "attributes": {
+                            "id": "",
+                            "class": "",
+                            "onclick": "",
+                            "href": "",
+                            "src": "",
                             "style": {
                               "color": "#FFFFFF",
                               "font-family": "open-sans-bold, sans-serif",
@@ -295,9 +357,11 @@
                     {
                       "type": "div",
                       "attributes": {
-                        "props": {
-                          "id": "menus"
-                        },
+                        "id": "menus",
+                        "class": "",
+                        "onclick": "",
+                        "href": "",
+                        "src": "",
                         "style": {
                           "align-items": "center",
                           "background": "#1E1E1E",
@@ -324,6 +388,11 @@
                         {
                           "type": "div",
                           "attributes": {
+                            "id": "",
+                            "class": "",
+                            "onclick": "",
+                            "href": "",
+                            "src": "",
                             "style": {
                               "background": "url('/static/img/pizza.jpg')",
                               "background-position": "center !important",
@@ -355,6 +424,11 @@
                         {
                           "type": "p",
                           "attributes": {
+                            "id": "",
+                            "class": "",
+                            "onclick": "",
+                            "href": "",
+                            "src": "",
                             "style": {
                               "color": "#FFFFFF",
                               "font-family": "open-sans-bold, sans-serif",
@@ -373,10 +447,11 @@
                     {
                       "type": "div",
                       "attributes": {
-                        "props": {
-                          "id": "coupons"
-                        },
-
+                        "id": "coupons",
+                        "class": "",
+                        "onclick": "",
+                        "href": "",
+                        "src": "",
                         "style": {
                           "align-items": "center",
                           "background": "#1E1E1E",
@@ -403,6 +478,11 @@
                         {
                           "type": "div",
                           "attributes": {
+                            "id": "",
+                            "class": "",
+                            "onclick": "",
+                            "href": "",
+                            "src": "",
                             "style": {
                               "align-items": "center",
                               "background": "url('/static/img/paper.png')",
@@ -433,6 +513,11 @@
                             {
                               "type": "span",
                               "attributes": {
+                                "id": "",
+                                "class": "",
+                                "onclick": "",
+                                "href": "",
+                                "src": "",
                                 "style": {
                                   "color": "#1E1E1E",
                                   "font-family": "open-sans-bold, sans-serif",
@@ -450,6 +535,11 @@
                         {
                           "type": "p",
                           "attributes": {
+                            "id": "",
+                            "class": "",
+                            "onclick": "",
+                            "href": "",
+                            "src": "",
                             "style": {
                               "color": "#FFFFFF",
                               "font-family": "open-sans-bold, sans-serif",
@@ -468,9 +558,11 @@
                     {
                       "type": "div",
                       "attributes": {
-                        "props": {
-                          "id": "feedback"
-                        },
+                        "id": "feedback",
+                        "class": "",
+                        "onclick": "",
+                        "href": "",
+                        "src": "",
                         "style": {
                           "align-items": "center",
                           "background": "#1E1E1E",
@@ -497,6 +589,11 @@
                         {
                           "type": "div",
                           "attributes": {
+                            "id": "",
+                            "class": "",
+                            "onclick": "",
+                            "href": "",
+                            "src": "",
                             "style": {
                               "background": "url('/static/img/feedback.png')",
                               "background-position": "center !important",
@@ -528,6 +625,11 @@
                         {
                           "type": "p",
                           "attributes": {
+                            "id": "",
+                            "class": "",
+                            "onclick": "",
+                            "href": "",
+                            "src": "",
                             "style": {
                               "color": "white",
                               "font-family": "open-sans-bold, sans-serif",
@@ -562,6 +664,11 @@
         {
           "type": "main",
           "attributes": {
+            "id": "",
+            "class": "",
+            "onclick": "",
+            "href": "",
+            "src": "",
             "style": {
               "display": "flex",
               "flex-direction": "column",
@@ -569,62 +676,104 @@
               "justify-content": "center",
               "align-items": "center",
               "padding": "0px 20px"
+
             }
           },
 
-          "elements": [
-            {
-              "type": "h1",
-              "attributes": {
-                "style": {
-                  "color": "#1e1e1e",
-                  "font-family": "open-sans-bold, sans-serif",
-                  "font-size": "clamp(4rem, -3rem + 9vw, 10rem)",
-                  "line-height": "1.1",
-                  "text-align": "center"
-                }
-              },
-              "elements": null,
-              "text": "Let's connect",
-              "link": ""
-            },
-            {
-              "type": "div",
-              "attributes": {
-                "style": {
-                  "align-items": "center",
-                  "background": "#1e1e1e",
-                  "border-radius": "30px",
-                  "display": "flex",
-                  "margin-top": "75px",
-                  "max-width": "1200px",
-                  "flex-direction": "column",
-                  "width": "100%"
-                }
-              },
               "elements": [
                 {
-                  "type": "p",
+                  "type": "h1",
                   "attributes": {
+                    "id": "",
+                    "class": "",
+                    "onclick": "",
+                    "href": "",
+                    "src": "",
                     "style": {
-                      "color": "white",
+                      "color": "#1e1e1e",
                       "font-family": "open-sans-bold, sans-serif",
-                      "font-size": "1.5rem",
-                      "max-width": "600px",
-                      "padding": "35px"
+                      "font-size": "clamp(4rem, -3rem + 9vw, 10rem)",
+                      "line-height": "1.1",
+                      "text-align": "center"
                     }
                   },
-                  "text": "contact us today"
+                  "elements": null,
+                  "text": "Awesome starts here",
+                  "link": ""
+                },
+                {
+                  "type": "div",
+                  "attributes": {
+                    "id": "",
+                    "class": "",
+                    "onclick": "",
+                    "href": "",
+                    "src": "",
+                    "style": {
+                      "align-items": "center",
+                      "background": "#1e1e1e",
+                      "border-radius": "30px",
+                      "display": "flex",
+                      "margin-top": "75px",
+                      "max-width": "1200px",
+                      "media": {
+                        "max-width": {
+                          "735px": {
+                            "flex-direction": "column"
+                          }
+                        },
+                        "min-width": {
+                          "735px": {
+                            "height": "400px"
+                          }
+                        }
+                      },
+                      "width": "100%"
+                    }
+                  },
+                  "elements": [
+                    {
+                      "type": "div",
+                      "attributes": {
+                        "id": "",
+                        "class": "",
+                        "onclick": "",
+                        "href": "",
+                        "src": "",
+                        "style": {
+                          "background": "url('/static/img/friends.jpg')",
+                          "background-position": "center !important",
+                          "background-size": "cover !important",
+                          "border-radius": "30px 0 0 30px",
+                          "display": "flex",
+                          "height": "100%",
+                          "max-width": "500px",
+                          "media": {
+                            "max-width": {
+                              "735px": {
+                                "border-radius": "30px 30px 0 0",
+                                "height": "300px",
+                                "max-width": "none"
+                              }
+                            }
+                          },
+                          "min-width": "330px",
+                          "width": "100%"
+                        }
+                      },
+                      "elements": null,
+                      "text": "",
+                      "link": ""
+                    }
+                  ],
+                  "text": "",
+                  "link": ""
                 }
               ],
               "text": "",
               "link": ""
             }
-          ],
-          "text": "",
-          "link": ""
-        }
-      ]
+          ]
     }
   },
   "Header": {
@@ -632,6 +781,11 @@
       {
         "type": "header",
         "attributes": {
+          "id": "",
+          "class": "",
+          "onclick": "",
+          "href": "",
+          "src": "",
           "style": {
             "display": "flex",
             "justify-content": "space-between",
@@ -653,9 +807,11 @@
           {
             "type": "a",
             "attributes": {
-              "props": {
-                "href": "/"
-              },
+              "id": "",
+              "class": "",
+              "onclick": "",
+              "href": "/",
+              "src": "",
               "style": {
                 "background-color": "#1e1e1e",
                 "border-radius": "50px 0px 100px 50px",
@@ -665,8 +821,7 @@
                 "margin": "0px 20px",
                 "max-width": "fit-content",
                 "padding": "6px 25px 7px 12px",
-                "text-decoration": "none",
-                "z-index": "99"
+                "text-decoration": "none"
               }
             },
             "elements": null,
@@ -676,6 +831,11 @@
           {
             "type": "div",
             "attributes": {
+              "id": "",
+              "class": "",
+              "onclick": "",
+              "href": "",
+              "src": "",
               "style": {
                 "display": "flex",
                 "justify-content": "flex-end",
@@ -695,10 +855,11 @@
               {
                 "type": "a",
                 "attributes": {
-                  "props": {
-                    "href": "/contact"
-                  },
-
+                  "id": "",
+                  "class": "",
+                  "onclick": "",
+                  "href": "/contact",
+                  "src": "",
                   "style": {
                     "background-color": "#FFFFFF",
                     "border-radius": "100px 50px 50px 0px",
@@ -707,7 +868,7 @@
                     "font-size": "1rem",
                     "margin": "0px 20px",
                     "padding": "9px 12px 7px 21px",
-                    "border": "1px solid #1e1e1e",
+                    "border" : "1px solid #1e1e1e",
                     "text-decoration": "none"
                   }
                 },

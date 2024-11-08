@@ -132,6 +132,7 @@ func extractStyles(styleAttr interface{}) (map[string]string, map[string]map[str
 	return cssProps, mediaQueries
 }
 
+/*
 func CreateComponent(componentType string, element Models.PageElement, children []Component) (Component, error) {
 	attr := map[string]string{}
 	if element.Attributes.ID != "" {
@@ -171,7 +172,43 @@ func CreateComponent(componentType string, element Models.PageElement, children 
 	// fmt.Printf("Generated CSS for %s with class %s:\n%s\n", componentType, className, styling)
 
 	switch componentType {
-	case "header", "main", "div", "section", "img", "h1", "h2", "h3", "p", "a", "i", "span", "button":
+	case "header", "main", "div", "section", "form", "label", "img", "h1", "h2", "h3", "p", "a", "i", "span", "button":
+		return &GenericComponent{Type: element.Type, Text: element.Text, Attributes: attr, Children: children, styling: styling}, nil
+	default:
+		return nil, fmt.Errorf("unknown component type: %s", componentType)
+	}
+} */
+
+func CreateComponent(componentType string, element Models.PageElement, children []Component) (Component, error) {
+	attr := map[string]string{}
+
+	// Flatten `props` and add to `attr`
+	for key, value := range element.Attributes.Props {
+		attr[key] = value
+	}
+
+	// Generate a random class name and append user-supplied classes if any
+	className := fmt.Sprintf("%s_%s", componentType, generateRandomClassName(6))
+	if existingClass, exists := attr["class"]; exists && existingClass != "" {
+		attr["class"] = className + " " + existingClass
+	} else {
+		attr["class"] = className
+	}
+
+	// Process Style for CSS properties
+	cssProps, mediaQueries := extractStyles(element.Attributes.Style)
+
+	// Generate base CSS and media query CSS
+	styling := GenerateCSS(className, cssProps, "", "")
+	for mqType, targets := range mediaQueries {
+		for target, styles := range targets {
+			styling += GenerateCSS(className, styles, mqType, target)
+		}
+	}
+
+	// Create the component
+	switch componentType {
+	case "header", "main", "div", "section", "form", "label", "img", "h1", "h2", "h3", "p", "a", "i", "span", "button":
 		return &GenericComponent{Type: element.Type, Text: element.Text, Attributes: attr, Children: children, styling: styling}, nil
 	default:
 		return nil, fmt.Errorf("unknown component type: %s", componentType)
@@ -239,6 +276,7 @@ func RenderJSONContent(c echo.Context, jsonContent interface{}, previewMode bool
 	var renderedHTML strings.Builder
 	renderedHTML.WriteString("<!DOCTYPE html>\n")
 
+	// @TODO: source global defaults from site data
 	globalDefaults := `
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<script src="/static/htmx.min.js"></script>
@@ -284,9 +322,6 @@ func RenderJSONContent(c echo.Context, jsonContent interface{}, previewMode bool
 			}
 
 
-
-
-
 		</style>
 
  
@@ -321,8 +356,6 @@ func RenderJSONContent(c echo.Context, jsonContent interface{}, previewMode bool
 			});
 		});
 	</script>
-
-
 
 	`
 
