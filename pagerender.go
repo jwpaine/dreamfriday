@@ -161,7 +161,7 @@ func CreateComponent(componentType string, element Models.PageElement, children 
 
 	// Create the component
 	switch componentType {
-	case "header", "main", "div", "section", "form", "label", "img", "h1", "h2", "h3", "p", "a", "i", "span", "button":
+	case "header", "main", "div", "section", "form", "label", "input", "img", "h1", "h2", "h3", "p", "a", "i", "span", "button":
 		return &GenericComponent{Type: element.Type, Text: element.Text, Attributes: attr, Children: children, styling: styling}, nil
 	default:
 		return nil, fmt.Errorf("unknown component type: %s", componentType)

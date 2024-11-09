@@ -147,6 +147,8 @@ func main() {
 		return c.File("static/favicon.ico")
 	})
 
+	e.POST("/contact", Contact)
+
 	e.GET("/", Page)          // This will match any route that does not match the specific ones above
 	e.GET("/:pageName", Page) // This will match any route that does not match the specific ones above
 
@@ -316,6 +318,24 @@ func Register(c echo.Context) error {
 
 	// Successfully registered, render success HTML page
 	return RenderTemplate(c, http.StatusOK, Views.RegisterSuccess(email))
+}
+
+func Contact(c echo.Context) error {
+
+	email := c.FormValue("email")
+
+	if email == "" {
+		msgs := []Models.Message{
+			{Message: "Email required", Type: "error"},
+		}
+		return HTML(c, Views.RenderMessages(msgs))
+	}
+
+	msgs := []Models.Message{
+		{Message: "Success", Type: "success"},
+	}
+	return HTML(c, Views.RenderMessages(msgs))
+
 }
 
 // LoginForm renders a simple login form
