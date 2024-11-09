@@ -1,71 +1,37 @@
-body {
+html {
+    scroll-behavior: smooth;
+}
+* {
     margin: 0;
     padding: 0;
 }
-
-header {
+@font-face { 
+    font-family: open-sans-regular; 
+    src: url('/static/font/OpenSans-Regular.ttf') format('truetype');
+}
+@font-face { 
+    font-family: open-sans-bold; 
+    src: url('/static/font/OpenSans_Bold.ttf') format('truetype');
+}
+html {
+    font-size: calc(14px + 0.5vw);
+}
+div#preview {
+    background-color: #f8d7da;
+    padding: 5px;
     display: flex;
-    align-items: center;
-    padding: 0px 20px;
-    height: 60px;
-    background: darkslateblue;
+    justify-content: space-between;
+    position: fixed;
+    bottom: 0;
+    z-index: 1000;
+    font-size: 16px;
 }
-
-header a {
-    color: white;
-   
-}
-
-main {
-    display: flex;
-    flex-direction: column;
-}
-
-main header {
-    background: none;
-}
-
-#login section, #register section, #reset section {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-    top: 100px;
-}
-
-#login form, #register form, #reset form {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-    max-width: 350px;
-}
-
-#login form button, input {
-    width: 100%;
-    margin: 10px;
-}
-#register form button, input {
-    width: 100%;
-    margin: 10px;
-}
-#reset form button, input {
-    width: 100%;
-    margin: 10px;
-}
-
-input {
-    height: 25px;
-}
-button {
-    height: 30px;
-    min-width: 120px;
-    border: none;
+#preview a {
+    margin-left: 10px;
     cursor: pointer;
 }
-a {
-    text-decoration: none;
-    color: navy;
-    display: inline;
+
+.fade {
+    opacity: 1;
+    transition: opacity 0.3s ease-out;
 }

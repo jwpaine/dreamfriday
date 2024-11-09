@@ -140,8 +140,11 @@ func CreateComponent(componentType string, element Models.PageElement, children 
 		attr[key] = value
 	}
 
+	className := ""
 	// Generate a random class name and append user-supplied classes if any
-	className := fmt.Sprintf("%s_%s", componentType, generateRandomClassName(6))
+	if element.Attributes.Style != nil {
+		className = fmt.Sprintf("%s_%s", componentType, generateRandomClassName(6))
+	}
 	if existingClass, exists := attr["class"]; exists && existingClass != "" {
 		attr["class"] = className + " " + existingClass
 	} else {
@@ -159,13 +162,7 @@ func CreateComponent(componentType string, element Models.PageElement, children 
 		}
 	}
 
-	// Create the component
-	switch componentType {
-	case "header", "main", "div", "section", "form", "label", "input", "img", "h1", "h2", "h3", "p", "a", "i", "span", "button":
-		return &GenericComponent{Type: element.Type, Text: element.Text, Attributes: attr, Children: children, styling: styling}, nil
-	default:
-		return nil, fmt.Errorf("unknown component type: %s", componentType)
-	}
+	return &GenericComponent{Type: element.Type, Text: element.Text, Attributes: attr, Children: children, styling: styling}, nil
 }
 
 func RenderPageContent(ctx context.Context, elements []Models.PageElement, w io.Writer) ([]Component, string, error) {
@@ -229,87 +226,9 @@ func RenderJSONContent(c echo.Context, jsonContent interface{}, previewMode bool
 	var renderedHTML strings.Builder
 	renderedHTML.WriteString("<!DOCTYPE html>\n")
 
-	// @TODO: source global defaults from site data
+	// hard-coded global defaults
 	globalDefaults := `
 		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<script src="/static/htmx.min.js"></script>
-		<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=keyboard_arrow_down" />
-
-		<style>
-			html {
-				scroll-behavior: smooth;
-			}
-			* {
-				margin: 0;
-				padding: 0;
-			}
-			@font-face { 
-				font-family: open-sans-regular; 
-				src: url('/static/font/OpenSans-Regular.ttf') format('truetype');
-			}
-			@font-face { 
-				font-family: open-sans-bold; 
-				src: url('/static/font/OpenSans_Bold.ttf') format('truetype');
-			}
-			html {
-				font-size: calc(14px + 0.5vw);
-			}
-			div#preview {
-				background-color: #f8d7da;
-				padding: 5px;
-				display: flex;
-				justify-content: space-between;
-				position: fixed;
-				bottom: 0;
-				z-index: 1000;
-				font-size: 16px;
-			}
-			#preview a {
-				margin-left: 10px;
-				cursor: pointer;
-			}
-
-			.fade {
-				opacity: 1;
-				transition: opacity 0.3s ease-out;
-			}
-
-
-		</style>
-
- 
-		<script>
-		document.addEventListener("DOMContentLoaded", () => {
-			const fadeElements = document.querySelectorAll(".fade");
-			const fadeMap = {};
-
-			// Store the fadeStart for each element in fadeMap
-			fadeElements.forEach((element) => {
-				const fadeStart = element.getBoundingClientRect().top;
-				const classNameKey = element.className;
-				fadeMap[classNameKey] = {
-					element,
-					fadeStart
-				};
-			});
-
-			const fadeEnd = window.innerHeight * 0.75;
-
-			window.addEventListener("scroll", () => {
-				for (const key in fadeMap) {
-					const { element, fadeStart } = fadeMap[key];
-					const elementPosition = element.getBoundingClientRect().top;
-
-					// Calculate the opacity based on scroll position
-					let opacity = (elementPosition - fadeEnd) / (fadeStart - fadeEnd);
-					opacity = Math.min(Math.max(opacity, 0), 1); // Clamp opacity between 0 and 1
-
-					element.style.opacity = opacity;
-				}
-			});
-		});
-	</script>
-
 	`
 
 	renderedHTML.WriteString("<head>\n")
