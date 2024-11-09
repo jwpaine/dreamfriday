@@ -29,7 +29,7 @@ func Root() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<!doctype html><html><head><link rel=\"stylesheet\" href=\"/static/dreamfriday.css\"><title>Dream Friday - Admin</title></head><body><header><a href=\"/\">Dream Friday</a></header>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<!doctype html><html><head><link rel=\"stylesheet\" href=\"/static/dreamfriday.css\"><script src=\"/static/htmx.min.js\"></script><title>Dream Friday - Admin</title></head><body><header><a href=\"/\">Dream Friday</a></header>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
