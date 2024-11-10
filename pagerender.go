@@ -177,31 +177,92 @@ func RenderPageContent(ctx context.Context, components map[string]Models.Page, e
 		importComponent := element.Import
 		children := []Component{}
 
-		// Process the importComponent, if specified and present in the components map
+		// Handle imported components
 		if importComponent != "" {
 			if importedPage, exists := components[importComponent]; exists {
-				// Recursively render elements of the imported component
-				importedChildren, importedCSS, err := RenderPageContent(ctx, components, importedPage.Elements, w)
-				if err != nil {
-					return nil, "", err
+				fmt.Printf("Importing component: %s\n", importComponent)
+
+				if len(importedPage.Elements) == 1 {
+					// Single-element import (e.g., "button")
+					baseElement := importedPage.Elements[0]
+
+					// Override text and type if not already set
+					if element.Text == "" {
+						element.Text = baseElement.Text
+					}
+					if elementType == "" {
+						elementType = baseElement.Type
+					}
+
+					// Merge styles and attributes
+					if baseElement.Attributes.Style != nil {
+						if element.Attributes.Style == nil {
+							element.Attributes.Style = make(map[string]interface{})
+						}
+						for k, v := range baseElement.Attributes.Style {
+							if _, exists := element.Attributes.Style[k]; !exists {
+								element.Attributes.Style[k] = v
+							}
+						}
+					}
+					if baseElement.Attributes.Props != nil {
+						if element.Attributes.Props == nil {
+							element.Attributes.Props = make(map[string]string)
+						}
+						for k, v := range baseElement.Attributes.Props {
+							if _, exists := element.Attributes.Props[k]; !exists {
+								element.Attributes.Props[k] = v
+							}
+						}
+					}
+
+					// Recursively render elements of the base element
+					importedChildren, importedCSS, err := RenderPageContent(ctx, components, baseElement.Elements, w)
+					if err != nil {
+						return nil, "", err
+					}
+					children = append(children, importedChildren...)
+					allCSS += importedCSS
+
+					// If elementType is still blank, render children directly
+					if elementType == "" {
+						for _, child := range children {
+							renderedComponents = append(renderedComponents, child)
+							if err := child.Render(ctx, w); err != nil {
+								return nil, "", err
+							}
+						}
+						continue
+					}
+
+				} else {
+					// Multi-element import (e.g., "Header")
+					// Recursively render all elements of the imported component
+					importedChildren, importedCSS, err := RenderPageContent(ctx, components, importedPage.Elements, w)
+					if err != nil {
+						return nil, "", err
+					}
+					children = append(children, importedChildren...)
+					allCSS += importedCSS
+
+					// If elementType is still blank, render children directly
+					if elementType == "" {
+						for _, child := range children {
+							renderedComponents = append(renderedComponents, child)
+							if err := child.Render(ctx, w); err != nil {
+								return nil, "", err
+							}
+						}
+						continue
+					}
 				}
-				// Append all imported children directly to the current children list
-				children = append(children, importedChildren...)
-				// Accumulate CSS from the imported component
-				allCSS += importedCSS
 			} else {
-				fmt.Println("Component not found for import:", importComponent)
+				fmt.Printf("Component not found for import: %s\n", importComponent)
 				continue
 			}
 		}
 
-		// Skip rendering if the current element has a blank type and isn’t an imported component
-		if elementType == "" && importComponent == "" {
-			fmt.Println("Skipping element with blank type")
-			continue
-		}
-
-		// Recursively process nested elements if any, skipping elements with blank types
+		// Recursively process nested elements and append them as children
 		if len(element.Elements) > 0 {
 			nestedChildren, nestedCSS, err := RenderPageContent(ctx, components, element.Elements, w)
 			if err != nil {
@@ -211,8 +272,9 @@ func RenderPageContent(ctx context.Context, components map[string]Models.Page, e
 			allCSS += nestedCSS
 		}
 
-		// Create the component with its children, only if it has a non-blank type
+		// Render the component if it has a non-blank type
 		if elementType != "" {
+			element.Type = elementType // Ensure type is set
 			component, err := CreateComponent(elementType, element, children)
 			if err != nil {
 				return nil, "", err
@@ -229,8 +291,13 @@ func RenderPageContent(ctx context.Context, components map[string]Models.Page, e
 				return nil, "", err
 			}
 		} else {
-			// If the main element has a blank type but includes imported children, add them directly
-			renderedComponents = append(renderedComponents, children...)
+			// Render children directly if type is blank
+			for _, child := range children {
+				renderedComponents = append(renderedComponents, child)
+				if err := child.Render(ctx, w); err != nil {
+					return nil, "", err
+				}
+			}
 		}
 	}
 
