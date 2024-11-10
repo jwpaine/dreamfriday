@@ -161,51 +161,83 @@ func CreateComponent(componentType string, element Models.PageElement, children 
 			styling += GenerateCSS(className, styles, mqType, target)
 		}
 	}
-
+	// fmt.Println("rendering type: ", componentType)
+	// if element.Type == "" {
+	// 	return nil, fmt.Errorf("Element type is required")
+	// }
 	return &GenericComponent{Type: element.Type, Text: element.Text, Attributes: attr, Children: children, styling: styling}, nil
 }
 
-func RenderPageContent(ctx context.Context, elements []Models.PageElement, w io.Writer) ([]Component, string, error) {
+func RenderPageContent(ctx context.Context, components map[string]Models.Page, elements []Models.PageElement, w io.Writer) ([]Component, string, error) {
 	var renderedComponents []Component
 	var allCSS string
 
 	for _, element := range elements {
-		elementType := element.Type // This should match "H1", "P", "Div", etc.
+		elementType := element.Type
+		importComponent := element.Import
 		children := []Component{}
 
-		// Recursively process nested elements and accumulate CSS from children
-		var childCSS string
+		// Process the importComponent, if specified and present in the components map
+		if importComponent != "" {
+			if importedPage, exists := components[importComponent]; exists {
+				// Recursively render elements of the imported component
+				importedChildren, importedCSS, err := RenderPageContent(ctx, components, importedPage.Elements, w)
+				if err != nil {
+					return nil, "", err
+				}
+				// Append all imported children directly to the current children list
+				children = append(children, importedChildren...)
+				// Accumulate CSS from the imported component
+				allCSS += importedCSS
+			} else {
+				fmt.Println("Component not found for import:", importComponent)
+				continue
+			}
+		}
+
+		// Skip rendering if the current element has a blank type and isn’t an imported component
+		if elementType == "" && importComponent == "" {
+			fmt.Println("Skipping element with blank type")
+			continue
+		}
+
+		// Recursively process nested elements if any, skipping elements with blank types
 		if len(element.Elements) > 0 {
-			var err error
-			children, childCSS, err = RenderPageContent(ctx, element.Elements, w)
+			nestedChildren, nestedCSS, err := RenderPageContent(ctx, components, element.Elements, w)
 			if err != nil {
 				return nil, "", err
 			}
-			allCSS += childCSS
-		}
-		// Create the component with its children
-		component, err := CreateComponent(elementType, element, children)
-		if err != nil {
-			return nil, "", err
+			children = append(children, nestedChildren...)
+			allCSS += nestedCSS
 		}
 
-		// Collect CSS from each component
-		allCSS += component.Styling()
+		// Create the component with its children, only if it has a non-blank type
+		if elementType != "" {
+			component, err := CreateComponent(elementType, element, children)
+			if err != nil {
+				return nil, "", err
+			}
 
-		// Add the component to the list
-		renderedComponents = append(renderedComponents, component)
+			// Collect CSS from each component
+			allCSS += component.Styling()
 
-		// Render HTML for each component
-		if err := component.Render(ctx, w); err != nil {
-			return nil, "", err
+			// Add the component to the rendered components list
+			renderedComponents = append(renderedComponents, component)
+
+			// Render HTML for each component
+			if err := component.Render(ctx, w); err != nil {
+				return nil, "", err
+			}
+		} else {
+			// If the main element has a blank type but includes imported children, add them directly
+			renderedComponents = append(renderedComponents, children...)
 		}
 	}
 
-	// Return rendered components and accumulated CSS
 	return renderedComponents, allCSS, nil
 }
 
-func RenderJSONContent(c echo.Context, jsonContent interface{}, previewMode bool) error {
+func RenderJSONContent(c echo.Context, reusable interface{}, jsonContent interface{}, previewMode bool) error {
 	ctx := c.Request().Context()
 
 	// Check that jsonContent is a slice of PageElement
@@ -214,10 +246,16 @@ func RenderJSONContent(c echo.Context, jsonContent interface{}, previewMode bool
 		return c.String(http.StatusBadRequest, "Invalid content structure, expected []PageElement")
 	}
 
+	components, ok := reusable.(map[string]Models.Page)
+	// interate through each component and print the key:
+	// for key, value := range components {
+	// 	fmt.Println("component Key:", key, "Value:", value)
+	// }
+
 	buffer := new(bytes.Buffer)
 
 	// Call RenderPageContent to generate components and accumulate CSS
-	renderedComponents, allCSS, err := RenderPageContent(ctx, pageContent, buffer)
+	renderedComponents, allCSS, err := RenderPageContent(ctx, components, pageContent, buffer)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, "Error rendering page content: "+err.Error())
 	}

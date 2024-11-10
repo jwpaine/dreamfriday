@@ -245,6 +245,7 @@ func Page(c echo.Context) error {
 	}
 
 	pageData, ok := siteData.Pages[pageName]
+
 	if !ok {
 		log.Println("not found in site data")
 		// @TODO: Render a 404 page
@@ -254,9 +255,11 @@ func Page(c echo.Context) error {
 		return RenderTemplate(c, http.StatusNotFound, Views.RenderMessages(msgs))
 	}
 
-	header := siteData.Header
+	components := siteData.Components
+
+	// header := siteData.Header
 	// append header.Elements to to beginning of pageData.Elements:
-	pageData.Elements = append(header.Elements, pageData.Elements...)
+	// pageData.Elements = append(header.Elements, pageData.Elements...)
 	// Render the page content
 	session, err := Auth.GetSession(c.Request(), "session")
 	previewMode := false
@@ -267,7 +270,7 @@ func Page(c echo.Context) error {
 	}
 	fmt.Println("rendering page with Preview mode:", previewMode)
 
-	return RenderJSONContent(c, pageData.Elements, previewMode)
+	return RenderJSONContent(c, components, pageData.Elements, previewMode)
 }
 
 // RegisterForm renders the registration form

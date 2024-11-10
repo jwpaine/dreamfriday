@@ -2,6 +2,157 @@
   "meta": {
     "title": "Dream Friday"
   },
+  "Components": {
+    "Header": {
+      "elements": [
+        {
+          "type": "script",
+          "attributes": {
+            "props": {
+              "src": "/static/htmx.min.js"
+            },
+            "style": null
+          },
+          "elements": null,
+          "text": "",
+          "link": ""
+        },
+        {
+          "type": "link",
+          "attributes": {
+            "props": {
+              "href": "https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=keyboard_arrow_down",
+              "rel": "stylesheet"
+            },
+            "style": null
+          },
+          "elements": null,
+          "text": "",
+          "link": ""
+        },
+        {
+          "type": "link",
+          "attributes": {
+            "props": {
+              "href": "/static/dreamfriday.css",
+              "rel": "stylesheet"
+            },
+            "style": null
+          },
+          "elements": null,
+          "text": "",
+          "link": ""
+        },
+        {
+          "type": "script",
+          "attributes": {
+            "props": {
+              "src": "/static/fade.js"
+            },
+            "style": null
+          },
+          "elements": null,
+          "text": "",
+          "link": ""
+        },
+        {
+          "type": "header",
+          "attributes": {
+            "props": null,
+            "style": {
+              "display": "flex",
+              "justify-content": "space-between",
+              "margin": "20px 0px",
+              "media": {
+                "min-width": {
+                  "1000px": {
+                    "align-items": "center"
+                  }
+                }
+              },
+              "position": "fixed",
+              "top": "0",
+              "width": "100%",
+              "z-index": "99"
+            }
+          },
+          "elements": [
+            {
+              "type": "a",
+              "attributes": {
+                "props": {
+                  "href": "/"
+                },
+                "style": {
+                  "background-color": "#1e1e1e",
+                  "border-radius": "50px 0px 100px 50px",
+                  "color": "white",
+                  "font-family": "open-sans-bold, sans-serif",
+                  "font-size": "1.2rem",
+                  "margin": "0px 20px",
+                  "max-width": "fit-content",
+                  "padding": "6px 25px 7px 12px",
+                  "text-decoration": "none",
+                  "z-index": "99"
+                }
+              },
+              "elements": null,
+              "text": "DREAM FRIDAY",
+              "link": ""
+            },
+            {
+              "type": "div",
+              "attributes": {
+                "props": null,
+                "style": {
+                  "display": "flex",
+                  "justify-content": "flex-end",
+                  "media": {
+                    "max-width": {
+                      "345px": {
+                        "margin-top": "50px"
+                      }
+                    }
+                  },
+                  "position": "absolute",
+                  "top": "0",
+                  "width": "100%"
+                }
+              },
+              "elements": [
+                {
+                  "type": "a",
+                  "attributes": {
+                    "props": {
+                      "href": "/contact"
+                    },
+                    "style": {
+                      "background-color": "#FFFFFF",
+                      "border": "1px solid #1e1e1e",
+                      "border-radius": "100px 50px 50px 0px",
+                      "color": "#1e1e1e",
+                      "font-family": "open-sans-bold, sans-serif",
+                      "font-size": "1rem",
+                      "margin": "0px 20px",
+                      "padding": "9px 12px 7px 21px",
+                      "text-decoration": "none"
+                    }
+                  },
+                  "elements": null,
+                  "text": "CONTACT",
+                  "link": ""
+                }
+              ],
+              "text": "",
+              "link": ""
+            }
+          ],
+          "text": "",
+          "link": ""
+        }
+      ]
+    }
+  },
   "pages": {
     "contact": {
       "elements": [
@@ -157,7 +308,14 @@
     "home": {
       "elements": [
         {
+          "import": "Header"
+        },
+        {
           "type": "main",
+          "attributes": {
+            "props": null,
+            "style": null
+          },
           "elements": [
             {
               "type": "section",
@@ -719,138 +877,5 @@
         }
       ]
     }
-  },
-  "Header": {
-    "elements": [
-      {
-        "type": "script",
-        "attributes": {
-          "props": {
-            "src": "/static/htmx.min.js"
-          }
-        }
-      },
-      {
-        "type": "link",
-        "attributes": {
-          "props": {
-            "href": "https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=keyboard_arrow_down",
-            "rel": "stylesheet"
-          }
-        }
-      },
-      {
-        "type": "link",
-        "attributes": {
-          "props": {
-            "href": "/static/dreamfriday.css",
-            "rel": "stylesheet"
-          }
-        }
-      },
-      {
-        "type": "script",
-        "attributes": {
-          "props": {
-            "src": "/static/fade.js"
-          }
-        }
-      },
-      {
-        "type": "header",
-        "attributes": {
-          "props": null,
-          "style": {
-            "display": "flex",
-            "justify-content": "space-between",
-            "margin": "20px 0px",
-            "media": {
-              "min-width": {
-                "1000px": {
-                  "align-items": "center"
-                }
-              }
-            },
-            "position": "fixed",
-            "top": "0",
-            "width": "100%",
-            "z-index": "99"
-          }
-        },
-        "elements": [
-          {
-            "type": "a",
-            "attributes": {
-              "props": {
-                "href": "/"
-              },
-              "style": {
-                "background-color": "#1e1e1e",
-                "border-radius": "50px 0px 100px 50px",
-                "color": "white",
-                "font-family": "open-sans-bold, sans-serif",
-                "font-size": "1.2rem",
-                "margin": "0px 20px",
-                "max-width": "fit-content",
-                "padding": "6px 25px 7px 12px",
-                "text-decoration": "none",
-                "z-index": "99"
-              }
-            },
-            "elements": null,
-            "text": "DREAM FRIDAY",
-            "link": ""
-          },
-          {
-            "type": "div",
-            "attributes": {
-              "props": null,
-              "style": {
-                "display": "flex",
-                "justify-content": "flex-end",
-                "media": {
-                  "max-width": {
-                    "345px": {
-                      "margin-top": "50px"
-                    }
-                  }
-                },
-                "position": "absolute",
-                "top": "0",
-                "width": "100%"
-              }
-            },
-            "elements": [
-              {
-                "type": "a",
-                "attributes": {
-                  "props": {
-                    "href": "/contact"
-                  },
-                  "style": {
-                    "background-color": "#FFFFFF",
-                    "border": "1px solid #1e1e1e",
-                    "border-radius": "100px 50px 50px 0px",
-                    "color": "#1e1e1e",
-                    "font-family": "open-sans-bold, sans-serif",
-                    "font-size": "1rem",
-                    "margin": "0px 20px",
-                    "padding": "9px 12px 7px 21px",
-                    "text-decoration": "none"
-                  }
-                },
-                "elements": null,
-                "text": "CONTACT",
-                "link": ""
-              }
-            ],
-            "text": "",
-            "link": ""
-          }
-        ],
-        "text": "",
-        "link": ""
-      }
-    ]
   }
 }

@@ -1,9 +1,10 @@
 package models
 
 type SiteData struct {
-	Meta   Meta            `json:"meta"`
-	Pages  map[string]Page `json:"pages"` // Flexible page names
-	Header Page
+	Meta       Meta            `json:"meta"`
+	Pages      map[string]Page `json:"pages"` // Flexible page names
+	Header     Page
+	Components map[string]Page
 }
 
 type Meta struct {
@@ -20,6 +21,7 @@ type PageElement struct {
 	Elements   []PageElement `json:"elements"` // Nested elements like "H1"
 	Text       string        `json:"text"`     // Text content for elements like "H1"
 	Link       string        `json:"link"`
+	Import     string        `json:"import"`
 }
 
 type Message struct {
