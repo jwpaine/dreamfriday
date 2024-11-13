@@ -1,26 +1,14 @@
 # Dream Friday
 
-**Dream Friday** is a simple, JSON-based CMS (Content Management System) built with Go and PostgreSQL. It enables dynamic page rendering through JSON configuration, allowing for reusable components, flexible styling, and responsive design.
+**Dream Friday** 
 
-## Features
+A tiny, JSON-based CMS built with Go and PostgreSQL. Page endering engine will dynamically construct a component tree by interpreting JSON data stored in PostgreSQL. Upon request, the engine retrieves this data, which defines the topology, type, attributes, and nested elements of each page component, and recursively builds a tree of HTML elements—spanning tags like <div>, <p>, and <h1>. Each component generates its own HTML structure and applies CSS styling, with randomized class names to keep styles modular. All styling is aggregated and injected into the document head:
 
-- **JSON-based Configuration**: Define pages, components, and styling directly in JSON, making updates easy and code-free.
-- **Reusable Components**: Create and reuse components across pages.
-- **Dynamic Styling and Media Queries**: Use inline styles and responsive media queries to customize each element.
-- **Dynamic Pages**: Each page is rendered based on JSON data managed by the CMS and stored in PostgreSQL.
-- **Preview Mode**: Easily test unpublished changes before going live by enabling preview mode.
-- **Built with Go, PostgreSQL, and Auth0**: Ensures performance, scalability, and secure login.
-
-## How It Works
-
-Dream Friday uses JSON to define page structures and reusable components, stored in PostgreSQL and managed through an admin interface. Key features include:
-
-- **Components**: Reusable elements (like buttons or headers) that can be imported into multiple pages.
-- **Pages**: Define each page’s layout and content.
-- **Attributes and Styling**: Apply styles and attributes directly to each element.
-- **Imports and Overrides**: Reuse components within pages and override specific properties.
+- **Components**: Reusable elements (like buttons or headers) can be defined and re-used anywhere across the site, and specific attributes and properties can be overridden on import.
+- **Pages**: Define each page’s layout and content. New page routes are created on the fly and will be immedietly accessible via /{page_name}
+- **Attributes and Styling**: Styles and attributes are locally scoped to each element.
 - **Media Queries**: Define responsive styling directly in JSON.
-- **Preview Mode**: Test unpublished content updates at `/preview`.
+- **Preview Mode**: Test mode can be enabled for the site owner by hitting `/preview` while logged in, and then you can navigate around the site in preview mode.
 
 ## JSON Example
 
@@ -106,16 +94,6 @@ Dream Friday uses JSON to define page structures and reusable components, stored
 ### Preview Mode
 
 Dream Friday allows you to preview changes before they are published. You can enable preview mode by accessing the route `/preview`, which will load any saved drafts that haven’t been published.
-
-#### How to Use Preview Mode
-
-1. **Login**: Use Auth0 for secure authentication. Only logged-in users with admin permissions can access preview mode and edit content.
-
-2. **Enable Preview**: Go to `/preview` to enable preview mode. This will fetch any unsaved drafts from the database.
-
-3. **Edit and Save**: Use the JSON editor in the admin page to make changes and save them to preview mode. This allows you to review the updates without affecting the live site.
-
-4. **Publish Changes**: When ready, publish the changes from the admin page to make them live.
 
 ### Admin Interface
 
