@@ -29,7 +29,7 @@ COPY --from=builder /app/server .
 COPY --from=builder /app/static ./static
 
 # Expose the port the app will run on
-EXPOSE 8080
+EXPOSE 8081
 
 # Command to run the application
 CMD ["./server"]
