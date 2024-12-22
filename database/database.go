@@ -153,6 +153,27 @@ func UpdatePreviewData(domain string, email string, previewData string) error {
 	return nil
 }
 
+func CreateSite(domain string, owner string, template string) error {
+	fmt.Printf("Creating new site: domain: %s from template: %s for owner: %s\n", domain, template, owner)
+
+	// Ensure that db is not nil before attempting to query
+	if db == nil {
+		log.Println("db is nil")
+		return fmt.Errorf("database connection is not initialized")
+	}
+
+	// Execute the update query
+
+	_, err := db.Exec("INSERT INTO sites (domain, owner, preview, data, status) SELECT $1 AS domain, $2 AS owner, data AS preview, data, 'published' AS status FROM sites WHERE domain = $3", domain, owner, template)
+
+	if err != nil {
+		log.Printf("Failed to create site for domain: %s, error: %v", domain, err)
+		return err
+	}
+
+	return nil
+}
+
 func Publish(domain string, email string) error {
 	fmt.Printf("publishing domain: %s\n", domain)
 

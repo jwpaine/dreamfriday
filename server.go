@@ -37,7 +37,7 @@ func loadSiteDataMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 
 		// Extract the domain from the request's Host header
 		domain := c.Request().Host
-		if domain == "localhost:8080" {
+		if domain == "localhost:8081" {
 			domain = "dreamfriday.com"
 		}
 
@@ -135,6 +135,10 @@ func main() {
 	e.GET("/logout", Logout) // Display login form
 
 	e.GET("/admin", Admin, Auth.IsAuthenticated)
+
+	e.GET("/admin/create", CreateSiteForm, Auth.IsAuthenticated)
+	e.POST("/admin/create", CreateSite, Auth.IsAuthenticated)
+
 	e.GET("/admin/:domain", AdminSite, Auth.IsAuthenticated)
 	e.POST("/admin/:domain", UpdatePreview, Auth.IsAuthenticated)
 
@@ -154,7 +158,7 @@ func main() {
 
 	e.GET("/preview", TogglePreview)
 
-	listener, err := net.Listen("tcp4", "0.0.0.0:8080")
+	listener, err := net.Listen("tcp4", "0.0.0.0:8081")
 	if err != nil {
 		log.Fatalf("Failed to bind to IPv4: %v", err)
 	}
@@ -164,7 +168,7 @@ func main() {
 		Handler: e, // Pass the Echo instance as the handler
 	}
 
-	log.Println("Starting server on IPv4 address 0.0.0.0:8080...")
+	log.Println("Starting server on IPv4 address 0.0.0.0:8081...")
 	err = server.Serve(listener)
 	if err != nil {
 		log.Fatalf("Server error: %v", err)
@@ -488,6 +492,58 @@ func AdminSite(c echo.Context) error {
 
 	// Pass the formatted JSON string to the view
 	return RenderTemplate(c, http.StatusOK, Views.ManageSite(domain, previewDataString, status))
+
+}
+
+func CreateSiteForm(c echo.Context) error {
+	// Pass the formatted JSON string to the view
+	return RenderTemplate(c, http.StatusOK, Views.CreateSite())
+}
+
+func CreateSite(c echo.Context) error {
+	// Retrieve the session
+	session, err := Auth.GetSession(c.Request(), "session")
+	if err != nil {
+		log.Println("Failed to get session:", err)
+		return c.String(http.StatusInternalServerError, "Failed to retrieve session")
+	}
+
+	email, ok := session.Values["email"].(string)
+	if !ok || email == "" {
+		log.Fatal("Email is not set or invalid in the session")
+		return c.String(http.StatusUnauthorized, "Unauthorized: Email not found in session")
+	}
+
+	domain := c.FormValue("domain")
+	template := c.FormValue("template")
+
+	msgs := []Models.Message{}
+
+	if domain == "" {
+		msgs = append(msgs, Models.Message{Message: "Domain required", Type: "info"})
+	}
+	if template == "" {
+		msgs = append(msgs, Models.Message{Message: "Template required", Type: "info"})
+	}
+
+	if len(msgs) > 0 {
+		return HTML(c, Views.RenderMessages(msgs))
+	}
+
+	log.Printf("creating new site Domain %s for email %s", domain, email)
+
+	err = Database.CreateSite(domain, email, template)
+	if err != nil {
+		msgs := []Models.Message{
+			{Message: "Unable to save to database", Type: "error"},
+		}
+		return HTML(c, Views.RenderMessages(msgs))
+	}
+
+	msgs = []Models.Message{
+		{Message: "Site created successfully", Type: "success"},
+	}
+	return HTML(c, Views.RenderMessages(msgs))
 
 }
 
