@@ -38,7 +38,7 @@ func loadSiteDataMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		// Extract the domain from the request's Host header
 		domain := c.Request().Host
 		if domain == "localhost:8081" {
-			domain = "barbeershop.dreamfriday.com"
+			domain = "handy.dreamfriday.com"
 		}
 
 		log.Printf("Domain: %s\n", domain)
