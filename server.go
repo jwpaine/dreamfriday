@@ -334,6 +334,8 @@ func Contact(c echo.Context) error {
 
 	email := c.FormValue("email")
 
+	fmt.Println("Recepient: ", email)
+
 	if email == "" {
 		msgs := []Models.Message{
 			{Message: "Email required", Type: "error"},
@@ -372,6 +374,8 @@ func PasswordReset(c echo.Context) error {
 	}
 	return HTML(c, Views.ConfirmPasswordReset(email))
 }
+
+// handle contact form submission
 
 // Login handles the form submission and sends credentials to Auth0
 func Login(c echo.Context) error {

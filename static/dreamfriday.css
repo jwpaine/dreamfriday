@@ -42,11 +42,11 @@ div#preview {
 /* General Styles */
 
   /* #login header, #reset header, #register header, #admin header, #manage header, #create header  */
-header {
+/* header {
     background-color: #3355ff;
     color: white;
     text-align: center;
-  }
+  } */
   
   header a {
     color: white;

@@ -177,6 +177,10 @@ func RenderPageContent(ctx context.Context, components map[string]Models.Page, e
 		importComponent := element.Import
 		children := []Component{}
 
+		if elementType == "form" {
+			fmt.Println("Rendering Form element!")
+		}
+
 		// Handle imported components
 		if importComponent != "" {
 			if importedPage, exists := components[importComponent]; exists {
