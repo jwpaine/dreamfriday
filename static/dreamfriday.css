@@ -35,3 +35,135 @@ div#preview {
     opacity: 1;
     transition: opacity 0.3s ease-out;
 }
+
+
+/* dreamfriday.css */
+
+/* General Styles */
+
+  /* #login header, #reset header, #register header, #admin header, #manage header, #create header  */
+header {
+    background-color: #3355ff;
+    color: white;
+    text-align: center;
+  }
+  
+  header a {
+    color: white;
+    text-decoration: none;
+    font-size: 1.5rem;
+  }
+  
+  main#login, main#reset, main#register, main#admin, main#manage, main#create {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 1rem;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  h1, h2 {
+    color: #1e1e1e;
+    text-align: center;
+  }
+  
+  label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+  }
+  
+  input[type="text"],
+  input[type="password"],
+  textarea {
+    width: 100%;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+  }
+  
+  button {
+    background-color: #3355ff;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+  }
+  
+  button:hover {
+    background-color: #3355ff;
+  }
+  
+  a {
+    color: #1e1e1e;
+    text-decoration: none;
+  }
+  
+  /* Form Sections */
+  form {
+    margin-bottom: 1rem;
+  }
+  
+  form p {
+    text-align: center;
+  }
+  
+  span#messages {
+    color: red;
+    font-size: 0.9rem;
+    text-align: center;
+    display: block;
+    margin-top: 1rem;
+  }
+  
+  /* Account Page */
+  ul {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  ul li {
+    background: #f1f1f1;
+    margin: 0.5rem 0;
+    padding: 0.75rem;
+    border-radius: 4px;
+  }
+  
+  ul li a {
+    color: #1e1e1e;
+    text-decoration: none;
+  }
+  
+  ul li a:hover {
+    text-decoration: underline;
+  }
+  
+  /* Admin Site */
+  textarea {
+    width: 100%;
+    font-family: 'Courier New', Courier, monospace;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    resize: vertical;
+  }
+  
+  #action button {
+    margin-top: 1rem;
+    display: block;
+    width: 100%;
+  }
+  
+  header[style] {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  

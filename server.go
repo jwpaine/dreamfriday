@@ -38,7 +38,7 @@ func loadSiteDataMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		// Extract the domain from the request's Host header
 		domain := c.Request().Host
 		if domain == "localhost:8081" {
-			domain = "handy.dreamfriday.com"
+			domain = "dreamfriday.com"
 		}
 
 		log.Printf("Domain: %s\n", domain)
@@ -127,6 +127,9 @@ func main() {
 
 	e.GET("/login", LoginForm) // Display login form
 	e.POST("/login", Login)    // Handle form submission and login
+
+	e.GET("/register", RegisterForm)
+	e.POST("/register", Register)
 
 	// Password reset routes
 	e.GET("/reset", PasswordResetForm) // Display password reset form

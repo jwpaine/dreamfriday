@@ -41,7 +41,7 @@ func CreateSite() templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<main id=\"manage\"><header style=\"display: flex; gap: 10px;\"><h1>Create new site</h1></header><section><form hx-post=\"/admin/create\" hx-target=\"#messages\" hx-swap=\"innerHTML\"><label for=\"domain\">domain</label> <input type=\"text\" id=\"domain\" name=\"domain\" required> <label for=\"template\">Template</label> <input type=\"template\" id=\"template\" name=\"template\" required> <button type=\"submit\">Create</button></form><span id=\"messages\"></span></section></main>")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<main id=\"create\"><header style=\"display: flex; gap: 10px;\"><h1>Create new site</h1></header><section><form hx-post=\"/admin/create\" hx-target=\"#messages\" hx-swap=\"innerHTML\"><label for=\"domain\">domain</label> <input type=\"text\" id=\"domain\" name=\"domain\" required> <label for=\"template\">Template</label> <input type=\"template\" id=\"template\" name=\"template\" required> <button type=\"submit\">Create</button></form><span id=\"messages\"></span></section></main>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
