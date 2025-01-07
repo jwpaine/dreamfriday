@@ -128,8 +128,8 @@ func main() {
 	e.GET("/login", LoginForm) // Display login form
 	e.POST("/login", Login)    // Handle form submission and login
 
-	e.GET("/register", RegisterForm)
-	e.POST("/register", Register)
+	// e.GET("/register", RegisterForm)
+	// e.POST("/register", Register)
 
 	// Password reset routes
 	e.GET("/reset", PasswordResetForm) // Display password reset form
