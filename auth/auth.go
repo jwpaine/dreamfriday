@@ -49,7 +49,7 @@ func InitSessionStore() {
 	store.Options = &sessions.Options{
 		Path:     "/",
 		MaxAge:   3600 * 3, // 3 hour
-		HttpOnly: !useHTTPS,
+		HttpOnly: true,
 		Secure:   useHTTPS, // Set to true in production (requires HTTPS)
 		SameSite: http.SameSiteLaxMode,
 	}
