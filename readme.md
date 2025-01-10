@@ -2,7 +2,7 @@
 
 **Dream Friday** 
 
-A tiny, JSON-based CMS built with Go and PostgreSQL. Page endering engine will dynamically construct a component tree by interpreting JSON data stored in PostgreSQL. Upon request, the engine retrieves this data, which defines the topology, type, attributes, and nested elements of each page component, and recursively builds a tree of HTML elements spanning tags like <div>, <p>, and <h1>. Each component generates its own HTML structure and applies CSS styling, with randomized class names to keep styles modular. All styling is aggregated and injected into the document head:
+A tiny, JSON-based CMS built with Go and PostgreSQL. Page endering engine will dynamically construct a component tree by interpreting JSON data stored in PostgreSQL. Upon request, the engine retrieves this data, which defines the topology, type, attributes, and nested elements of each page component, and recursively builds a tree of HTML elements spanning tags like div, p, and h1. Each component generates its own HTML structure and applies CSS styling, with randomized class names to keep styles modular. All styling is aggregated and injected into the document head:
 
 - **Components**: Reusable elements (like buttons or headers) can be defined and re-used anywhere across the site, and specific attributes and properties can be overridden on import.
 - **Pages**: Define each page’s layout and content. New page routes are created on the fly and will be immedietly accessible via /{page_name}
