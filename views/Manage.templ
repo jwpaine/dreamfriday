@@ -4,60 +4,91 @@ import Models "dreamfriday/models"
 
 templ prettify() {
     <script>
-        const textarea = document.getElementById('previewData');
-        try {
-            // Parse the JSON from the textarea
-            const json = JSON.parse(textarea.value);
-            const prettyJson = JSON.stringify(json, null, 2);
-            textarea.value = prettyJson;
-        } catch (error) {
-        
-        }
+        const editor = CodeMirror.fromTextArea(document.getElementById('previewData'), {
+            mode: "application/json",
+            theme: "material-darker",
+            lineNumbers: true,
+            autoCloseBrackets: true,
+            matchBrackets: true,
+            gutters: ["CodeMirror-lint-markers"],
+            lint: true
+        });
+
+        // Validate JSON on change
+        editor.on("change", () => {
+            try {
+                JSON.parse(editor.getValue());
+                document.getElementById("jsonError").textContent = "";
+            } catch (e) {
+                document.getElementById("jsonError").textContent = "Invalid JSON: " + e.message;
+            }
+        });
+
+        // Prettify JSON on page load
+        window.onload = () => {
+            try {
+                const json = JSON.parse(editor.getValue());
+                const prettyJson = JSON.stringify(json, null, 2);
+                editor.setValue(prettyJson);
+            } catch (e) {
+                console.error("Invalid JSON on load", e);
+            }
+        };
     </script>
 }
 
-
 templ ManageSite(domain string, previewData string, status string) {
     @Root() {
-        <main id="manage">
-            <header style="display: flex; gap: 10px;">
-                <h1>Manage {domain}</h1>
-            </header>
-           
+        <html>
+           <head>
+    <title>Manage Site</title>
+    <!-- CodeMirror CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/material-darker.min.css" />
+    <!-- CodeMirror JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/lint/lint.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/lint/json-lint.min.js"></script>
+    <!-- JSONLint -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsonlint/1.6.0/jsonlint.min.js"></script>
+</head>
+            <body>
+                <main id="manage">
+                    <header style="display: flex; gap: 10px; justify-content: space-between; align-items: center;">
+                       <h1>Manage <a href={templ.SafeURL("https://" + domain)} target="_blank" rel="noopener noreferrer">{domain}</a></h1>
+                    </header>
 
-            <!-- Form with textarea for previewData -->
-            <form id="textareaForm">
-                <textarea name="previewData" id="previewData" style="width: 100%; height: 400px;">
-                    {previewData}
-                </textarea>
-            </form>
-            <section id="action">
-                <button hx-trigger="click" hx-post={"/admin/" + domain} hx-target="#action" hx-swap="innerHTML" hx-include="form#textareaForm">
-                    Save
-                </button>
-                if status == "unpublished" { 
-                    <button hx-trigger="click" hx-post={"/publish/" + domain} hx-target="#action" hx-swap="innerHTML">
-                        Publish live
-                    </button>
-                }
-            </section>
-           
-        </main>
-        @prettify()
+                    <!-- JSON Editor Section -->
+                    <form id="pageForm">
+                        <section>
+                            <h2>Site Data</h2>
+                            <textarea id="previewData" name="previewData" style="display: none;">{previewData}</textarea>
+                            <div id="jsonError" style="color: red; font-size: 14px; margin-top: 5px;"></div>
+                        </section>
+                    </form>
+
+                    <!-- Action Buttons -->
+                    @ManagedButtonState(domain, status == "unpublished", nil)
+                </main>
+                @prettify()
+            </body>
+        </html>
     }
 }
 
 templ ManagedButtonState(domain string, unpublished bool, msgs []Models.Message) {
-        <button hx-trigger="click" hx-post={"/admin/" + domain} hx-target="#action" hx-swap="innerHTML" hx-include="form#textareaForm">
-            Save
+    <section id="action" style="margin-top: 20px; display: flex; gap: 10px;">
+        <button hx-trigger="click" hx-post={"/admin/" + domain} hx-target="#action" hx-swap="innerHTML" hx-include="form#pageForm">
+            Save Draft
         </button>
         if unpublished {
             <button hx-trigger="click" hx-post={"/publish/" + domain} hx-target="#action" hx-swap="innerHTML">
-                Publish live
+                Publish Live
             </button>
         }
         <section>
             @RenderMessages(msgs)
         </section>
-        
-    }
+    </section>
+}
