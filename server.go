@@ -381,7 +381,9 @@ func PasswordReset(c echo.Context) error {
 func Login(c echo.Context) error {
 	email := c.FormValue("email")
 	password := c.FormValue("password")
-	fmt.Printf("Received Email: %s\n", email)
+	email = strings.ToLower(email)
+
+	fmt.Printf("Logging in Email: %s\n", email)
 
 	tokenResponse, err := Auth.Login(email, password)
 	if err != nil {
