@@ -28,6 +28,8 @@ COPY --from=builder /app/server .
 # Copy the static directory
 COPY --from=builder /app/static ./static
 
+COPY --from=builder /app/views/*.html ./views/
+
 # Expose the port the app will run on
 EXPOSE 8081
 
