@@ -3,6 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"html/template"
+	"io"
 	"log"
 	"net"
 	"net/http"
@@ -110,6 +112,15 @@ func init() {
 
 }
 
+type TemplateRegistry struct {
+	templates *template.Template
+}
+
+// Implement e.Renderer interface
+func (t *TemplateRegistry) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
+	return t.templates.ExecuteTemplate(w, name, data)
+}
+
 func main() {
 
 	// Initialize the database connection
@@ -121,6 +132,10 @@ func main() {
 	defer db.Close()
 
 	e := echo.New()
+
+	e.Renderer = &TemplateRegistry{
+		templates: template.Must(template.ParseGlob("views/*.html")),
+	}
 
 	// Add middleware to load site data once
 	e.Use(loadSiteDataMiddleware)
@@ -357,7 +372,11 @@ func LoginForm(c echo.Context) error {
 		fmt.Println("Already logged in")
 		return c.Redirect(http.StatusFound, "/admin")
 	}
-	return HTML(c, Views.Login())
+	// return HTML(c, Views.Login())
+	return c.Render(http.StatusOK, "login.html", map[string]interface{}{
+		"name": "HOME",
+		"msg":  "Hello!",
+	})
 }
 
 // PasswordResetForm renders a form to request a password reset
@@ -479,15 +498,6 @@ func AdminSite(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, "Failed to fetch preview data for domain")
 	}
 
-	// Format the previewData JSON with proper indentation
-	// prettyPreviewData, err := json.MarshalIndent(previewData, "", "    ")
-	if err != nil {
-		log.Println("Failed to format preview data:", err)
-		return c.String(http.StatusInternalServerError, "Failed to format preview data")
-	}
-
-	// Convert []byte to string
-
 	// Pass the formatted JSON string directly to the view
 	// convert previewData (*Models.SiteData) to string:
 	previewDataBytes, err := json.MarshalIndent(previewData, "", "    ")
@@ -500,7 +510,12 @@ func AdminSite(c echo.Context) error {
 	previewDataString := string(previewDataBytes)
 
 	// Pass the formatted JSON string to the view
-	return RenderTemplate(c, http.StatusOK, Views.ManageSite(domain, previewDataString, status))
+	return c.Render(http.StatusOK, "manage.html", map[string]interface{}{
+		"domain":      domain,
+		"previewData": previewDataString,
+		"status":      status,
+		"message":     "",
+	})
 
 }
 
@@ -587,28 +602,31 @@ func UpdatePreview(c echo.Context) error {
 	err = json.Unmarshal([]byte(previewData), &p_unmarshal)
 	if err != nil {
 		log.Printf("Failed to unmarshal site data for domain --> %s: %v", domain, err)
-		msg := []Models.Message{
-			{Message: "Invalid structure", Type: "error"},
-		}
-		// domain string, unpublished bool, msgs []Models.Message)
-		return RenderTemplate(c, http.StatusOK, Views.ManagedButtonState(domain, false, msg))
+		return c.Render(http.StatusOK, "manageButtons.html", map[string]interface{}{
+			"domain":      domain,
+			"previewData": previewData,
+			"status":      "",
+			"message":     "Invalid JSON structure",
+		})
 	}
 
 	//structure valid, save to database (and set status = "unpublished")
 
 	err = Database.UpdatePreviewData(domain, email, previewData)
 	if err != nil {
-		msg := []Models.Message{
-			{Message: "Unable to save to database", Type: "error"},
-		}
-		return RenderTemplate(c, http.StatusOK, Views.ManagedButtonState(domain, false, msg))
+		return c.Render(http.StatusOK, "manageButtons.html", map[string]interface{}{
+			"domain":  domain,
+			"status":  "",
+			"message": "Failed to save, please try again.",
+		})
 	}
 
-	msg := []Models.Message{
-		{Message: "Preview data updated successfully", Type: "success"},
-	}
-	return RenderTemplate(c, http.StatusOK, Views.ManagedButtonState(domain, true, msg))
-
+	return c.Render(http.StatusOK, "manageButtons.html", map[string]interface{}{
+		"domain":      domain,
+		"previewData": previewData,
+		"status":      "unpublished",
+		"message":     "Draft saved",
+	})
 }
 
 func Publish(c echo.Context) error {
@@ -635,15 +653,17 @@ func Publish(c echo.Context) error {
 	err = Database.Publish(domain, email)
 
 	if err != nil {
-		msg := []Models.Message{
-			{Message: "Unable to publish", Type: "error"},
-		}
-		return RenderTemplate(c, http.StatusOK, Views.ManagedButtonState(domain, true, msg))
+		return c.Render(http.StatusOK, "manageButtons.html", map[string]interface{}{
+			"domain":  domain,
+			"status":  "",
+			"message": "Unable to publish. Please try again.",
+		})
 	}
 
-	msg := []Models.Message{
-		{Message: "Publish successful", Type: "success"},
-	}
-	return RenderTemplate(c, http.StatusOK, Views.ManagedButtonState(domain, false, msg))
+	return c.Render(http.StatusOK, "manageButtons.html", map[string]interface{}{
+		"domain":  domain,
+		"status":  "published",
+		"message": "Published successfully",
+	})
 
 }

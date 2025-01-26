@@ -1,0 +1,14 @@
+{{define "manageButtons.html"}}
+<div id="action" style="margin-top: 20px; display: flex; gap: 10px;">
+    <button hx-trigger="click" hx-post="/admin/{{index . "domain"}}" hx-target="#action" hx-swap="innerHTML" hx-include="form#pageForm">
+        Save Draft
+    </button>
+    {{if eq (index . "status") "unpublished"}}
+        <button hx-trigger="click" hx-post="/publish/{{index . "domain"}}" hx-target="#action" hx-swap="innerHTML">
+            Publish Live
+        </button>
+    {{end}}
+    <span>{{index . "message"}}</span>
+    <span>Status: {{index . "status"}}</span>
+</div>
+{{end}}

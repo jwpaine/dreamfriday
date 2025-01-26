@@ -1,12 +1,11 @@
-package views
-
-
-
-templ Login() {
-    @Root() {
+{{define "login.html"}}
+  <!DOCTYPE html>
+  <html>
+    {{template "head.html" .}}
+    <body>
         <main id="login">
             <section>
-                <h1>Login</h1>
+                <h1>Login!</h1>
                 <form hx-post="/login" hx-target="#messages" hx-swap="innerHTML">
                     <label for="email">Email</label>
                     <input type="text" id="email" name="email" required>
@@ -20,6 +19,6 @@ templ Login() {
                 </span>
             </section>
         </main>
-    }
-}
-
+    </body>
+  </html>
+{{end}}
