@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"log"
 
-	Models "dreamfriday/models"
+	_ "github.com/lib/pq"
+
+	TJPR "github.com/jwpaine/TJPR"
 )
 
 var db *sql.DB
@@ -23,7 +25,6 @@ func Connect() (*sql.DB, error) {
 		return nil, err
 	} else {
 		log.Println("Database connection opened successfully.")
-
 	}
 
 	// Verify the connection
@@ -39,11 +40,11 @@ func Connect() (*sql.DB, error) {
 
 }
 
-func FetchSiteDataForDomain(domain string) (*Models.SiteData, error) {
+func FetchSiteDataForDomain(domain string) (*TJPR.SiteData, error) {
 	fmt.Printf("Fetching site data from the database for domain: %s\n", domain)
 
 	var siteDataJSON string
-	var siteData Models.SiteData
+	var siteData TJPR.SiteData
 
 	// Ensure that db is not nil before attempting to query
 	if db == nil {
@@ -72,11 +73,11 @@ func FetchSiteDataForDomain(domain string) (*Models.SiteData, error) {
 	return &siteData, nil
 }
 
-func FetchPreviewData(domain string, email string) (*Models.SiteData, string, error) {
+func FetchPreviewData(domain string, email string) (*TJPR.SiteData, string, error) {
 	fmt.Printf("Fetching preview data from the database for domain: %s\n", domain)
 
 	var previewDataJSON string
-	var previewData Models.SiteData
+	var previewData TJPR.SiteData
 	var status string
 
 	// Ensure that db is not nil before attempting to query

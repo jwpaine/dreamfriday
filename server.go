@@ -16,11 +16,12 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 
-	_ "github.com/lib/pq"
+	TJPR "github.com/jwpaine/TJPR"
 
 	Auth "dreamfriday/auth"
 	Database "dreamfriday/database"
-	Models "dreamfriday/models"
+
+	// Models "dreamfriday/models"
 	Views "dreamfriday/views"
 )
 
@@ -147,14 +148,14 @@ func main() {
 	// e.POST("/register", Register)
 
 	// Password reset routes
-	e.GET("/reset", PasswordResetForm) // Display password reset form
-	e.POST("/reset", PasswordReset)    // Handle password reset request
+	//e.GET("/reset", PasswordResetForm) //@FIX
+	//e.POST("/reset", PasswordReset)    //@FIX
 
 	e.GET("/logout", Logout) // Display login form
 
 	e.GET("/admin", Admin, Auth.IsAuthenticated)
 
-	e.GET("/admin/create", CreateSiteForm, Auth.IsAuthenticated)
+	// e.GET("/admin/create", CreateSiteForm, Auth.IsAuthenticated) //@FIX
 	e.POST("/admin/create", CreateSite, Auth.IsAuthenticated)
 
 	e.GET("/admin/:domain", AdminSite, Auth.IsAuthenticated)
@@ -226,7 +227,7 @@ func TogglePreview(c echo.Context) error {
 	session.Values["preview"] = previewMode
 	err = session.Save(c.Request(), c.Response())
 	if err != nil {
-		msgs := []Models.Message{
+		msgs := []TJPR.Message{
 			{Message: "Failed to enable preview mode", Type: "info"},
 		}
 		return HTML(c, Views.RenderMessages(msgs))
@@ -254,7 +255,7 @@ func Page(c echo.Context) error {
 	}
 
 	// Perform the type assertion to *Models.SiteData
-	siteData, ok := rawSiteData.(*Models.SiteData)
+	siteData, ok := rawSiteData.(*TJPR.SiteData)
 	if !ok {
 		log.Println("Type assertion for site data failed")
 		return c.String(http.StatusInternalServerError, "Site data type is invalid")
@@ -271,7 +272,7 @@ func Page(c echo.Context) error {
 	if !ok {
 		log.Println("not found in site data")
 		// @TODO: Render a 404 page
-		msgs := []Models.Message{
+		msgs := []TJPR.Message{
 			{Message: "Page not found", Type: "error"},
 		}
 		return RenderTemplate(c, http.StatusNotFound, Views.RenderMessages(msgs))
@@ -279,10 +280,6 @@ func Page(c echo.Context) error {
 
 	components := siteData.Components
 
-	// header := siteData.Header
-	// append header.Elements to to beginning of pageData.Elements:
-	// pageData.Elements = append(header.Elements, pageData.Elements...)
-	// Render the page content
 	session, err := Auth.GetSession(c.Request(), "session")
 	previewMode := false
 	if err == nil {
@@ -292,14 +289,23 @@ func Page(c echo.Context) error {
 	}
 	fmt.Println("rendering page with Preview mode:", previewMode)
 
-	return RenderJSONContent(c, components, pageData.Elements, previewMode)
+	html, err := TJPR.RenderJSONContent(components, pageData.Elements, previewMode)
+
+	if err != nil {
+		log.Println("Unable to render page")
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
+
+	return c.HTML(http.StatusOK, html)
 }
 
 // RegisterForm renders the registration form
 
+/*
 func RegisterForm(c echo.Context) error {
 	return RenderTemplate(c, http.StatusOK, Views.Register())
 }
+*/
 
 func RenderTemplate(c echo.Context, status int, cmp templ.Component) error {
 	// Set the Content-Type header to text/html
@@ -319,31 +325,31 @@ func RenderTemplate(c echo.Context, status int, cmp templ.Component) error {
 }
 
 // Register handles the form submission and calls auth0Register to create a new user
+/*
 func Register(c echo.Context) error {
 	email := c.FormValue("email")
 	password := c.FormValue("password")
 
 	if email == "" || password == "" {
-		msgs := []Models.Message{
-			{Message: "Email and password required", Type: "error"},
-		}
-		return RenderTemplate(c, http.StatusOK, Views.RegisterError(msgs))
+
+		return c.Render(http.StatusOK, "login.html", map[string]interface{}{
+			"message":  "Email and password required",
+		})
 	}
 
 	// Call Auth0 to register the new user
 	_, err := Auth.Register(email, password)
 	if err != nil {
 		// Return a clean error message to the user
-		msgs := []Models.Message{
-			{Message: err.Error(), Type: "error"},
-		}
 
-		return RenderTemplate(c, http.StatusOK, Views.RegisterError(msgs))
+		return c.Render(http.StatusOK, "login.html", map[string]interface{}{
+			"message":  err.Error(),
+		})
 	}
 
 	// Successfully registered, render success HTML page
 	return RenderTemplate(c, http.StatusOK, Views.RegisterSuccess(email))
-}
+} */
 
 func Contact(c echo.Context) error {
 
@@ -352,13 +358,13 @@ func Contact(c echo.Context) error {
 	fmt.Println("Recepient: ", email)
 
 	if email == "" {
-		msgs := []Models.Message{
+		msgs := []TJPR.Message{
 			{Message: "Email required", Type: "error"},
 		}
 		return HTML(c, Views.RenderMessages(msgs))
 	}
 
-	msgs := []Models.Message{
+	msgs := []TJPR.Message{
 		{Message: "Success", Type: "success"},
 	}
 	return HTML(c, Views.RenderMessages(msgs))
@@ -380,11 +386,13 @@ func LoginForm(c echo.Context) error {
 }
 
 // PasswordResetForm renders a form to request a password reset
+/*
 func PasswordResetForm(c echo.Context) error {
 	return HTML(c, Views.PasswordReset())
-}
+} */
 
 // PasswordReset handles the password reset form submission and calls auth0PasswordReset
+/*
 func PasswordReset(c echo.Context) error {
 	email := c.FormValue("email")
 	err := Auth.PasswordReset(email)
@@ -392,7 +400,7 @@ func PasswordReset(c echo.Context) error {
 		return HTML(c, Views.PasswordResetFailed())
 	}
 	return HTML(c, Views.ConfirmPasswordReset(email))
-}
+} */
 
 // handle contact form submission
 
@@ -406,7 +414,7 @@ func Login(c echo.Context) error {
 
 	tokenResponse, err := Auth.Login(email, password)
 	if err != nil {
-		msgs := []Models.Message{
+		msgs := []TJPR.Message{
 			{Message: err.Error(), Type: "error"},
 		}
 		return HTML(c, Views.RenderMessages(msgs))
@@ -418,7 +426,7 @@ func Login(c echo.Context) error {
 	// Make sure session is saved!
 	err = session.Save(c.Request(), c.Response())
 	if err != nil {
-		msgs := []Models.Message{
+		msgs := []TJPR.Message{
 			{Message: "Failed to save session", Type: "info"},
 		}
 		return HTML(c, Views.RenderMessages(msgs))
@@ -457,19 +465,28 @@ func Admin(c echo.Context) error {
 	// Get email from session
 	email, ok := session.Values["email"].(string)
 	if !ok || email == "" {
-		log.Fatal("Email is not set or invalid in the session")
+		log.Println("Email is not set or invalid in the session")
 		return c.String(http.StatusUnauthorized, "Unauthorized: Email not found in session")
 	}
 
 	// Fetch sites for the owner (email)
-	sites, err := Database.GetSitesForOwner(email)
+	siteStrings, err := Database.GetSitesForOwner(email)
 	if err != nil {
+		log.Println("Failed to fetch sites for owner:", err)
 		return c.String(http.StatusInternalServerError, "Failed to fetch sites for owner")
 	}
 
-	// Create an HTML list of the sites
-	return RenderTemplate(c, http.StatusOK, Views.Admin(email, sites))
+	// Convert []string to []map[string]string for consistency with the template
+	var sites []map[string]string
+	for _, site := range siteStrings {
+		sites = append(sites, map[string]string{"Domain": site})
+	}
 
+	// Render template using map[string]interface{}
+	return c.Render(http.StatusOK, "admin.html", map[string]interface{}{
+		"Email": email,
+		"Sites": sites,
+	})
 }
 
 // /admin/:domain route
@@ -519,10 +536,11 @@ func AdminSite(c echo.Context) error {
 
 }
 
+/*
 func CreateSiteForm(c echo.Context) error {
 	// Pass the formatted JSON string to the view
 	return RenderTemplate(c, http.StatusOK, Views.CreateSite())
-}
+} */
 
 func CreateSite(c echo.Context) error {
 	// Retrieve the session
@@ -541,13 +559,13 @@ func CreateSite(c echo.Context) error {
 	domain := c.FormValue("domain")
 	template := c.FormValue("template")
 
-	msgs := []Models.Message{}
+	msgs := []TJPR.Message{}
 
 	if domain == "" {
-		msgs = append(msgs, Models.Message{Message: "Domain required", Type: "info"})
+		msgs = append(msgs, TJPR.Message{Message: "Domain required", Type: "info"})
 	}
 	if template == "" {
-		msgs = append(msgs, Models.Message{Message: "Template required", Type: "info"})
+		msgs = append(msgs, TJPR.Message{Message: "Template required", Type: "info"})
 	}
 
 	if len(msgs) > 0 {
@@ -558,13 +576,13 @@ func CreateSite(c echo.Context) error {
 
 	err = Database.CreateSite(domain, email, template)
 	if err != nil {
-		msgs := []Models.Message{
+		msgs := []TJPR.Message{
 			{Message: "Unable to save to database", Type: "error"},
 		}
 		return HTML(c, Views.RenderMessages(msgs))
 	}
 
-	msgs = []Models.Message{
+	msgs = []TJPR.Message{
 		{Message: "Site created successfully", Type: "success"},
 	}
 	return HTML(c, Views.RenderMessages(msgs))
@@ -596,7 +614,7 @@ func UpdatePreview(c echo.Context) error {
 	// validate and then update preview data here
 	previewData := c.FormValue("previewData")
 
-	var p_unmarshal Models.SiteData
+	var p_unmarshal TJPR.SiteData
 
 	// validate previewData
 	err = json.Unmarshal([]byte(previewData), &p_unmarshal)

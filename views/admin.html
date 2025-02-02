@@ -1,0 +1,24 @@
+{{define "admin.html"}}
+  <!DOCTYPE html>
+  <html>
+    {{template "head.html" .}}
+    <body>
+        <main id="manage">
+            <header>
+                <span>My Account</span>
+                {{ .Email }}
+            </header>
+           
+            <section>
+                <h2>My Sites</h2>
+                <ul>
+                {{ range .Sites }}
+                    <li><a href="/admin/{{ .Domain }}">{{ .Domain }}</a></li> 
+                {{ end }}
+                </ul>
+            </section>
+
+        </main>
+    </body>
+  </html>
+{{end}}

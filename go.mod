@@ -1,20 +1,19 @@
 module dreamfriday
 
-go 1.23
-
-toolchain go1.23.2
+go 1.23.5
 
 require (
 	github.com/a-h/templ v0.3.819
 	github.com/gorilla/sessions v1.4.0
 	github.com/joho/godotenv v1.5.1
+	github.com/jwpaine/TJPR v0.0.0-20250202193351-fe0f91b5aef5
 	github.com/labstack/echo/v4 v4.13.3
-	github.com/lib/pq v1.10.9
 )
 
 require (
 	github.com/gorilla/securecookie v1.1.2 // indirect
 	github.com/labstack/gommon v0.4.2 // indirect
+	github.com/lib/pq v1.10.9 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
