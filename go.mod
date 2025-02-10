@@ -2,11 +2,14 @@ module dreamfriday
 
 go 1.23.5
 
+replace github.com/jwpaine/tinypagerenderer => ../tinypagerenderer
+
 require (
 	github.com/a-h/templ v0.3.819
 	github.com/gorilla/sessions v1.4.0
 	github.com/joho/godotenv v1.5.1
 	github.com/jwpaine/TJPR v0.0.0-20250202234243-0c2626687a6c
+	github.com/jwpaine/tinypagerenderer v0.0.0-20250209233349-6b3c897f9e56
 	github.com/labstack/echo/v4 v4.13.3
 	github.com/lib/pq v1.10.9
 )

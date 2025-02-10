@@ -20,7 +20,13 @@ import (
 
 	Auth "dreamfriday/auth"
 	Database "dreamfriday/database"
+
+	Models "dreamfriday/models"
+	Views "dreamfriday/views"
 )
+
+// Middleware to load site data on the first request
+// @TODO: Add caching to avoid querying the database on every request
 
 func loadSiteDataMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	fmt.Println("Loading site data middleware")
@@ -164,6 +170,8 @@ func main() {
 		return c.File("static/favicon.ico")
 	})
 
+	e.POST("/contact", Contact)
+
 	e.GET("/", Page)          // This will match any route that does not match the specific ones above
 	e.GET("/:pageName", Page) // This will match any route that does not match the specific ones above
 
@@ -219,7 +227,10 @@ func TogglePreview(c echo.Context) error {
 	session.Values["preview"] = previewMode
 	err = session.Save(c.Request(), c.Response())
 	if err != nil {
-		return c.String(http.StatusInternalServerError, "Failed to save session")
+		msgs := []Models.Message{
+			{Message: "Failed to enable preview mode", Type: "info"},
+		}
+		return HTML(c, Views.RenderMessages(msgs))
 	}
 	fmt.Println("Preview mode enabled:", previewMode)
 
@@ -261,30 +272,31 @@ func Page(c echo.Context) error {
 	if !ok {
 		log.Println("not found in site data")
 		// @TODO: Render a 404 page
-		return c.String(http.StatusNotFound, "Page not found")
+		msgs := []TJPR.Message{
+			{Message: "Page not found", Type: "error"},
+		}
+		return RenderTemplate(c, http.StatusNotFound, Views.RenderMessages(msgs))
 	}
 
-	/*
-		@TODO: Implement preview mode visibility
-		session, err := Auth.GetSession(c.Request(), "session")
+	components := siteData.Components
 
-		previewMode := false
-		if err == nil {
-			if session.Values["preview"] != nil {
-				previewMode = session.Values["preview"].(bool)
-			}
+	session, err := Auth.GetSession(c.Request(), "session")
+	previewMode := false
+	if err == nil {
+		if session.Values["preview"] != nil {
+			previewMode = session.Values["preview"].(bool)
 		}
-		fmt.Println("rendering page with Preview mode:", previewMode)
-	*/
+	}
+	fmt.Println("rendering page with Preview mode:", previewMode)
 
-	// 🔹 Stream the response directly to the writer
-	c.Response().Header().Set("Content-Type", "text/html; charset=utf-8")
-	err := TPR.RenderPage(pageData, c.Response().Writer)
+	html, err := TPR.RenderJSONContent(components, pageData.Elements, previewMode)
+
 	if err != nil {
-		log.Println("Unable to render page:", err)
+		log.Println("Unable to render page")
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
-	return nil
+
+	return c.HTML(http.StatusOK, html)
 }
 
 // RegisterForm renders the registration form
@@ -339,6 +351,26 @@ func Register(c echo.Context) error {
 	return RenderTemplate(c, http.StatusOK, Views.RegisterSuccess(email))
 } */
 
+func Contact(c echo.Context) error {
+
+	email := c.FormValue("email")
+
+	fmt.Println("Recepient: ", email)
+
+	if email == "" {
+		msgs := []TJPR.Message{
+			{Message: "Email required", Type: "error"},
+		}
+		return HTML(c, Views.RenderMessages(msgs))
+	}
+
+	msgs := []TJPR.Message{
+		{Message: "Success", Type: "success"},
+	}
+	return HTML(c, Views.RenderMessages(msgs))
+
+}
+
 // LoginForm renders a simple login form
 func LoginForm(c echo.Context) error {
 	session, _ := Auth.GetSession(c.Request(), "session")
@@ -382,9 +414,10 @@ func Login(c echo.Context) error {
 
 	tokenResponse, err := Auth.Login(email, password)
 	if err != nil {
-		return c.Render(http.StatusOK, "message.html", map[string]interface{}{
-			"message": err.Error(),
-		})
+		msgs := []TJPR.Message{
+			{Message: err.Error(), Type: "error"},
+		}
+		return HTML(c, Views.RenderMessages(msgs))
 	}
 	// Store token in session
 	session, _ := Auth.GetSession(c.Request(), "session")
@@ -393,9 +426,10 @@ func Login(c echo.Context) error {
 	// Make sure session is saved!
 	err = session.Save(c.Request(), c.Response())
 	if err != nil {
-		return c.Render(http.StatusOK, "message.html", map[string]interface{}{
-			"message": "Failed To Save Session",
-		})
+		msgs := []TJPR.Message{
+			{Message: "Failed to save session", Type: "info"},
+		}
+		return HTML(c, Views.RenderMessages(msgs))
 	}
 
 	fmt.Println("Session saved with Email:", session.Values["email"])
@@ -525,24 +559,33 @@ func CreateSite(c echo.Context) error {
 	domain := c.FormValue("domain")
 	template := c.FormValue("template")
 
-	if domain == "" || template == "" {
-		return c.Render(http.StatusOK, "message.html", map[string]interface{}{
-			"message": "Domain and template required",
-		})
+	msgs := []TJPR.Message{}
+
+	if domain == "" {
+		msgs = append(msgs, TJPR.Message{Message: "Domain required", Type: "info"})
+	}
+	if template == "" {
+		msgs = append(msgs, TJPR.Message{Message: "Template required", Type: "info"})
+	}
+
+	if len(msgs) > 0 {
+		return HTML(c, Views.RenderMessages(msgs))
 	}
 
 	log.Printf("creating new site Domain %s for email %s", domain, email)
 
 	err = Database.CreateSite(domain, email, template)
 	if err != nil {
-		return c.Render(http.StatusOK, "message.html", map[string]interface{}{
-			"message": "Unable to save to database",
-		})
+		msgs := []TJPR.Message{
+			{Message: "Unable to save to database", Type: "error"},
+		}
+		return HTML(c, Views.RenderMessages(msgs))
 	}
 
-	return c.Render(http.StatusOK, "message.html", map[string]interface{}{
-		"message": "Site Created Successfully",
-	})
+	msgs = []TJPR.Message{
+		{Message: "Site created successfully", Type: "success"},
+	}
+	return HTML(c, Views.RenderMessages(msgs))
 
 }
 
@@ -571,7 +614,7 @@ func UpdatePreview(c echo.Context) error {
 	// validate and then update preview data here
 	previewData := c.FormValue("previewData")
 
-	var p_unmarshal TPR.SiteData
+	var p_unmarshal TJPR.SiteData
 
 	// validate previewData
 	err = json.Unmarshal([]byte(previewData), &p_unmarshal)

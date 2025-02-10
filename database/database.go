@@ -8,7 +8,7 @@ import (
 
 	_ "github.com/lib/pq"
 
-	TJPR "github.com/jwpaine/TJPR"
+	TPR "github.com/jwpaine/tinypagerenderer"
 )
 
 var db *sql.DB
@@ -40,11 +40,11 @@ func Connect() (*sql.DB, error) {
 
 }
 
-func FetchSiteDataForDomain(domain string) (*TJPR.SiteData, error) {
+func FetchSiteDataForDomain(domain string) (*TPR.SiteData, error) {
 	fmt.Printf("Fetching site data from the database for domain: %s\n", domain)
 
 	var siteDataJSON string
-	var siteData TJPR.SiteData
+	var siteData TPR.SiteData
 
 	// Ensure that db is not nil before attempting to query
 	if db == nil {
@@ -73,11 +73,11 @@ func FetchSiteDataForDomain(domain string) (*TJPR.SiteData, error) {
 	return &siteData, nil
 }
 
-func FetchPreviewData(domain string, email string) (*TJPR.SiteData, string, error) {
+func FetchPreviewData(domain string, email string) (*TPR.SiteData, string, error) {
 	fmt.Printf("Fetching preview data from the database for domain: %s\n", domain)
 
 	var previewDataJSON string
-	var previewData TJPR.SiteData
+	var previewData TPR.SiteData
 	var status string
 
 	// Ensure that db is not nil before attempting to query
