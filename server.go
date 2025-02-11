@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"sync"
 
 	"github.com/a-h/templ"
 
@@ -22,8 +23,9 @@ import (
 	Database "dreamfriday/database"
 )
 
+var siteDataStore sync.Map // thread-safe map to cache site data
+
 func loadSiteDataMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
-	fmt.Println("Loading site data middleware")
 	return func(c echo.Context) error {
 		// Skip middleware for static files
 		path := c.Request().URL.Path
@@ -42,28 +44,35 @@ func loadSiteDataMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 
 		session, _ := Auth.GetSession(c.Request(), "session")
 		if session.Values["preview"] == true {
-			fmt.Println("Preview mode enabled")
+			log.Println("Preview mode enabled")
 
 			email, ok := session.Values["email"].(string)
 			if !ok || email == "" {
-				fmt.Println("Email is not set or invalid in the session")
+				log.Println("Email is not set or invalid in the session")
 				session.Values["preview"] = false
 				err := session.Save(c.Request(), c.Response())
 				if err != nil {
 					log.Println("Failed to save session:", err)
 				}
 			} else {
-				fmt.Println("Email in session:", email)
+				log.Println("Email in session:", email)
 
 				previewData, _, err := Database.FetchPreviewData(domain, email)
 				if err != nil {
-					fmt.Println("Failed to fetch preview data for domain:", domain)
+					log.Println("Failed to fetch preview data for domain:", domain)
 				} else {
-					fmt.Println("Preview data fetched for domain:", domain)
+					log.Println("Preview data fetched for domain:", domain)
 					c.Set("siteData", previewData)
 					return next(c)
 				}
 			}
+		}
+
+		// Check if site data is cached
+		if cachedData, found := siteDataStore.Load(domain); found {
+			log.Println("Serving cached site data for domain:", domain)
+			c.Set("siteData", cachedData.(*TPR.SiteData))
+			return next(c)
 		}
 
 		// Fetch site data for the current domain from the database
@@ -77,6 +86,10 @@ func loadSiteDataMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			log.Println("Fetched siteData is nil")
 			return c.String(http.StatusInternalServerError, "Fetched site data is nil")
 		}
+
+		// Cache the site data
+		log.Println("Caching site data for domain:", domain)
+		siteDataStore.Store(domain, siteData)
 
 		// Store the site data as a pointer in the request context
 		c.Set("siteData", siteData)
@@ -100,7 +113,7 @@ func init() {
 		log.Fatal("DATABASE_CONNECTION_STRING environment variable not set")
 	}
 
-	fmt.Printf("Auth0 Domain: %s\n", os.Getenv("AUTH0_DOMAIN")) // New Debug
+	log.Printf("Auth0 Domain: %s\n", os.Getenv("AUTH0_DOMAIN")) // New Debug
 
 	// Initialize the session store
 	Auth.InitSessionStore()
@@ -131,7 +144,6 @@ func main() {
 	e.Renderer = &TemplateRegistry{
 		templates: template.Must(template.ParseGlob("views/*.html")),
 	}
-
 	// Add middleware to load site data once
 	e.Use(loadSiteDataMiddleware)
 
@@ -202,7 +214,7 @@ func HTML(c echo.Context, cmp templ.Component) error {
 
 func TogglePreview(c echo.Context) error {
 	host := c.Request().Host
-	fmt.Println("Toggling preview mode for:", host)
+	log.Println("Toggling preview mode for:", host)
 
 	session, err := Auth.GetSession(c.Request(), "session")
 	if err != nil {
@@ -221,7 +233,7 @@ func TogglePreview(c echo.Context) error {
 	if err != nil {
 		return c.String(http.StatusInternalServerError, "Failed to save session")
 	}
-	fmt.Println("Preview mode enabled:", previewMode)
+	log.Println("Preview mode enabled:", previewMode)
 
 	return c.Redirect(http.StatusFound, "/")
 
@@ -343,7 +355,7 @@ func Register(c echo.Context) error {
 func LoginForm(c echo.Context) error {
 	session, _ := Auth.GetSession(c.Request(), "session")
 	if session.Values["accessToken"] != nil {
-		fmt.Println("Already logged in")
+		log.Println("Already logged in")
 		return c.Redirect(http.StatusFound, "/admin")
 	}
 	// return HTML(c, Views.Login())
@@ -378,7 +390,7 @@ func Login(c echo.Context) error {
 	password := c.FormValue("password")
 	email = strings.ToLower(email)
 
-	fmt.Printf("Logging in Email: %s\n", email)
+	log.Printf("Logging in Email: %s\n", email)
 
 	tokenResponse, err := Auth.Login(email, password)
 	if err != nil {
@@ -398,21 +410,21 @@ func Login(c echo.Context) error {
 		})
 	}
 
-	fmt.Println("Session saved with Email:", session.Values["email"])
+	log.Println("Session saved with Email:", session.Values["email"])
 	// return c.Redirect(http.StatusFound, "/admin")
 	return c.HTML(http.StatusOK, `<script>window.location.href = '/admin';</script>`)
 }
 
 func Logout(c echo.Context) error {
-	fmt.Println("Logging out")
 	// Get the session
 	session, _ := Auth.GetSession(c.Request(), "session")
+	log.Println("Logging out:", session.Values["email"])
 	// Invalidate the session by setting MaxAge to -1
 	session.Options.MaxAge = -1
 	// Save the session to apply changes (i.e., destroy the session)
 	err := session.Save(c.Request(), c.Response())
 	if err != nil {
-		fmt.Println("Failed to save session:", err)
+		log.Println("Failed to save session:", err)
 		return c.JSON(http.StatusInternalServerError, "Error logging out")
 	}
 	// Redirect to the home page after logging out
@@ -634,6 +646,9 @@ func Publish(c echo.Context) error {
 			"message": "Unable to publish. Please try again.",
 		})
 	}
+
+	// purge the cache
+	siteDataStore.Delete(domain)
 
 	return c.Render(http.StatusOK, "manageButtons.html", map[string]interface{}{
 		"domain":  domain,
