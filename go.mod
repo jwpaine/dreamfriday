@@ -6,7 +6,7 @@ require (
 	github.com/a-h/templ v0.3.833
 	github.com/gorilla/sessions v1.4.0
 	github.com/joho/godotenv v1.5.1
-	github.com/jwpaine/tinypagerenderer v0.0.0-20250210214406-6e99837e438f
+	github.com/jwpaine/tinypagerenderer v0.0.0-20250211214807-6991da247fd7
 	github.com/labstack/echo/v4 v4.13.3
 	github.com/lib/pq v1.10.9
 )

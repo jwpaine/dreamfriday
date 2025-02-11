@@ -284,6 +284,8 @@ func Page(c echo.Context) error {
 		return c.String(http.StatusNotFound, "Page not found")
 	}
 
+	components := siteData.Components
+
 	/*
 		@TODO: Implement preview mode visibility
 		session, err := Auth.GetSession(c.Request(), "session")
@@ -299,7 +301,7 @@ func Page(c echo.Context) error {
 
 	// 🔹 Stream the response directly to the writer
 	c.Response().Header().Set("Content-Type", "text/html; charset=utf-8")
-	err := TPR.RenderPage(pageData, c.Response().Writer)
+	err := TPR.RenderPage(pageData, components, c.Response().Writer)
 	if err != nil {
 		log.Println("Unable to render page:", err)
 		return c.String(http.StatusInternalServerError, err.Error())
