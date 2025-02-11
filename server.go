@@ -16,6 +16,7 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 
 	TPR "github.com/jwpaine/tinypagerenderer"
 
@@ -140,6 +141,13 @@ func main() {
 	defer db.Close()
 
 	e := echo.New()
+
+	// allow CORS for https://static.cloudflareinsights.com and https://dreamfriday.com:
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{"https://static.cloudflareinsights.com", "https://dreamfriday.com"},
+		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
+		AllowMethods: []string{echo.GET, echo.POST},
+	}))
 
 	e.Renderer = &TemplateRegistry{
 		templates: template.Must(template.ParseGlob("views/*.html")),
