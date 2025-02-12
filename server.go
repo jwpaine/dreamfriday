@@ -169,7 +169,7 @@ func main() {
 
 	e.GET("/admin", Admin, Auth.IsAuthenticated)
 
-	// e.GET("/admin/create", CreateSiteForm, Auth.IsAuthenticated) //@FIX
+	e.GET("/admin/create", CreateSiteForm, Auth.IsAuthenticated)
 	e.POST("/admin/create", CreateSite, Auth.IsAuthenticated)
 
 	e.GET("/admin/:domain", AdminSite, Auth.IsAuthenticated)
@@ -500,7 +500,7 @@ func AdminSite(c echo.Context) error {
 	// Fetch preview data from the database
 	previewData, status, err := Database.FetchPreviewData(domain, email)
 	if err != nil {
-		return c.String(http.StatusInternalServerError, "Failed to fetch preview data for domain")
+		return c.String(http.StatusInternalServerError, "Failed to fetch preview data for domain: "+domain)
 	}
 
 	// Pass the formatted JSON string directly to the view
@@ -524,11 +524,10 @@ func AdminSite(c echo.Context) error {
 
 }
 
-/*
 func CreateSiteForm(c echo.Context) error {
 	// Pass the formatted JSON string to the view
-	return RenderTemplate(c, http.StatusOK, Views.CreateSite())
-} */
+	return c.Render(http.StatusOK, "create.html", nil)
+}
 
 func CreateSite(c echo.Context) error {
 	// Retrieve the session
@@ -562,9 +561,8 @@ func CreateSite(c echo.Context) error {
 		})
 	}
 
-	return c.Render(http.StatusOK, "message.html", map[string]interface{}{
-		"message": "Site Created Successfully",
-	})
+	// return window.location.href = '/admin/domain':
+	return c.HTML(http.StatusOK, `<script>window.location.href = '/admin/`+domain+`';</script>`)
 
 }
 
