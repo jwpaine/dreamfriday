@@ -1,0 +1,23 @@
+{{define "create.html"}}
+  <!DOCTYPE html>
+  <html>
+    {{template "head.html" .}}
+    <body>
+        <main id="login">
+            <section>
+                <h1>Create new site</h1>
+                <form hx-post="/admin/create" hx-target="#messages" hx-swap="innerHTML">
+                    <label for="domain">Domain</label>
+                    <input type="text" id="domain" name="domain" required>
+                    <label for="template">Template</label>
+                    <input type="template" id="template" name="template" required>
+                    <button type="submit">Create</button>
+                </form>
+                <a href="/admin">Cancel</a>
+                <span id="messages">   
+                </span>
+            </section>
+        </main>
+    </body>
+  </html>
+{{end}}
