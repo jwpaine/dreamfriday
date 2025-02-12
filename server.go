@@ -200,6 +200,21 @@ func main() {
 		return c.JSON(http.StatusNotFound, "Site data not found")
 	})
 
+	// /component route returns the named component if available
+	e.GET("/component/:name", func(c echo.Context) error {
+		domain := c.Request().Host
+		if domain == "localhost:8081" {
+			domain = "dreamfriday.com"
+		}
+		name := c.Param("name")
+		if cachedData, found := siteDataStore.Load(domain); found {
+			if cachedData.(*TPR.SiteData).Components[name] != nil {
+				return c.JSON(http.StatusOK, cachedData.(*TPR.SiteData).Components[name])
+			}
+		}
+		return c.JSON(http.StatusNotFound, "Component not found")
+	})
+
 	listener, err := net.Listen("tcp4", "0.0.0.0:8081")
 	if err != nil {
 		log.Fatalf("Failed to bind to IPv4: %v", err)
