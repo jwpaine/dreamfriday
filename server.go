@@ -226,6 +226,20 @@ func main() {
 		return c.JSON(http.StatusNotFound, "Components not found")
 	})
 
+	e.GET("/page/:pageName", func(c echo.Context) error {
+		domain := c.Request().Host
+		if domain == "localhost:8081" {
+			domain = "dreamfriday.com"
+		}
+		pageName := c.Param("pageName")
+		if cachedData, found := siteDataStore.Load(domain); found {
+			if _, ok := cachedData.(*TPR.SiteData).Pages[pageName]; ok {
+				return c.JSON(http.StatusOK, cachedData.(*TPR.SiteData).Pages[pageName])
+			}
+		}
+		return c.JSON(http.StatusNotFound, "Page not found")
+	})
+
 	listener, err := net.Listen("tcp4", "0.0.0.0:8081")
 	if err != nil {
 		log.Fatalf("Failed to bind to IPv4: %v", err)
