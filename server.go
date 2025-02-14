@@ -679,11 +679,21 @@ func CreateSite(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, "Failed to retrieve session")
 	}
 
+	// Get DID from session (if present)
+	did, didOk := session.Values["did"].(string)
+
 	// Get user email from session
-	email, ok := session.Values["email"].(string)
-	if !ok || email == "" {
-		log.Println("Unauthorized: Email not found in session")
-		return c.String(http.StatusUnauthorized, "Unauthorized: Email not found in session")
+	email, emailOk := session.Values["email"].(string)
+
+	// Determine the identifier to use (either did or email)
+	var identifier string
+	if didOk && did != "" {
+		identifier = did
+	} else if emailOk && email != "" {
+		identifier = email
+	} else {
+		log.Println("Unauthorized: DID or Email not found in session")
+		return c.String(http.StatusUnauthorized, "Unauthorized: DID or Email not found in session")
 	}
 
 	// Retrieve form values
@@ -698,12 +708,13 @@ func CreateSite(c echo.Context) error {
 		})
 	}
 
-	log.Printf("Creating new site - Domain: %s for Email: %s", domain, email)
+	// Log the creation request with the identifier (DID or Email)
+	log.Printf("Creating new site - Domain: %s for Identifier: %s", domain, identifier)
 
-	// Create site in the database
-	err = Database.CreateSite(domain, email, template)
+	// Create site in the database, pass identifier (email or did)
+	err = Database.CreateSite(domain, identifier, template)
 	if err != nil {
-		log.Printf("Failed to create site: %s for Email: %s - Error: %v", domain, email, err)
+		log.Printf("Failed to create site: %s for Identifier: %s - Error: %v", domain, identifier, err)
 		return c.Render(http.StatusOK, "message.html", map[string]interface{}{
 			"message": "Unable to save site to database",
 		})
