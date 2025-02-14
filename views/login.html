@@ -11,12 +11,20 @@
                     <input type="text" id="email" name="email" required>
                     <label for="password">Password</label>
                     <input type="password" id="password" name="password" required>
+
+                    {{if eq .authMethod "atproto"}}
+                        <!-- Add server field if using AT Protocol -->
+                        <label for="server">AT Server</label>
+                        <input type="text" id="server" name="server">
+                    {{end}}
+
                     <button type="submit">Login</button>
                 </form>
-                <a href="/reset">Forgot Password</a>
-                  <p>Don't have an account? <a href="/register">Sign Up</a></p>
-                <span id="messages">   
-                </span>
+                
+                {{if eq .authMethod "auth0"}}
+                    <p>Don't have an account? <a href="/register">Sign Up</a></p>
+                {{end}}
+                <span id="messages"></span>
             </section>
         </main>
     </body>
