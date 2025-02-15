@@ -8,7 +8,7 @@ import (
 
 	_ "github.com/lib/pq"
 
-	TPR "github.com/jwpaine/tinypagerenderer"
+	pageengine "dreamfriday/pageengine"
 )
 
 var db *sql.DB
@@ -40,11 +40,11 @@ func Connect() (*sql.DB, error) {
 
 }
 
-func FetchSiteDataForDomain(domain string) (*TPR.SiteData, error) {
+func FetchSiteDataForDomain(domain string) (*pageengine.SiteData, error) {
 	fmt.Printf("Fetching site data from the database for domain: %s\n", domain)
 
 	var siteDataJSON string
-	var siteData TPR.SiteData
+	var siteData pageengine.SiteData
 
 	// Ensure that db is not nil before attempting to query
 	if db == nil {
@@ -73,11 +73,11 @@ func FetchSiteDataForDomain(domain string) (*TPR.SiteData, error) {
 	return &siteData, nil
 }
 
-func FetchPreviewData(domain string, email string) (*TPR.SiteData, string, error) {
+func FetchPreviewData(domain string, email string) (*pageengine.SiteData, string, error) {
 	fmt.Printf("Fetching preview data from the database for domain: %s\n", domain)
 
 	var previewDataJSON string
-	var previewData TPR.SiteData
+	var previewData pageengine.SiteData
 	var status string
 
 	// Ensure that db is not nil before attempting to query

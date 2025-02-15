@@ -1,0 +1,471 @@
+{
+    "pages": {
+        "home": {
+            "head": {
+                "elements": [
+                    {
+                        "type": "title",
+                        "attributes": null,
+                        "elements": null,
+                        "text": "Dream Friday",
+                        "style": null,
+                        "import": ""
+                    },
+                    {
+                        "type": "meta",
+                        "attributes": {
+                            "content": "width=device-width, initial-scale=1",
+                            "name": "viewport"
+                        },
+                        "elements": null,
+                        "text": "",
+                        "style": null,
+                        "import": ""
+                    },
+                    {
+                        "type": "style",
+                        "attributes": null,
+                        "elements": null,
+                        "text": "@font-face { font-family: 'OpenSans_Bold'; src: url('/static/font/OpenSans_Bold.ttf') format('truetype'); font-weight: bold; font-style: normal; } body { margin: 0; } * { font-family: 'OpenSans_Bold', sans-serif; }",
+                        "style": null,
+                        "import": ""
+                    }
+                ]
+            },
+            "body": {
+                "elements": [
+                    {
+                        "type": "",
+                        "attributes": null,
+                        "elements": null,
+                        "text": "",
+                        "style": null,
+                        "import": "Header"
+                    },
+                    {
+                        "type": "div",
+                        "attributes": {
+                            "id": "hero"
+                        },
+                        "elements": [
+                            {
+                                "type": "h1",
+                                "attributes": null,
+                                "elements": null,
+                                "text": "Hello, world",
+                                "style": {
+                                    "font-size": "4.5rem",
+                                    "margin": "0"
+                                },
+                                "import": ""
+                            }
+                        ],
+                        "text": "",
+                        "style": {
+                            "align-items": "center",
+                            "background": "linear-gradient(135deg, #6a11cb, #2575fc)",
+                            "color": "white",
+                            "display": "flex",
+                            "flex-direction": "column",
+                            "gap": "1.5rem",
+                            "height": "100vh",
+                            "justify-content": "center",
+                            "margin": "0",
+                            "padding": "2rem",
+                            "text-align": "center"
+                        },
+                        "import": ""
+                    }
+                ]
+            }
+        },
+        "login": {
+            "redirectForLogin" : "/admin",
+            "head": {
+                "elements": [
+                    {
+                        "type": "title",
+                        "attributes": null,
+                        "elements": null,
+                        "text": "Login - Dream Friday",
+                        "style": null,
+                        "import": ""
+                    },
+                    {
+                        "type": "meta",
+                        "attributes": {
+                            "content": "width=device-width, initial-scale=1",
+                            "name": "viewport"
+                        },
+                        "elements": null,
+                        "text": "",
+                        "style": null,
+                        "import": ""
+                    },
+                    {
+                        "type": "style",
+                        "attributes": null,
+                        "elements": null,
+                        "text": "body { margin: 0; * { font-family: 'OpenSans_Bold', sans-serif; }",
+                        "style": null,
+                        "import": ""
+                    },
+                    {
+                        "type": "script",
+                        "attributes": {
+                            "src": "/static/htmx.min.js"
+                        },
+                        "elements": null,
+                        "text": "",
+                        "style": null,
+                        "import": ""
+                    }
+                ]
+            },
+            "body": {
+                "elements": [
+                    {
+                        "type": "",
+                        "attributes": null,
+                        "elements": null,
+                        "text": "",
+                        "style": null,
+                        "import": "Header"
+                    },
+                    {
+                        "type": "main",
+                        "attributes": {
+                            "id": "login"
+                        },
+                        "elements": [
+                            {
+                                "type": "section",
+                                "attributes": null,
+                                "elements": [
+                                    {
+                                        "type": "h1",
+                                        "attributes": null,
+                                        "elements": null,
+                                        "text": "Login",
+                                        "style": {
+                                            "color": "white",
+                                            "font-size": "3rem",
+                                            "margin-bottom": "1rem",
+                                            "text-align": "center"
+                                        },
+                                        "import": ""
+                                    },
+                                    {
+                                        "type": "",
+                                        "attributes": null,
+                                        "elements": null,
+                                        "text": "",
+                                        "style": null,
+                                        "import": "LoginForm"
+                                    }
+                                ],
+                                "text": "",
+                                "style": {
+                                    "align-items": "center",
+                                    "display": "flex",
+                                    "flex-direction": "column",
+                                    "justify-content": "center",
+                                    "width": "100%"
+                                },
+                                "import": ""
+                            }
+                        ],
+                        "text": "",
+                        "style": {
+                            "align-items": "center",
+                            "background": "linear-gradient(135deg, #6a11cb, #2575fc)",
+                            "color": "white",
+                            "display": "flex",
+                            "height": "100vh",
+                            "justify-content": "center"
+                        },
+                        "import": ""
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "Header": {
+            "type": "header",
+            "attributes": {
+                "id": "header"
+            },
+            "elements": [
+                {
+                    "type": "a",
+                    "attributes": {
+                        "href": "/"
+                    },
+                    "elements": null,
+                    "text": "Dream Friday",
+                    "style": {
+                        "color": "white",
+                        "font-size": "1.2rem",
+                        "text-decoration": "none"
+                    },
+                    "import": ""
+                }
+            ],
+            "text": "",
+            "style": {
+                "background": "rgba(0, 0, 0, 0.8)",
+                "display": "flex",
+                "justify-content": "space-between",
+                "padding": "1rem",
+                "position": "fixed",
+                "width": "100%"
+            },
+            "import": ""
+        },
+        "LoginForm": {
+            "type": "form",
+            "attributes": {
+                "hx-post": "/login",
+                "hx-swap": "innerHTML",
+                "hx-target": "#messages"
+            },
+            "elements": [
+                {
+                    "type": "label",
+                    "attributes": {
+                        "for": "handle"
+                    },
+                    "elements": null,
+                    "text": "Handle",
+                    "style": {
+                        "color": "white",
+                        "display": "block",
+                        "font-size": "1rem",
+                        "margin-bottom": "0.5rem"
+                    },
+                    "import": ""
+                },
+                {
+                    "type": "input",
+                    "attributes": {
+                        "id": "handle",
+                        "name": "handle",
+                        "placeholder": "Enter your handle",
+                        "required": "",
+                        "type": "text"
+                    },
+                    "elements": null,
+                    "text": "",
+                    "style": {
+                        "border": "none",
+                        "border-radius": "5px",
+                        "font-size": "1rem",
+                        "margin-bottom": "1rem",
+                        "padding": "0.8rem",
+                        "width": "100%"
+                    },
+                    "import": ""
+                },
+                {
+                    "type": "label",
+                    "attributes": {
+                        "for": "password"
+                    },
+                    "elements": null,
+                    "text": "Password",
+                    "style": {
+                        "color": "white",
+                        "display": "block",
+                        "font-size": "1rem",
+                        "margin-bottom": "0.5rem"
+                    },
+                    "import": ""
+                },
+                {
+                    "type": "input",
+                    "attributes": {
+                        "id": "password",
+                        "name": "password",
+                        "placeholder": "Enter your password",
+                        "required": "",
+                        "type": "password"
+                    },
+                    "elements": null,
+                    "text": "",
+                    "style": {
+                        "border": "none",
+                        "border-radius": "5px",
+                        "font-size": "1rem",
+                        "margin-bottom": "1rem",
+                        "padding": "0.8rem",
+                        "width": "100%"
+                    },
+                    "import": ""
+                },
+                {
+                    "type": "div",
+                    "attributes": {
+                        "id": "default-server"
+                    },
+                    "elements": [
+                        {
+                            "type": "p",
+                            "attributes": null,
+                            "elements": null,
+                            "text": "AT Server: BlueSky",
+                            "style": {
+                                "color": "white",
+                                "font-size": "1rem",
+                                "margin-bottom": "0.5rem",
+                                "text-align": "center"
+                            },
+                            "import": ""
+                        },
+                        {
+                            "type": "a",
+                            "attributes": {
+                                "href": "#",
+                                "hx-on:click": "document.getElementById('default-server').style.display='none'; document.getElementById('server-input-group').style.display='block';",
+                                "id": "custom-server-btn"
+                            },
+                            "elements": null,
+                            "text": "Use Custom AT Server",
+                            "style": {
+                                "color": "#ff9900",
+                                "cursor": "pointer",
+                                "display": "block",
+                                "margin-bottom": "1rem",
+                                "text-align": "center",
+                                "text-decoration": "none"
+                            },
+                            "import": ""
+                        }
+                    ],
+                    "text": "",
+                    "style": null,
+                    "import": ""
+                },
+                {
+                    "type": "div",
+                    "attributes": {
+                        "id": "server-input-group",
+                        "style": "display: none;"
+                    },
+                    "elements": [
+                        {
+                            "type": "label",
+                            "attributes": {
+                                "for": "server"
+                            },
+                            "elements": null,
+                            "text": "AT Server",
+                            "style": {
+                                "color": "white",
+                                "display": "block",
+                                "font-size": "1rem",
+                                "margin-bottom": "0.5rem"
+                            },
+                            "import": ""
+                        },
+                        {
+                            "type": "input",
+                            "attributes": {
+                                "id": "server",
+                                "name": "server",
+                                "placeholder": "Enter custom server",
+                                "type": "text"
+                            },
+                            "elements": null,
+                            "text": "",
+                            "style": {
+                                "border": "none",
+                                "border-radius": "5px",
+                                "font-size": "1rem",
+                                "margin-bottom": "1rem",
+                                "padding": "0.8rem",
+                                "width": "100%"
+                            },
+                            "import": ""
+                        },
+                        {
+                            "type": "p",
+                            "attributes": null,
+                            "elements": [
+                                {
+                                    "type": "a",
+                                    "attributes": {
+                                        "href": "#",
+                                        "hx-on:click": "document.getElementById('server-input-group').style.display='none'; document.getElementById('default-server').style.display='block';",
+                                        "id": "back-to-bluesky"
+                                    },
+                                    "elements": null,
+                                    "text": "Login with BlueSky instead",
+                                    "style": {
+                                        "color": "#ff9900",
+                                        "cursor": "pointer",
+                                        "text-align": "center",
+                                        "text-decoration": "none"
+                                    },
+                                    "import": ""
+                                }
+                            ],
+                            "text": "",
+                            "style": null,
+                            "import": ""
+                        }
+                    ],
+                    "text": "",
+                    "style": null,
+                    "import": ""
+                },
+                {
+                    "type": "button",
+                    "attributes": {
+                        "type": "submit"
+                    },
+                    "elements": null,
+                    "text": "Login",
+                    "style": {
+                        "background": "#22255d",
+                        "border": "none",
+                        "border-radius": "5px",
+                        "color": "white",
+                        "cursor": "pointer",
+                        "font-size": "1.2rem",
+                        "padding": "0.8rem",
+                        "transition": "0.3s",
+                        "width": "100%"
+                    },
+                    "import": ""
+                },
+                {
+                    "type": "span",
+                    "attributes": {
+                        "id": "messages"
+                    },
+                    "elements": null,
+                    "text": "",
+                    "style": {
+                        "color": "white",
+                        "display": "block",
+                        "font-size": "1rem",
+                        "margin-top": "1rem"
+                    },
+                    "import": ""
+                }
+            ],
+            "text": "",
+            "style": {
+                "background": "rgba(255, 255, 255, 0.1)",
+                "border-radius": "10px",
+                "box-shadow": "0 4px 10px rgba(0, 0, 0, 0.2)",
+                "max-width": "400px",
+                "padding": "2rem",
+                "text-align": "center",
+                "width": "100%"
+            },
+            "import": ""
+        }
+    }
+}

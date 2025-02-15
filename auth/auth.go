@@ -61,6 +61,7 @@ func GetSessionStore() *sessions.CookieStore {
 	return store
 }
 
+/*
 // Middleware to check if user is authenticated
 func IsAuthenticated(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
@@ -93,6 +94,50 @@ func IsAuthenticated(next echo.HandlerFunc) echo.HandlerFunc {
 			return c.Redirect(http.StatusFound, "/login")
 		}
 
+		return next(c)
+	}
+} */
+
+func IsAuthenticated(c echo.Context) bool {
+	// Retrieve session
+	session, err := store.Get(c.Request(), "session")
+	if err != nil {
+		log.Println("Failed to retrieve session:", err)
+		return false
+	}
+
+	// Get authenticator
+	authenticator := GetAuthenticator()
+
+	// Retrieve session token
+	token, ok := session.Values["accessToken"].(string)
+	if !ok || token == "" {
+		log.Println("Access token not set in session")
+		return false
+	}
+
+	// Retrieve server (if required by auth method)
+	server, ok := session.Values["server"].(string)
+	if !ok || server == "" {
+		log.Println("Server not set in session")
+		return false
+	}
+
+	// Validate session token
+	if !authenticator.ValidateSession(token, server) {
+		log.Println("Session validation failed")
+		return false
+	}
+
+	return true
+}
+
+// Middleware version of IsAuthenticated for Echo
+func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		if !IsAuthenticated(c) {
+			return c.Redirect(http.StatusFound, "/login")
+		}
 		return next(c)
 	}
 }

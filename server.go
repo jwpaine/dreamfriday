@@ -18,7 +18,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 
-	TPR "github.com/jwpaine/tinypagerenderer"
+	pageengine "dreamfriday/pageengine"
 
 	"dreamfriday/auth"
 	Database "dreamfriday/database"
@@ -75,7 +75,7 @@ func loadSiteDataMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		// Check cached site data
 		if cachedData, found := siteDataStore.Load(domain); found {
 			log.Println("Serving cached site data for domain:", domain)
-			c.Set("siteData", cachedData.(*TPR.SiteData))
+			c.Set("siteData", cachedData.(*pageengine.SiteData))
 			return next(c)
 		}
 
@@ -171,15 +171,16 @@ func main() {
 
 	e.GET("/logout", Logout) // Display login form
 
-	e.GET("/admin", Admin, auth.IsAuthenticated)
+	// e.GET("/admin", Admin, auth.IsAuthenticated)
+	e.GET("/admin", Admin)
 
-	e.GET("/admin/create", CreateSiteForm, auth.IsAuthenticated)
-	e.POST("/admin/create", CreateSite, auth.IsAuthenticated)
+	// e.GET("/admin/create", CreateSiteForm, auth.IsAuthenticated)
+	// e.POST("/admin/create", CreateSite, auth.IsAuthenticated)
 
-	e.GET("/admin/:domain", AdminSite, auth.IsAuthenticated)
-	e.POST("/admin/:domain", UpdatePreview, auth.IsAuthenticated)
+	e.GET("/admin/:domain", AdminSite)
+	e.POST("/admin/:domain", UpdatePreview, auth.AuthMiddleware)
 
-	e.POST("/publish/:domain", Publish, auth.IsAuthenticated)
+	// e.POST("/publish/:domain", Publish, auth.IsAuthenticated)
 
 	e.Static("/static", "static")
 
@@ -212,8 +213,8 @@ func main() {
 		}
 		name := c.Param("name")
 		if cachedData, found := siteDataStore.Load(domain); found {
-			if cachedData.(*TPR.SiteData).Components[name] != nil {
-				return c.JSON(http.StatusOK, cachedData.(*TPR.SiteData).Components[name])
+			if cachedData.(*pageengine.SiteData).Components[name] != nil {
+				return c.JSON(http.StatusOK, cachedData.(*pageengine.SiteData).Components[name])
 			}
 		}
 		return c.JSON(http.StatusNotFound, "Component not found")
@@ -225,7 +226,7 @@ func main() {
 			domain = "dreamfriday.com"
 		}
 		if cachedData, found := siteDataStore.Load(domain); found {
-			return c.JSON(http.StatusOK, cachedData.(*TPR.SiteData).Components)
+			return c.JSON(http.StatusOK, cachedData.(*pageengine.SiteData).Components)
 		}
 		return c.JSON(http.StatusNotFound, "Components not found")
 	})
@@ -237,8 +238,8 @@ func main() {
 		}
 		pageName := c.Param("pageName")
 		if cachedData, found := siteDataStore.Load(domain); found {
-			if _, ok := cachedData.(*TPR.SiteData).Pages[pageName]; ok {
-				return c.JSON(http.StatusOK, cachedData.(*TPR.SiteData).Pages[pageName])
+			if _, ok := cachedData.(*pageengine.SiteData).Pages[pageName]; ok {
+				return c.JSON(http.StatusOK, cachedData.(*pageengine.SiteData).Pages[pageName])
 			}
 		}
 		return c.JSON(http.StatusNotFound, "Page not found")
@@ -327,7 +328,7 @@ func Page(c echo.Context) error {
 	}
 
 	// Perform the type assertion to *Models.SiteData
-	siteData, ok := rawSiteData.(*TPR.SiteData)
+	siteData, ok := rawSiteData.(*pageengine.SiteData)
 	if !ok {
 		log.Println("Type assertion for site data failed")
 		return c.String(http.StatusInternalServerError, "Site data type is invalid")
@@ -347,6 +348,21 @@ func Page(c echo.Context) error {
 		return c.String(http.StatusNotFound, "Page not found")
 	}
 
+	loggedIn := auth.IsAuthenticated(c)
+
+	log.Printf("Rendering page: %s (Logged in: %v)\n", pageName, loggedIn)
+
+	// if logged in, and redirectForLogin is set, redirect to that page
+	if pageData.RedirectForLogin != "" && loggedIn {
+		log.Println("Already logged in, redirecting to:", pageData.RedirectForLogin)
+		return c.Redirect(http.StatusFound, pageData.RedirectForLogin)
+	}
+	// if logged out, and redirectForLogout is set, redirect to that page
+	if pageData.RedirectForLogout != "" && !loggedIn {
+		log.Println("Logged out, redirecting to:", pageData.RedirectForLogout)
+		return c.Redirect(http.StatusFound, pageData.RedirectForLogout)
+	}
+
 	components := siteData.Components
 
 	/*
@@ -364,7 +380,7 @@ func Page(c echo.Context) error {
 
 	// 🔹 Stream the response directly to the writer
 	c.Response().Header().Set("Content-Type", "text/html; charset=utf-8")
-	err := TPR.RenderPage(pageData, components, c.Response().Writer)
+	err := pageengine.RenderPage(pageData, components, c.Response().Writer)
 	if err != nil {
 		log.Println("Unable to render page:", err)
 		return c.String(http.StatusInternalServerError, err.Error())
@@ -705,7 +721,7 @@ func UpdatePreview(c echo.Context) error {
 	}
 
 	// Validate JSON structure
-	var parsedPreviewData TPR.SiteData
+	var parsedPreviewData pageengine.SiteData
 	err = json.Unmarshal([]byte(previewData), &parsedPreviewData)
 	if err != nil {
 		log.Printf("Failed to unmarshal site data for domain %s: %v", domain, err)
