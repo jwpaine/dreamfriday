@@ -17,6 +17,7 @@ type ATAuthenticator struct{}
 func (a *ATAuthenticator) Login(handle, password, server string) (*AuthResponse, error) {
 
 	if server == "" {
+		log.Println("No AT server provided, defaulting to Bluesky PDS")
 		server = "https://bsky.social" // Default to Bluesky PDS
 	}
 

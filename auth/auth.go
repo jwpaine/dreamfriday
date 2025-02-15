@@ -70,16 +70,8 @@ func IsAuthenticated(next echo.HandlerFunc) echo.HandlerFunc {
 			log.Println("Failed to retrieve session:", err)
 			return c.Redirect(http.StatusFound, "/login")
 		}
-
-		// Retrieve authentication method
-		authMethod, ok := session.Values["authMethod"].(string)
-		if !ok || authMethod == "" {
-			log.Println("Auth method not set, redirecting to login")
-			return c.Redirect(http.StatusFound, "/login")
-		}
-
 		// Get authenticator
-		authenticator := GetAuthenticator(authMethod)
+		authenticator := GetAuthenticator()
 
 		// Retrieve session token
 		token, ok := session.Values["accessToken"].(string)
@@ -90,7 +82,7 @@ func IsAuthenticated(next echo.HandlerFunc) echo.HandlerFunc {
 
 		// Retrieve server (if required by auth method)
 		server, ok := session.Values["server"].(string)
-		if authMethod == "atproto" && (!ok || server == "") {
+		if !ok || server == "" {
 			log.Println("Server not set in session, redirecting to login")
 			return c.Redirect(http.StatusFound, "/login")
 		}
@@ -106,13 +98,6 @@ func IsAuthenticated(next echo.HandlerFunc) echo.HandlerFunc {
 }
 
 // Factory function to get the correct authenticator
-func GetAuthenticator(method string) Authenticator {
-	switch method {
-	case "auth0":
-		return &Auth0Authenticator{} // Default `authMethod` will be set inside the struct initialization
-	case "atproto":
-		return &ATAuthenticator{} // Same here, no need to explicitly set the field
-	default:
-		return &ATAuthenticator{} // Default to AT Protocol
-	}
+func GetAuthenticator() Authenticator {
+	return &ATAuthenticator{}
 }

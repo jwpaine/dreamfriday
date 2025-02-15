@@ -120,13 +120,8 @@ func init() {
 	}
 	// Initialize the session store
 	auth.InitSessionStore()
-	authMethod := os.Getenv("AUTH_METHOD")
-	log.Printf("Using authentication method: %s\n", authMethod)
-	if authMethod == "" {
-		log.Fatal("AUTH_METHOD environment variable is not set")
-	}
 
-	authenticator = auth.GetAuthenticator(authMethod)
+	authenticator = auth.GetAuthenticator()
 
 }
 
@@ -402,7 +397,9 @@ func RenderTemplate(c echo.Context, status int, cmp templ.Component) error {
 	return nil
 }
 
-// Register handles the form submission and calls auth0Register to create a new user
+/*
+
+Place holder Registeration support for auth0
 
 func Register(c echo.Context) error {
 	email := c.FormValue("email")
@@ -415,23 +412,12 @@ func Register(c echo.Context) error {
 			"message": "Email and password are required",
 		})
 	}
-
-	// Ensure registration is only allowed when using Auth0
-	authMethod := os.Getenv("AUTH_METHOD")
-	if authMethod != "auth0" {
-		log.Println("Registration is not allowed for AT Protocol users")
-		return c.Render(http.StatusOK, "login.html", map[string]interface{}{
-			"message": "Registration is only available via Auth0",
-		})
-	}
-
 	// Ensure authenticator is an Auth0Authenticator
 	auth0Auth, ok := authenticator.(*auth.Auth0Authenticator)
 	if !ok {
 		log.Println("Error: Authenticator is not an Auth0 instance")
 		return c.String(http.StatusInternalServerError, "Internal server error")
 	}
-
 	// Register the user via Auth0
 	_, err := auth0Auth.Register(email, password)
 	if err != nil {
@@ -440,13 +426,13 @@ func Register(c echo.Context) error {
 			"message": "Registration failed: " + err.Error(),
 		})
 	}
-
 	// Successfully registered, show confirmation page
 	log.Printf("User %s registered successfully", email)
 	return c.Render(http.StatusOK, "register_success.html", map[string]interface{}{
 		"email": email,
 	})
 }
+*/
 
 // LoginForm renders a simple login form
 func LoginForm(c echo.Context) error {
@@ -467,20 +453,19 @@ func LoginForm(c echo.Context) error {
 
 	// Render the login page
 	return c.Render(http.StatusOK, "login.html", map[string]interface{}{
-		"title":      "Login",
-		"msg":        "Please enter your credentials",
-		"authMethod": authenticator.GetAuthMethod(),
+		"title": "Login",
+		"msg":   "Please enter your credentials",
 	})
 }
 
-// PasswordResetForm renders a form to request a password reset
-/*
+/* place holder password reset for auth0
+
 func PasswordResetForm(c echo.Context) error {
 	return HTML(c, Views.PasswordReset())
-} */
+}
 
 // PasswordReset handles the password reset form submission and calls auth0PasswordReset
-/*
+
 func PasswordReset(c echo.Context) error {
 	email := c.FormValue("email")
 	err := Auth.PasswordReset(email)
@@ -490,31 +475,24 @@ func PasswordReset(c echo.Context) error {
 	return HTML(c, Views.ConfirmPasswordReset(email))
 } */
 
-// handle contact form submission
-
 // Login handles the form submission and sends credentials to Auth0
 func Login(c echo.Context) error {
-	email := c.FormValue("email")
+	handle := c.FormValue("handle")
 	password := c.FormValue("password")
 	server := c.FormValue("server") // AT Server field (empty for Auth0)
 
-	log.Printf("Email: %s\n", email)
-
-	email = strings.ToLower(email)
-	log.Printf("Attempting login for: %s\n", email)
-
-	// Determine authentication method (default to Auth0)
-	authMethod := "auth0"
-	if server != "" {
-		authMethod = "atproto"
-		log.Printf("Using AT Server: %s\n", server)
+	if server == "" {
+		server = "https://bsky.social" // Default to Bluesky PDS
 	}
 
+	handle = strings.ToLower(handle)
+	log.Printf("Attempting login for: %s\n", handle)
+
 	// Get the appropriate authenticator based on auth method
-	authenticator := auth.GetAuthenticator(authMethod)
+	authenticator := auth.GetAuthenticator()
 
 	// Perform login
-	tokenResponse, err := authenticator.Login(email, password, server)
+	tokenResponse, err := authenticator.Login(handle, password, server)
 	if err != nil {
 		log.Println("Login failed:", err)
 		return c.Render(http.StatusOK, "message.html", map[string]interface{}{
@@ -532,14 +510,9 @@ func Login(c echo.Context) error {
 	log.Printf("Storing session values: %+v\n", session.Values)
 
 	// Store authentication details
-	session.Values["authMethod"] = authMethod
 	session.Values["accessToken"] = tokenResponse.AccessToken
-	if authMethod == "auth0" {
-		session.Values["email"] = email
-	} else {
-		session.Values["did"] = tokenResponse.DID // Store DID for AT Protocol
-		session.Values["server"] = server         // Store AT Server in session
-	}
+	session.Values["did"] = tokenResponse.DID // Store DID for AT Protocol
+	session.Values["server"] = server         // Store AT Server in session
 
 	// Save session
 	err = session.Save(c.Request(), c.Response())
@@ -550,7 +523,7 @@ func Login(c echo.Context) error {
 		})
 	}
 
-	log.Printf("Session saved for %s (Auth Method: %s, Server: %s)\n", email, authMethod, server)
+	log.Printf("Session saved for %s Server: %s\n", handle, server)
 
 	// Redirect to admin
 	return c.HTML(http.StatusOK, `<script>window.location.href = '/admin';</script>`)
@@ -570,36 +543,16 @@ func Admin(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, "Failed to retrieve session")
 	}
 
-	// Determine authentication method
-	authMethod, _ := session.Values["authMethod"].(string)
-
-	var identifier string
-
-	if authMethod == "auth0" {
-		// Get email for Auth0 users
-		email, ok := session.Values["email"].(string)
-		if !ok || email == "" {
-			log.Println("Auth0: Email not set or invalid in the session")
-			return c.String(http.StatusUnauthorized, "Unauthorized: Email not found in session")
-		}
-		identifier = email
-	} else if authMethod == "atproto" {
-		// Get DID for AT Protocol users
-		did, ok := session.Values["did"].(string)
-		if !ok || did == "" {
-			log.Println("AT Protocol: DID not set or invalid in the session")
-			return c.String(http.StatusUnauthorized, "Unauthorized: DID not found in session")
-		}
-		identifier = did
-	} else {
-		log.Println("Unknown authentication method:", authMethod)
-		return c.String(http.StatusUnauthorized, "Unauthorized: Invalid authentication method")
+	did, ok := session.Values["did"].(string)
+	if !ok || did == "" {
+		log.Println("AT Protocol: DID not set or invalid in the session")
+		return c.String(http.StatusUnauthorized, "Unauthorized: DID not found in session")
 	}
 
 	// Fetch sites for the owner (email or DID)
-	siteStrings, err := Database.GetSitesForOwner(identifier)
+	siteStrings, err := Database.GetSitesForOwner(did)
 	if err != nil {
-		log.Println("Failed to fetch sites for owner:", identifier, err)
+		log.Println("Failed to fetch sites for owner:", did, err)
 		return c.String(http.StatusInternalServerError, "Failed to fetch sites for owner")
 	}
 
@@ -611,7 +564,7 @@ func Admin(c echo.Context) error {
 
 	// Render template using map[string]interface{}
 	return c.Render(http.StatusOK, "admin.html", map[string]interface{}{
-		"Identifier": identifier,
+		"Identifier": did,
 		"Sites":      sites,
 	})
 }
