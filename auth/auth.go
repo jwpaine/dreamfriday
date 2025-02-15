@@ -64,23 +64,43 @@ func GetSessionStore() *sessions.CookieStore {
 // Middleware to check if user is authenticated
 func IsAuthenticated(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		session, _ := store.Get(c.Request(), "session")
+		// Retrieve session
+		session, err := store.Get(c.Request(), "session")
+		if err != nil {
+			log.Println("Failed to retrieve session:", err)
+			return c.Redirect(http.StatusFound, "/login")
+		}
 
 		// Retrieve authentication method
 		authMethod, ok := session.Values["authMethod"].(string)
-		if !ok {
+		if !ok || authMethod == "" {
 			log.Println("Auth method not set, redirecting to login")
 			return c.Redirect(http.StatusFound, "/login")
 		}
+
 		// Get authenticator
 		authenticator := GetAuthenticator(authMethod)
+
 		// Retrieve session token
-		token, _ := session.Values["accessToken"].(string)
-		server := session.Values["server"].(string)
-		// Validate session token
-		if !authenticator.ValidateSession(token, server) {
+		token, ok := session.Values["accessToken"].(string)
+		if !ok || token == "" {
+			log.Println("Access token not set in session, redirecting to login")
 			return c.Redirect(http.StatusFound, "/login")
 		}
+
+		// Retrieve server (if required by auth method)
+		server, ok := session.Values["server"].(string)
+		if authMethod == "atproto" && (!ok || server == "") {
+			log.Println("Server not set in session, redirecting to login")
+			return c.Redirect(http.StatusFound, "/login")
+		}
+
+		// Validate session token
+		if !authenticator.ValidateSession(token, server) {
+			log.Println("Session validation failed, redirecting to login")
+			return c.Redirect(http.StatusFound, "/login")
+		}
+
 		return next(c)
 	}
 }
