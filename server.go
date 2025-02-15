@@ -51,17 +51,17 @@ func loadSiteDataMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		if session.Values["preview"] == true {
 			log.Println("Preview mode enabled")
 
-			email, ok := session.Values["email"].(string)
-			if !ok || email == "" {
-				log.Println("Preview mode disabled: No valid email in session")
+			did, ok := session.Values["did"].(string)
+			if !ok || did == "" {
+				log.Println("Preview mode disabled: No valid did in session")
 				session.Values["preview"] = false
 				if err := session.Save(c.Request(), c.Response()); err != nil {
 					log.Println("Failed to save session:", err)
 				}
 			} else {
-				log.Printf("Fetching preview data for domain: %s (User: %s)\n", domain, email)
+				log.Printf("Fetching preview data for domain: %s (User: %s)\n", domain, did)
 
-				previewData, _, err := Database.FetchPreviewData(domain, email)
+				previewData, _, err := Database.FetchPreviewData(domain, did)
 				if err != nil {
 					log.Println("Failed to fetch preview data:", err)
 				} else {
@@ -159,8 +159,8 @@ func main() {
 	// Add middleware to load site data once
 	e.Use(loadSiteDataMiddleware)
 
-	e.GET("/login", LoginForm) // Display login form
-	e.POST("/login", Login)    // Handle form submission and login
+	//e.GET("/login", LoginForm) // Display login form
+	e.POST("/login", Login) // Handle form submission and login
 
 	// e.GET("/register", RegisterForm)
 	// e.POST("/register", Register)
@@ -633,21 +633,13 @@ func CreateSite(c echo.Context) error {
 	}
 
 	// Get DID from session (if present)
-	did, didOk := session.Values["did"].(string)
-
-	// Get user email from session
-	email, emailOk := session.Values["email"].(string)
-
-	// Determine the identifier to use (either did or email)
-	var identifier string
-	if didOk && did != "" {
-		identifier = did
-	} else if emailOk && email != "" {
-		identifier = email
-	} else {
-		log.Println("Unauthorized: DID or Email not found in session")
-		return c.String(http.StatusUnauthorized, "Unauthorized: DID or Email not found in session")
+	did, ok := session.Values["did"].(string)
+	if !ok || did == "" {
+		log.Println("Unauthorized: DID not found in session")
+		return c.String(http.StatusUnauthorized, "Unauthorized: No valid identifier found")
 	}
+
+	// print did
 
 	// Retrieve form values
 	domain := strings.TrimSpace(c.FormValue("domain"))
@@ -662,12 +654,12 @@ func CreateSite(c echo.Context) error {
 	}
 
 	// Log the creation request with the identifier (DID or Email)
-	log.Printf("Creating new site - Domain: %s for Identifier: %s", domain, identifier)
+	log.Printf("Creating new site - Domain: %s for Identifier: %s", domain, did)
 
-	// Create site in the database, pass identifier (email or did)
-	err = Database.CreateSite(domain, identifier, template)
+	// Create site in the database, pass identifier (email or ddid)
+	err = Database.CreateSite(domain, did, template)
 	if err != nil {
-		log.Printf("Failed to create site: %s for Identifier: %s - Error: %v", domain, identifier, err)
+		log.Printf("Failed to create site: %s for Identifier: %s - Error: %v", domain, did, err)
 		return c.Render(http.StatusOK, "message.html", map[string]interface{}{
 			"message": "Unable to save site to database",
 		})
@@ -685,11 +677,11 @@ func UpdatePreview(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, "Failed to retrieve session")
 	}
 
-	// Get user email from session
-	email, ok := session.Values["email"].(string)
-	if !ok || email == "" {
-		log.Println("Unauthorized: Email not found in session")
-		return c.String(http.StatusUnauthorized, "Unauthorized: Email not found in session")
+	// Get user did from session
+	did, ok := session.Values["did"].(string)
+	if !ok || did == "" {
+		log.Println("Unauthorized: did not found in session")
+		return c.String(http.StatusUnauthorized, "Unauthorized: No valid identifier found")
 	}
 
 	// Retrieve domain from route parameter
@@ -699,7 +691,7 @@ func UpdatePreview(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "Domain is required")
 	}
 
-	log.Printf("Updating preview data for Domain: %s for Email: %s", domain, email)
+	log.Printf("Updating preview data for Domain: %s for Email: %s", domain, did)
 
 	// Retrieve and validate preview data
 	previewData := strings.TrimSpace(c.FormValue("previewData"))
@@ -726,7 +718,7 @@ func UpdatePreview(c echo.Context) error {
 	}
 
 	// Save preview data to the database and mark as "unpublished"
-	err = Database.UpdatePreviewData(domain, email, previewData)
+	err = Database.UpdatePreviewData(domain, did, previewData)
 	if err != nil {
 		log.Printf("Failed to update preview data for domain %s: %v", domain, err)
 		return c.Render(http.StatusOK, "manageButtons.html", map[string]interface{}{
@@ -756,10 +748,10 @@ func Publish(c echo.Context) error {
 	}
 
 	// Get user email from session
-	email, ok := session.Values["email"].(string)
-	if !ok || email == "" {
+	did, ok := session.Values["did"].(string)
+	if !ok || did == "" {
 		log.Println("Unauthorized: Email not found in session")
-		return c.String(http.StatusUnauthorized, "Unauthorized: Email not found in session")
+		return c.String(http.StatusUnauthorized, "Unauthorized")
 	}
 
 	// Retrieve and validate domain
@@ -769,12 +761,12 @@ func Publish(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "Domain is required")
 	}
 
-	log.Printf("Publishing Domain: %s for Email: %s", domain, email)
+	log.Printf("Publishing Domain: %s for Email: %s", domain, did)
 
 	// Attempt to publish the site
-	err = Database.Publish(domain, email)
+	err = Database.Publish(domain, did)
 	if err != nil {
-		log.Printf("Failed to publish domain %s for email %s: %v", domain, email, err)
+		log.Printf("Failed to publish domain %s for email %s: %v", domain, did, err)
 		return c.Render(http.StatusOK, "manageButtons.html", map[string]interface{}{
 			"domain":  domain,
 			"status":  "",

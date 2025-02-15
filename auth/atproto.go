@@ -45,6 +45,14 @@ func (a *ATAuthenticator) Login(handle, password, server string) (*AuthResponse,
 		return nil, fmt.Errorf("failed to parse AT login response: %v", err)
 	}
 
+	// if DID or accessJwt is empty, return an error
+	if atResponse.DID == "" || atResponse.AccessJwt == "" {
+		return nil, fmt.Errorf("invalid login")
+	}
+
+	// log response:
+	log.Printf("AT login response: %+v", atResponse)
+
 	return &AuthResponse{AccessToken: atResponse.AccessJwt, DID: atResponse.DID}, nil
 }
 
