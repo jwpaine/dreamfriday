@@ -55,8 +55,8 @@ Page
 {
   "head" : { "elements": [ PageElement, PageElement, ...] }, 
   "body" : { "elements": [ PageElement, PageElement, ...] }, 
-  "RedirectForLogin" : "string", 
-  "RedirectForLogout" : "string" 
+  "RedirectForLogin" : "url", // redirect to url if logged in
+  "RedirectForLogout" : "url" // redirect to url if logged out
 }
 ```
 
