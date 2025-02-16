@@ -1,8 +1,9 @@
 ## [dreamfriday.com](https://dreamfriday.com)
 
-A decentralized, multi-tenant, JSON-based, CMS for creating and sharing composible UI. 
+A tiny, decentralized, multi-tenant JSON-based CMS for creating and sharing composable UI.
 
-Page endering engine dynamically constructs a component tree by interpreting JSON data stored in PostgreSQL keyed by domain. Upon request, data defining a site's complete topology, including pages, page elements, including their attributes, styling, and children, and recursively builds and streams rendered HTML. Styling is aggregated and injected into the document head, linking elements by class names generated on the fly.
+The platform's page rendering engine dynamically constructs a component tree by interpreting JSON data stored in PostgreSQL, keyed by domain. On request, it retrieves the site's complete topology including pages, elements, attributes, styling, and nested structures, then recursively builds and streams the rendered HTML. Styles are aggregated and injected into the document head, with class names generated on the fly to link elements efficiently.
+
 
 ### Authentication
 
