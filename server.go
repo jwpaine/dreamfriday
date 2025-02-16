@@ -180,7 +180,7 @@ func main() {
 	e.GET("/admin/:domain", AdminSite)
 	e.POST("/admin/:domain", UpdatePreview, auth.AuthMiddleware)
 
-	// e.POST("/publish/:domain", Publish, auth.IsAuthenticated)
+	e.POST("/publish/:domain", Publish, auth.AuthMiddleware)
 
 	e.Static("/static", "static")
 
@@ -189,10 +189,10 @@ func main() {
 		return c.File("static/favicon.ico")
 	})
 
+	e.GET("/preview", TogglePreview)
+
 	e.GET("/", Page)          // This will match any route that does not match the specific ones above
 	e.GET("/:pageName", Page) // This will match any route that does not match the specific ones above
-
-	e.GET("/preview", TogglePreview)
 
 	e.GET("/json", func(c echo.Context) error {
 		domain := c.Request().Host
@@ -244,6 +244,52 @@ func main() {
 		}
 		return c.JSON(http.StatusNotFound, "Page not found")
 	})
+
+	e.GET("/private/mysites", func(c echo.Context) error {
+		// Retrieve the session
+		session, err := auth.GetSession(c.Request())
+		if err != nil {
+			log.Println("Failed to get session:", err)
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve session"})
+		}
+
+		did, ok := session.Values["did"].(string)
+		if !ok || did == "" {
+			log.Println("AT Protocol: DID not set or invalid in the session")
+			return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: DID not found in session"})
+		}
+
+		// Fetch sites for the owner (email or DID)
+		siteStrings, err := Database.GetSitesForOwner(did)
+		if err != nil {
+			log.Println("Failed to fetch sites for owner:", did, err)
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch sites for owner"})
+		}
+
+		// Convert site list into PageElement JSON format
+		pageElement := pageengine.PageElement{
+			Type: "div",
+			Attributes: map[string]string{
+				"class": "site-links-container",
+			},
+			Elements: make([]pageengine.PageElement, len(siteStrings)),
+		}
+
+		// Map sites into anchor (`a`) elements
+		for i, site := range siteStrings {
+			pageElement.Elements[i] = pageengine.PageElement{
+				Type: "a",
+				Attributes: map[string]string{
+					"href":  "https://" + site,
+					"class": "external-link",
+				},
+				Text: site,
+			}
+		}
+
+		// Return JSON response
+		return c.JSON(http.StatusOK, pageElement)
+	}, auth.AuthMiddleware)
 
 	listener, err := net.Listen("tcp4", "0.0.0.0:8081")
 	if err != nil {
@@ -380,7 +426,7 @@ func Page(c echo.Context) error {
 
 	// 🔹 Stream the response directly to the writer
 	c.Response().Header().Set("Content-Type", "text/html; charset=utf-8")
-	err := pageengine.RenderPage(pageData, components, c.Response().Writer)
+	err := pageengine.RenderPage(pageData, components, c.Response().Writer, c)
 	if err != nil {
 		log.Println("Unable to render page:", err)
 		return c.String(http.StatusInternalServerError, err.Error())

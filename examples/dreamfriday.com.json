@@ -35,12 +35,19 @@
             "body": {
                 "elements": [
                     {
+                       "import" : "http://localhost:8081/private/mysites",
+                       "style" : {
+                           "background" : "red"
+                         
+                       }
+                    },
+                    {
                         "type": "",
                         "attributes": null,
                         "elements": null,
                         "text": "",
                         "style": null,
-                        "import": "Header"
+                        "import": "http://localhost:8081/component/Header"
                     },
                     {
                         "type": "div",
@@ -77,10 +84,11 @@
                         "import": ""
                     }
                 ]
-            }
+            },
+            "redirectForLogin": "",
+            "redirectForLogout": ""
         },
         "login": {
-            "redirectForLogin" : "/admin",
             "head": {
                 "elements": [
                     {
@@ -187,7 +195,9 @@
                         "import": ""
                     }
                 ]
-            }
+            },
+            "redirectForLogin": "/admin",
+            "redirectForLogout": ""
         }
     },
     "components": {
