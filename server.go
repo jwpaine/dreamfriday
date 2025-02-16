@@ -172,7 +172,7 @@ func main() {
 	e.GET("/logout", Logout) // Display login form
 
 	// e.GET("/admin", Admin, auth.IsAuthenticated)
-	e.GET("/admin", Admin)
+	// e.GET("/admin", Admin)
 
 	// e.GET("/admin/create", CreateSiteForm, auth.IsAuthenticated)
 	// e.POST("/admin/create", CreateSite, auth.IsAuthenticated)
@@ -280,7 +280,7 @@ func main() {
 			pageElement.Elements[i] = pageengine.PageElement{
 				Type: "a",
 				Attributes: map[string]string{
-					"href":  "https://" + site,
+					"href":  "/admin/" + site,
 					"class": "external-link",
 				},
 				Text: site,
