@@ -164,9 +164,7 @@ func CreateSite(domain string, owner string, template string) error {
 	}
 
 	// Execute the update query
-
-	_, err := db.Exec("INSERT INTO sites (domain, owner, preview, data, status) SELECT $1 AS domain, $2 AS owner, data AS preview, data, 'published' AS status FROM sites WHERE domain = $3", domain, owner, template)
-
+	_, err := db.Exec("INSERT INTO sites (domain, owner, preview, data, status) VALUES ($1, $2, $3, $3, 'published')", domain, owner, template)
 	if err != nil {
 		log.Printf("Failed to create site for domain: %s, error: %v", domain, err)
 		return err

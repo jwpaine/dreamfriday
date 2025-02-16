@@ -9,9 +9,10 @@
                 <form hx-post="/admin/create" hx-target="#messages" hx-swap="innerHTML">
                     <label for="domain">Domain</label>
                     <input type="text" id="domain" name="domain" required>
-                    <label for="template">Template</label>
-                    <input type="template" id="template" name="template" required>
+                    <label for="template">Template URL</label>
+                    <input type="text" id="template" name="template" placeholder="Example: https://dreamfriday.com/json" required>
                     <button type="submit">Create</button>
+                   
                 </form>
                 <a href="/admin">Cancel</a>
                 <span id="messages">   

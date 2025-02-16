@@ -222,22 +222,15 @@ func main() {
 	//e.GET("/login", LoginForm) // Display login form
 	e.POST("/login", Login) // Handle form submission and login
 
-	// e.GET("/register", RegisterForm)
-	// e.POST("/register", Register)
-
-	// Password reset routes
-	//e.GET("/reset", PasswordResetForm) //@FIX
-	//e.POST("/reset", PasswordReset)    //@FIX
-
 	e.GET("/logout", Logout) // Display login form
 
 	// e.GET("/admin", Admin, auth.AuthMiddleware)
 	// e.GET("/admin", Admin)
 
-	// e.GET("/admin/create", CreateSiteForm, auth.IsAuthenticated)
-	// e.POST("/admin/create", CreateSite, auth.IsAuthenticated)
+	e.GET("/admin/create", CreateSiteForm, auth.AuthMiddleware) // @TODO: use JSON-based page instead
+	e.POST("/admin/create", CreateSite, auth.AuthMiddleware)
 
-	e.GET("/admin/:domain", AdminSite)
+	e.GET("/admin/:domain", AdminSite) // @TODO: use JSON-based page instead
 	e.POST("/admin/:domain", UpdatePreview, auth.AuthMiddleware)
 
 	e.POST("/publish/:domain", Publish, auth.AuthMiddleware)
@@ -743,8 +736,36 @@ func CreateSite(c echo.Context) error {
 	// Log the creation request with the identifier (DID or Email)
 	log.Printf("Creating new site - Domain: %s for Identifier: %s", domain, did)
 
+	// fetch site data from the template url:
+
+	req, err := http.Get(template)
+	if err != nil {
+		log.Println("Failed to create request:", err)
+		return c.Render(http.StatusOK, "message.html", map[string]interface{}{
+			"message": fmt.Sprintf("Failed to request: %s", template),
+		})
+	}
+	defer req.Body.Close()
+
+	// Read the response body
+	templateJSON, err := io.ReadAll(req.Body)
+	if err != nil {
+		log.Println("Failed to read response body:", err)
+		return c.Render(http.StatusOK, "message.html", map[string]interface{}{
+			"message": fmt.Sprint("Failed to read response"),
+		})
+	}
+	// Unmarshal the JSON data into a SiteData struct
+	var siteData pageengine.SiteData
+	err = json.Unmarshal(templateJSON, &siteData)
+	if err != nil {
+		log.Println("Failed to unmarshal JSON:", err)
+		return c.Render(http.StatusOK, "message.html", map[string]interface{}{
+			"message": fmt.Sprintf("Failed to unmarshal template: %s", err),
+		})
+	}
 	// Create site in the database, pass identifier (email or ddid)
-	err = Database.CreateSite(domain, did, template)
+	err = Database.CreateSite(domain, did, string(templateJSON))
 	if err != nil {
 		log.Printf("Failed to create site: %s for Identifier: %s - Error: %v", domain, did, err)
 		return c.Render(http.StatusOK, "message.html", map[string]interface{}{
