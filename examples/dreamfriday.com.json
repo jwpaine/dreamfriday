@@ -43,7 +43,7 @@
                         "elements": null,
                         "text": "",
                         "style": null,
-                        "import": "http://localhost:8081/component/Header",
+                        "import": "Header",
                         "private": false
                     },
                     {
@@ -74,7 +74,7 @@
                                     "flex-direction": "column"
                                 },
                                 "import": "/mysites",
-                                "private": false
+                                "private": true
                             }
                         ],
                         "text": "",
@@ -141,19 +141,8 @@
                         "attributes": null,
                         "elements": null,
                         "text": "",
-                        "style": {
-                            "background": "red"
-                        },
-                        "import": "http://localhost:8081/private/mysites",
-                        "private": false
-                    },
-                    {
-                        "type": "",
-                        "attributes": null,
-                        "elements": null,
-                        "text": "",
                         "style": null,
-                        "import": "http://localhost:8081/component/Header",
+                        "import": "Header",
                         "private": false
                     },
                     {

@@ -2,149 +2,83 @@
 
 **Dream Friday** 
 
-A tiny, JSON-based CMS built with Go and PostgreSQL. Page endering engine will dynamically construct a component tree by interpreting JSON data stored in PostgreSQL. Upon request, the engine retrieves this data, which defines the topology, type, attributes, and nested elements of each page component, and recursively builds a tree of HTML elements spanning tags like div, p, and h1. Each component generates its own HTML structure and applies CSS styling, with randomized class names to keep styles modular. All styling is aggregated and injected into the document head:
+A decentralized, multi-tenant, JSON-based, CMS for creating and sharing composible UI. 
 
-- **Components**: Reusable elements (like buttons or headers) can be defined and re-used anywhere across the site, and specific attributes and properties can be overridden on import.
-- **Pages**: Define each page’s layout and content. New page routes are created on the fly and will be immedietly accessible via /{page_name}
-- **Attributes and Styling**: Styles and attributes are locally scoped to each element.
-- **Media Queries**: Define responsive styling directly in JSON.
-- **Preview Mode**: Test mode can be enabled for the site owner by hitting `/preview` while logged in, and then you can navigate around the site in preview mode.
+Page endering engine dynamically constructs a component tree by interpreting JSON data stored in PostgreSQL keyed by domain. Upon request, data defining a site's complete topology, including pages, page elements, including their attributes, styling, and children, and recursively builds and streams rendered HTML. Styling is aggregated and injected into the document head, linking elements by class names generated on the fly.
 
-## JSON Example
+### Authentication
 
-### Components and Pages
+Uses the **AT Protocol** for authentications. 
+Users may selected between **BlueSky** (default), or supply their own **Personal Data Server** (PDS)
 
-```json
+### Routes:
+
+Serialized
+- **GET /json**: returns a site's complete structure
+- **GET /components**: returns all non-private components (PageElements)
+- **GET /component/name** retuns a single non-private component (PageElement)
+- **GET /page/page_name** returns a page's structure
+- **GET /mysites** returns a PageElement containing the list of sites for the logged in user
+
+Rendered:
+- **GET /** renders rendered page **'Home'** (ie: domain/pages/Home)
+- **GET /page_name** returns rendered page by name
+- **GET /login** renders dreamfriday.com/pages/login
+- **GET /admin** renders **dreamfriday.com/pages/admin** which imports **dreamfriday.com/mysites**
+- **GET /admin/domain** renders site details and JSON editor for specified domain for logged in owner
+- **GET /admin/create** renders site creation form
+
+Factory:
+
+- **POST /login** accepts **handle**, **password**, and **server** -> instantiates session and returns cookie
+- **POST /admin/create** accepts **domain** and **template** (another domain to cppy).
+- **POST /admin/domain"** accepts **previewData** (JSON). Update's preview data for specified **domain**
+- **POST /publish/domain** copies **preview** data to **production**
+- **GET /logout** destroys current session
+- **GET /preview** toggle's preview mode for current session. Page routes will render preview data instead of production
+
+### Topology
+
+Site
+
+```JSON
 {
-  "Components": {
-    "button": {
-      "elements": [
-        {
-          "type": "button",
-          "attributes": {
-            "style": {
-              "background": "blue",
-              "color": "white",
-              "padding": "10px 20px",
-              "media": {
-                "max-width": {
-                  "735px": {
-                    "background": "lightblue",
-                    "color": "green"
-                  }
-                }
-              }
-            }
-          },
-          "text": "Click Me"
-        }
-      ]
-    }
-  },
-  "pages": {
-    "home": {
-      "elements": [
-        {
-          "type": "h1",
-          "text": "Welcome!"
-        },
-        {
-          "import": "button",
-          "text": "Get Started",
-          "attributes": {
-            "style": {
-              "background": "green"
-            }
-          }
-        }
-      ]
-    },
-    "about": {
-      "elements": [
-        {
-          "type": "h1",
-          "text": "About Us"
-        },
-        {
-          "type": "p",
-          "text": "Learn more about us."
-        }
-      ]
-    }
-  }
+  "pages": { "page_name" : Page, "page_name" : Page },
+  "components" : { ... }
 }
 ```
 
-### Explanation
+Page
 
-- **Components**: Define reusable elements like `button` with customizable styling and media queries.
-
-- **Pages**: Define specific page layouts like `home` and `about`. For example:
-
-  - **home**: Uses `button` with a text override to `"Get Started"` and a background color override.
-
-  - **about**: Displays a static heading and paragraph.
-
-### Routing
-
-- **Home Page (`home`)**: Accessible at `/` or `/home`.
-
-- **Named Pages**: For example, the `"about"` page is accessible at `/about`.
-
-### Preview Mode
-
-Dream Friday allows you to preview changes before they are published. You can enable preview mode by accessing the route `/preview`, which will load any saved drafts that haven’t been published.
-
-### Admin Interface
-
-The admin page provides a JSON editor that allows you to manage content and components directly. With the editor, you can:
-
-- **Edit JSON Data**: Modify page structure, styling, and components.
-- **Save to Preview**: Save drafts to preview mode without affecting live content.
-- **Publish Changes**: Publish saved drafts to go live on the main site.
-
-### Customization
-
-#### Adding New Components
-
-Add reusable components under `"Components"` in the JSON structure. For example, a footer:
-
-```json
-
-"Components": {
-  "footer": {
-    "elements": [
-      {
-        "type": "footer",
-        "attributes": {
-          "style": {
-            "background": "#333",
-            "color": "white",
-            "padding": "10px"
-          }
-        },
-        "text": "© 2024 Dream Friday"
-      }
-    ]
-  }
+```JSON
+{
+  "head" : { "elements": [ PageElement, PageElement, ...] }, 
+  "body" : { "elements": [ PageElement, PageElement, ...] }, 
+  "RedirectForLogin" : "string", 
+  "RedirectForLogout" : "string" 
 }
 ```
 
-#### Adding New Pages
+Page Element
 
-Define new pages under `"pages"` with a unique key. Use `"import"` to include reusable components.
-
-Example `contact` page:
-```json
-"contact": {
-  "elements": [
-    {
-      "type": "h1",
-      "text": "Contact Us"
-    },
-    {
-      "import": "footer"
-    }
-  ]
+```JSON
+{
+  "type" : "element_type" 
+	"attributes" : { "key1" : "value", "key2" : "value2", ... }
+	"elements": [ PageElement, PageElement, ...]
+	"text" : "string"
+	"style" :  { "key1" : "value", "key2" : "value2", ... }
+	"import" : "component" // may be locally defined, or set to somedomain.com/component/name
+	"private"  bool // if set to true, the import referenced will not be made available for public export via /components/name
 }
 ```
+Component
+
+```JSON
+{
+  "component_name" : PageElement,
+  "component_name" : PageElement,
+  ...
+}
+```
+
