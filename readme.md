@@ -15,7 +15,7 @@ Users may selected between **BlueSky** (default), or supply their own **Personal
 ### Routes:
 
 Serialized
-- **GET /json**: returns a site's complete structure
+- **GET /json**: returns a site's complete structure [Example](https://github.com/jwpaine/dreamfriday.com/blob/main/examples/dreamfriday.com.json)
 - **GET /components**: returns all non-private components (PageElements)
 - **GET /component/name** retuns a single non-private component (PageElement)
 - **GET /page/page_name** returns a page's structure
@@ -69,8 +69,8 @@ Page Element
 	"elements": [ PageElement, PageElement, ...]
 	"text" : "string"
 	"style" :  { "key1" : "value", "key2" : "value2", ... }
-	"import" : "component" // may be locally defined, or set to somedomain.com/component/name
-	"private"  bool // if set to true, the import referenced will not be made available for public export via /components/name
+	"import" : "component_name" /* May reference a locally defined component by name, or be set to a remotly hosted component (ie: https://dreamfriday.com/component/Header) */
+	"private"  bool /* if true, will not generate a /component/name export when importing another */
 }
 ```
 Component
