@@ -31,7 +31,7 @@ func generateRandomClassName(n int) string {
 }
 
 // Recursive function that collects CSS first and assigns class names
-func CollectCSS(p *PageElement, styleWriter io.Writer, classMap map[*PageElement]string, components map[string]*PageElement, visited map[string]bool, c echo.Context) {
+func CollectCSS(p *PageElement, styleWriter io.Writer, classMap map[*PageElement]string, components map[string]*PageElement, visited map[string]bool, c echo.Context, routeInternal func(string, echo.Context) (interface{}, error)) {
 	if p == nil {
 		return
 	}
@@ -44,8 +44,10 @@ func CollectCSS(p *PageElement, styleWriter io.Writer, classMap map[*PageElement
 		visited[p.Import] = true // Mark component as visited
 
 		// if external import, fetch the component and add it to the local components map
-		if strings.HasPrefix(p.Import, "http") {
-			externalComponent, err := GetExternalComponent(c, p.Import)
+		// target both http/s:// and / internal routes
+		fmt.Println("Import found:", p.Import)
+		if strings.Contains(p.Import, "/") {
+			externalComponent, err := GetExternalComponent(c, p.Import, routeInternal)
 			if err != nil {
 				fmt.Fprintf(styleWriter, "/* Error: %s */", err)
 				return
@@ -66,7 +68,7 @@ func CollectCSS(p *PageElement, styleWriter io.Writer, classMap map[*PageElement
 				for key, value := range p.Style {
 					importedComponent.Style[key] = value
 				}
-				CollectCSS(importedComponent, styleWriter, classMap, components, visited, c)
+				CollectCSS(importedComponent, styleWriter, classMap, components, visited, c, routeInternal)
 			}
 
 			// Assign the imported component's class name to the referencing element (`p`)
@@ -88,7 +90,7 @@ func CollectCSS(p *PageElement, styleWriter io.Writer, classMap map[*PageElement
 
 	// Recursively collect CSS for child elements
 	for i := range p.Elements {
-		CollectCSS(&p.Elements[i], styleWriter, classMap, components, visited, c)
+		CollectCSS(&p.Elements[i], styleWriter, classMap, components, visited, c, routeInternal)
 	}
 }
 
@@ -104,26 +106,40 @@ func GenerateCSS(className string, css map[string]string, styleWriter io.Writer)
 	fmt.Fprint(styleWriter, " }") // Close the CSS rule
 }
 
-func GetExternalComponent(c echo.Context, uri string) (*PageElement, error) {
-	log.Println("Fetching external component:", uri)
+func GetExternalComponent(c echo.Context, uri string, routeInternal func(string, echo.Context) (interface{}, error)) (*PageElement, error) {
+	log.Println("External component needed:", uri)
 
-	// Create HTTP request (conditionally forwarding authentication)
-	var req *http.Request
-	var err error
-
-	if strings.Contains(uri, "/private/") {
-		log.Println("Detected private import, forwarding request context")
-		req, err = http.NewRequestWithContext(c.Request().Context(), "GET", uri, nil)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create request for %s: %w", uri, err)
-		}
-		req.Header = c.Request().Header.Clone() // Preserve authentication headers
-	} else {
-		req, err = http.NewRequest("GET", uri, nil)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create request for %s: %w", uri, err)
+	// Check if the URI is an internal route
+	if strings.HasPrefix(uri, "/") {
+		log.Println("Attempting to fetch component internally:", uri)
+		pageElement, err := routeInternal(uri, c)
+		if err == nil {
+			if component, ok := pageElement.(PageElement); ok {
+				return &component, nil
+			}
+			return nil, fmt.Errorf("invalid response type from internal route")
 		}
 	}
+
+	log.Println("Attempting to fetch component externally:", uri)
+
+	// Prepare external HTTP request
+	req, err := http.NewRequestWithContext(c.Request().Context(), "GET", uri, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request for %s: %w", uri, err)
+	}
+
+	// Copy headers from the original request
+	for key, values := range c.Request().Header {
+		for _, value := range values {
+			req.Header.Add(key, value)
+		}
+	}
+
+	// Copy cookies from the original request
+	// for _, cookie := range c.Request().Cookies() {
+	// 	req.AddCookie(cookie)
+	// }
 
 	// Perform the request
 	client := &http.Client{}
@@ -256,7 +272,8 @@ func (p *PageElement) Render(w io.Writer, components map[string]*PageElement, cl
 	fmt.Fprintf(w, "</%s>", p.Type)
 }
 
-func RenderPage(pageData Page, components map[string]*PageElement, w io.Writer, c echo.Context) error {
+// routeInternal is a function
+func RenderPage(pageData Page, components map[string]*PageElement, w io.Writer, c echo.Context, routeInternal func(string, echo.Context) (interface{}, error)) error {
 	// Start streaming HTML immediately
 	fmt.Fprint(w, "<!DOCTYPE html><html><head>")
 
@@ -272,7 +289,7 @@ func RenderPage(pageData Page, components map[string]*PageElement, w io.Writer, 
 	classMap := make(map[*PageElement]string) // Map to track generated class names
 	visited := make(map[string]bool)          // Track visited imports to avoid circular dependencies
 	for i := range pageData.Body.Elements {
-		CollectCSS(&pageData.Body.Elements[i], w, classMap, components, visited, c)
+		CollectCSS(&pageData.Body.Elements[i], w, classMap, components, visited, c, routeInternal)
 	}
 	fmt.Fprint(w, "</style></head><body>")
 

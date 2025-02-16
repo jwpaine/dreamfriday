@@ -24,7 +24,8 @@ import (
 	Database "dreamfriday/database"
 )
 
-var siteDataStore sync.Map // thread-safe map to cache site data
+var siteDataStore sync.Map // public thread-safe map to cache site data
+var userDataStore sync.Map // private thread-safe map to cache user data
 var authenticator auth.Authenticator
 
 func loadSiteDataMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
@@ -134,6 +135,65 @@ func (t *TemplateRegistry) Render(w io.Writer, name string, data interface{}, c 
 	return t.templates.ExecuteTemplate(w, name, data)
 }
 
+func routeInternal(path string, c echo.Context) (interface{}, error) {
+	switch path {
+	case "/mysites":
+		// Check cache first
+		session, err := auth.GetSession(c.Request())
+		if err != nil {
+			return nil, err
+		}
+		did, ok := session.Values["did"].(string)
+		if !ok || did == "" {
+			return nil, fmt.Errorf("AT Protocol: DID not set or invalid in the session")
+		}
+		// Check cache for user data
+		cachedUserData, found := userDataStore.Load(did)
+		if found {
+			return cachedUserData.(struct {
+				sites pageengine.PageElement
+			}).sites, nil
+		}
+
+		// Fetch sites for the owner from the database
+		siteStrings, err := Database.GetSitesForOwner(did)
+		if err != nil {
+			return nil, err
+		}
+
+		// Convert site list into PageElement JSON format
+		pageElement := pageengine.PageElement{
+			Type: "div",
+			Attributes: map[string]string{
+				"class": "site-links-container",
+			},
+			Elements: make([]pageengine.PageElement, len(siteStrings)),
+		}
+
+		// Map sites into anchor (`a`) elements
+		for i, site := range siteStrings {
+			pageElement.Elements[i] = pageengine.PageElement{
+				Type: "a",
+				Attributes: map[string]string{
+					"href":  "/admin/" + site,
+					"class": "external-link",
+				},
+				Text: site,
+			}
+		}
+
+		// Cache the user data
+		userDataStore.Store(did, struct {
+			sites pageengine.PageElement
+		}{sites: pageElement})
+
+		return pageElement, nil
+
+	default:
+		return nil, fmt.Errorf("unknown internal route: %s", path)
+	}
+}
+
 func main() {
 
 	// Initialize the database connection
@@ -171,7 +231,7 @@ func main() {
 
 	e.GET("/logout", Logout) // Display login form
 
-	// e.GET("/admin", Admin, auth.IsAuthenticated)
+	// e.GET("/admin", Admin, auth.AuthMiddleware)
 	// e.GET("/admin", Admin)
 
 	// e.GET("/admin/create", CreateSiteForm, auth.IsAuthenticated)
@@ -245,50 +305,15 @@ func main() {
 		return c.JSON(http.StatusNotFound, "Page not found")
 	})
 
-	e.GET("/private/mysites", func(c echo.Context) error {
-		// Retrieve the session
-		session, err := auth.GetSession(c.Request())
-		if err != nil {
-			log.Println("Failed to get session:", err)
-			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve session"})
-		}
+	// Echo Route Handler
+	e.GET("/mysites", func(c echo.Context) error {
 
-		did, ok := session.Values["did"].(string)
-		if !ok || did == "" {
-			log.Println("AT Protocol: DID not set or invalid in the session")
-			return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized: DID not found in session"})
-		}
-
-		// Fetch sites for the owner (email or DID)
-		siteStrings, err := Database.GetSitesForOwner(did)
+		result, err := routeInternal("/mysites", c)
 		if err != nil {
-			log.Println("Failed to fetch sites for owner:", did, err)
+			log.Println("Error fetching sites for owner:", err)
 			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch sites for owner"})
 		}
-
-		// Convert site list into PageElement JSON format
-		pageElement := pageengine.PageElement{
-			Type: "div",
-			Attributes: map[string]string{
-				"class": "site-links-container",
-			},
-			Elements: make([]pageengine.PageElement, len(siteStrings)),
-		}
-
-		// Map sites into anchor (`a`) elements
-		for i, site := range siteStrings {
-			pageElement.Elements[i] = pageengine.PageElement{
-				Type: "a",
-				Attributes: map[string]string{
-					"href":  "/admin/" + site,
-					"class": "external-link",
-				},
-				Text: site,
-			}
-		}
-
-		// Return JSON response
-		return c.JSON(http.StatusOK, pageElement)
+		return c.JSON(http.StatusOK, result)
 	}, auth.AuthMiddleware)
 
 	listener, err := net.Listen("tcp4", "0.0.0.0:8081")
@@ -426,7 +451,7 @@ func Page(c echo.Context) error {
 
 	// 🔹 Stream the response directly to the writer
 	c.Response().Header().Set("Content-Type", "text/html; charset=utf-8")
-	err := pageengine.RenderPage(pageData, components, c.Response().Writer, c)
+	err := pageengine.RenderPage(pageData, components, c.Response().Writer, c, routeInternal)
 	if err != nil {
 		log.Println("Unable to render page:", err)
 		return c.String(http.StatusInternalServerError, err.Error())

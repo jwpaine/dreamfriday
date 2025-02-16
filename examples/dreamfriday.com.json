@@ -1,6 +1,6 @@
 {
     "pages": {
-        "home": {
+        "admin": {
             "head": {
                 "elements": [
                     {
@@ -9,7 +9,8 @@
                         "elements": null,
                         "text": "Dream Friday",
                         "style": null,
-                        "import": ""
+                        "import": "",
+                        "private": false
                     },
                     {
                         "type": "meta",
@@ -20,7 +21,8 @@
                         "elements": null,
                         "text": "",
                         "style": null,
-                        "import": ""
+                        "import": "",
+                        "private": false
                     },
                     {
                         "type": "style",
@@ -28,26 +30,21 @@
                         "elements": null,
                         "text": "@font-face { font-family: 'OpenSans_Bold'; src: url('/static/font/OpenSans_Bold.ttf') format('truetype'); font-weight: bold; font-style: normal; } body { margin: 0; } * { font-family: 'OpenSans_Bold', sans-serif; }",
                         "style": null,
-                        "import": ""
+                        "import": "",
+                        "private": false
                     }
                 ]
             },
             "body": {
                 "elements": [
                     {
-                       "import" : "http://localhost:8081/private/mysites",
-                       "style" : {
-                           "background" : "red"
-                         
-                       }
-                    },
-                    {
                         "type": "",
                         "attributes": null,
                         "elements": null,
                         "text": "",
                         "style": null,
-                        "import": "http://localhost:8081/component/Header"
+                        "import": "http://localhost:8081/component/Header",
+                        "private": false
                     },
                     {
                         "type": "div",
@@ -59,12 +56,25 @@
                                 "type": "h1",
                                 "attributes": null,
                                 "elements": null,
-                                "text": "Hello, world",
+                                "text": "My sites",
                                 "style": {
                                     "font-size": "4.5rem",
                                     "margin": "0"
                                 },
-                                "import": ""
+                                "import": "",
+                                "private": false
+                            },
+                            {
+                                "type": "",
+                                "attributes": null,
+                                "elements": null,
+                                "text": "",
+                                "style": {
+                                    "display": "flex",
+                                    "flex-direction": "column"
+                                },
+                                "import": "/mysites",
+                                "private": false
                             }
                         ],
                         "text": "",
@@ -81,7 +91,106 @@
                             "padding": "2rem",
                             "text-align": "center"
                         },
-                        "import": ""
+                        "import": "",
+                        "private": false
+                    }
+                ]
+            },
+            "redirectForLogin": "",
+            "redirectForLogout": "/login"
+        },
+        "home": {
+            "head": {
+                "elements": [
+                    {
+                        "type": "title",
+                        "attributes": null,
+                        "elements": null,
+                        "text": "Dream Friday",
+                        "style": null,
+                        "import": "",
+                        "private": false
+                    },
+                    {
+                        "type": "meta",
+                        "attributes": {
+                            "content": "width=device-width, initial-scale=1",
+                            "name": "viewport"
+                        },
+                        "elements": null,
+                        "text": "",
+                        "style": null,
+                        "import": "",
+                        "private": false
+                    },
+                    {
+                        "type": "style",
+                        "attributes": null,
+                        "elements": null,
+                        "text": "@font-face { font-family: 'OpenSans_Bold'; src: url('/static/font/OpenSans_Bold.ttf') format('truetype'); font-weight: bold; font-style: normal; } body { margin: 0; } * { font-family: 'OpenSans_Bold', sans-serif; }",
+                        "style": null,
+                        "import": "",
+                        "private": false
+                    }
+                ]
+            },
+            "body": {
+                "elements": [
+                    {
+                        "type": "",
+                        "attributes": null,
+                        "elements": null,
+                        "text": "",
+                        "style": {
+                            "background": "red"
+                        },
+                        "import": "http://localhost:8081/private/mysites",
+                        "private": false
+                    },
+                    {
+                        "type": "",
+                        "attributes": null,
+                        "elements": null,
+                        "text": "",
+                        "style": null,
+                        "import": "http://localhost:8081/component/Header",
+                        "private": false
+                    },
+                    {
+                        "type": "div",
+                        "attributes": {
+                            "id": "hero"
+                        },
+                        "elements": [
+                            {
+                                "type": "h1",
+                                "attributes": null,
+                                "elements": null,
+                                "text": "Hello, world",
+                                "style": {
+                                    "font-size": "4.5rem",
+                                    "margin": "0"
+                                },
+                                "import": "",
+                                "private": false
+                            }
+                        ],
+                        "text": "",
+                        "style": {
+                            "align-items": "center",
+                            "background": "linear-gradient(135deg, #6a11cb, #2575fc)",
+                            "color": "white",
+                            "display": "flex",
+                            "flex-direction": "column",
+                            "gap": "1.5rem",
+                            "height": "100vh",
+                            "justify-content": "center",
+                            "margin": "0",
+                            "padding": "2rem",
+                            "text-align": "center"
+                        },
+                        "import": "",
+                        "private": false
                     }
                 ]
             },
@@ -97,7 +206,8 @@
                         "elements": null,
                         "text": "Login - Dream Friday",
                         "style": null,
-                        "import": ""
+                        "import": "",
+                        "private": false
                     },
                     {
                         "type": "meta",
@@ -108,7 +218,8 @@
                         "elements": null,
                         "text": "",
                         "style": null,
-                        "import": ""
+                        "import": "",
+                        "private": false
                     },
                     {
                         "type": "style",
@@ -116,7 +227,8 @@
                         "elements": null,
                         "text": "body { margin: 0; * { font-family: 'OpenSans_Bold', sans-serif; }",
                         "style": null,
-                        "import": ""
+                        "import": "",
+                        "private": false
                     },
                     {
                         "type": "script",
@@ -126,7 +238,8 @@
                         "elements": null,
                         "text": "",
                         "style": null,
-                        "import": ""
+                        "import": "",
+                        "private": false
                     }
                 ]
             },
@@ -138,7 +251,8 @@
                         "elements": null,
                         "text": "",
                         "style": null,
-                        "import": "Header"
+                        "import": "Header",
+                        "private": false
                     },
                     {
                         "type": "main",
@@ -161,7 +275,8 @@
                                             "margin-bottom": "1rem",
                                             "text-align": "center"
                                         },
-                                        "import": ""
+                                        "import": "",
+                                        "private": false
                                     },
                                     {
                                         "type": "",
@@ -169,7 +284,8 @@
                                         "elements": null,
                                         "text": "",
                                         "style": null,
-                                        "import": "LoginForm"
+                                        "import": "LoginForm",
+                                        "private": false
                                     }
                                 ],
                                 "text": "",
@@ -180,7 +296,8 @@
                                     "justify-content": "center",
                                     "width": "100%"
                                 },
-                                "import": ""
+                                "import": "",
+                                "private": false
                             }
                         ],
                         "text": "",
@@ -192,7 +309,8 @@
                             "height": "100vh",
                             "justify-content": "center"
                         },
-                        "import": ""
+                        "import": "",
+                        "private": false
                     }
                 ]
             },
@@ -219,7 +337,8 @@
                         "font-size": "1.2rem",
                         "text-decoration": "none"
                     },
-                    "import": ""
+                    "import": "",
+                    "private": false
                 }
             ],
             "text": "",
@@ -231,7 +350,8 @@
                 "position": "fixed",
                 "width": "100%"
             },
-            "import": ""
+            "import": "",
+            "private": false
         },
         "LoginForm": {
             "type": "form",
@@ -254,7 +374,8 @@
                         "font-size": "1rem",
                         "margin-bottom": "0.5rem"
                     },
-                    "import": ""
+                    "import": "",
+                    "private": false
                 },
                 {
                     "type": "input",
@@ -275,7 +396,8 @@
                         "padding": "0.8rem",
                         "width": "100%"
                     },
-                    "import": ""
+                    "import": "",
+                    "private": false
                 },
                 {
                     "type": "label",
@@ -290,7 +412,8 @@
                         "font-size": "1rem",
                         "margin-bottom": "0.5rem"
                     },
-                    "import": ""
+                    "import": "",
+                    "private": false
                 },
                 {
                     "type": "input",
@@ -311,7 +434,8 @@
                         "padding": "0.8rem",
                         "width": "100%"
                     },
-                    "import": ""
+                    "import": "",
+                    "private": false
                 },
                 {
                     "type": "div",
@@ -330,7 +454,8 @@
                                 "margin-bottom": "0.5rem",
                                 "text-align": "center"
                             },
-                            "import": ""
+                            "import": "",
+                            "private": false
                         },
                         {
                             "type": "a",
@@ -349,12 +474,14 @@
                                 "text-align": "center",
                                 "text-decoration": "none"
                             },
-                            "import": ""
+                            "import": "",
+                            "private": false
                         }
                     ],
                     "text": "",
                     "style": null,
-                    "import": ""
+                    "import": "",
+                    "private": false
                 },
                 {
                     "type": "div",
@@ -376,7 +503,8 @@
                                 "font-size": "1rem",
                                 "margin-bottom": "0.5rem"
                             },
-                            "import": ""
+                            "import": "",
+                            "private": false
                         },
                         {
                             "type": "input",
@@ -396,7 +524,8 @@
                                 "padding": "0.8rem",
                                 "width": "100%"
                             },
-                            "import": ""
+                            "import": "",
+                            "private": false
                         },
                         {
                             "type": "p",
@@ -417,17 +546,20 @@
                                         "text-align": "center",
                                         "text-decoration": "none"
                                     },
-                                    "import": ""
+                                    "import": "",
+                                    "private": false
                                 }
                             ],
                             "text": "",
                             "style": null,
-                            "import": ""
+                            "import": "",
+                            "private": false
                         }
                     ],
                     "text": "",
                     "style": null,
-                    "import": ""
+                    "import": "",
+                    "private": false
                 },
                 {
                     "type": "button",
@@ -447,7 +579,8 @@
                         "transition": "0.3s",
                         "width": "100%"
                     },
-                    "import": ""
+                    "import": "",
+                    "private": false
                 },
                 {
                     "type": "span",
@@ -462,7 +595,8 @@
                         "font-size": "1rem",
                         "margin-top": "1rem"
                     },
-                    "import": ""
+                    "import": "",
+                    "private": false
                 }
             ],
             "text": "",
@@ -475,7 +609,8 @@
                 "text-align": "center",
                 "width": "100%"
             },
-            "import": ""
+            "import": "",
+            "private": false
         }
     }
 }
