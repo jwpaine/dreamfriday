@@ -22,8 +22,8 @@ Serialized
 - **GET /mysites** returns a PageElement containing the list of sites for the logged in user
 
 Rendered:
-- **GET /** renders rendered page **'Home'** (ie: domain/pages/Home)
-- **GET /page_name** returns rendered page by name
+- **GET /** renders page **'Home'** (ie: URL/pages/home)
+- **GET /page_name** renderes a page by name
 - **GET /login** renders dreamfriday.com/pages/login
 - **GET /admin** renders **dreamfriday.com/pages/admin** which imports **dreamfriday.com/mysites**
 - **GET /admin/domain** renders site details and JSON editor for specified domain for logged in owner
