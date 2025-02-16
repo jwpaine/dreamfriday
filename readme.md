@@ -40,7 +40,11 @@ Factory:
 
 ### Topology
 
-Site
+## Site
+
+Site data describes the entire site, including all pages and sharable components.
+
+[view site data for dreamfriday.com](https://github.com/jwpaine/dreamfriday.com/blob/main/examples/dreamfriday.com.json)
 
 ```JSON
 {
@@ -49,30 +53,54 @@ Site
 }
 ```
 
-Page
+## Page
+
+Page structure holds a page's head, body, and a set of redirection flags. 
+
+- **RedirectForLogin** will redirect to the url supplied when logged in. 
+  ex: [dreamfriday.com/login](https://dreamfriday.com/login) will redirect to /admin if logged in.
+- **RedirectForLogout** will redirect to the url supplied when logged out.
+  ex: [dreamfriday.com/admin](https://dreamfriday.com/admin) will redirect to /login if logged out.
+
 
 ```JSON
 {
-  "head" : { "elements": [ PageElement, PageElement, ...] }, 
-  "body" : { "elements": [ PageElement, PageElement, ...] }, 
+  "head" : { "elements": [ ] }, 
+  "body" : { "elements": [ ] }, 
   "RedirectForLogin" : "url", // redirect to url if logged in
   "RedirectForLogout" : "url" // redirect to url if logged out
 }
 ```
 
-Page Element
+## Page Element
 
 ```JSON
 {
   "type" : "element_type" 
-	"attributes" : { "key1" : "value", "key2" : "value2", ... }
-	"elements": [ PageElement, PageElement, ...]
+	"attributes" : { "key1" : "value", "key2" : "value2"}
+	"elements": [ ]
 	"text" : "string"
-	"style" :  { "key1" : "value", "key2" : "value2", ... }
-	"import" : "component_name" /* May reference a locally defined component by name, or be set to a remotly hosted component (ie: https://dreamfriday.com/component/Header) */
-	"private"  bool /* if true, will not generate a /component/name export when importing another */
+	"style" :  { "key1" : "value", "key2" : "value2"}
+	"import" : "component_name" 
+	"private"  false 
 }
 ```
+
+Page elements model any HTML element, including their tag/type (ex: h1, p, a, ..), attributes (ex: id, class), text, styling, and any child elements contained within.
+
+### Imports
+Page Elements may import other PageElements. 
+**Local imports**: Elements defined within a site's **components** collection may be imported directly by name. 
+**remote imports** import can be set to a remotly hosted component (Page Element)
+
+example:
+```JSON
+{
+  "import" : "https://dreamfriday.com/component/Header"
+}
+```
+When a component is imported from a remote source, it will be automatically discoverable via your site's /components route unless **private** is set to true. A good use case for private is if you import data from a protected resource, so that data isn't shared. Example: dreamfriday.com/admin panel imports dreamfriday.com/mysites, which is session-specific. We would not want this data published under dreamfriday.com/components!
+
 Component
 
 ```JSON
