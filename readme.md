@@ -48,7 +48,7 @@ Site data describes the entire site, including all pages and sharable components
 
 ```JSON
 {
-  "pages": { "page_name" : Page, "page_name" : Page },
+  "pages": { "page_name" : { }, "page_name" : { } },
   "components" : { ... }
 }
 ```
@@ -67,8 +67,8 @@ Page structure holds a page's head, body, and a set of redirection flags.
 {
   "head" : { "elements": [ ] }, 
   "body" : { "elements": [ ] }, 
-  "RedirectForLogin" : "url", // redirect to url if logged in
-  "RedirectForLogout" : "url" // redirect to url if logged out
+  "RedirectForLogin" : "url", 
+  "RedirectForLogout" : "url"
 }
 ```
 
@@ -89,7 +89,8 @@ Page structure holds a page's head, body, and a set of redirection flags.
 Page elements model any HTML element, including their tag/type (ex: h1, p, a, ..), attributes (ex: id, class), text, styling, and any child elements contained within.
 
 ### Imports
-Page Elements may import other PageElements. 
+Page Elements may import a component. This allows the importer to extend the properties and values of the component being imported.
+
 **Local imports**: Elements defined within a site's **components** collection may be imported directly by name. 
 **remote imports** import can be set to a remotly hosted component (Page Element)
 
@@ -99,15 +100,48 @@ example:
   "import" : "https://dreamfriday.com/component/Header"
 }
 ```
-When a component is imported from a remote source, it will be automatically discoverable via your site's /components route unless **private** is set to true. A good use case for private is if you import data from a protected resource, so that data isn't shared. Example: dreamfriday.com/admin panel imports dreamfriday.com/mysites, which is session-specific. We would not want this data published under dreamfriday.com/components!
+When a component is imported from a remote source, it will be automatically discoverable via your site's /components route unless **private** is set to true. A good use case for private is if you import data from a protected resource. Example: dreamfriday.com/admin imports dreamfriday.com/mysites, which is scoped to one's session. We would not want this data auto published under dreamfriday.com/components!
 
-Component
+### Inheritance
+
+When a Page Element imports a component, it inherits that component's styling, children, text, attributes unless those properties are defined by the Page Element.
+
+Example: component **https://dreamfriday.com/component/Button**:
 
 ```JSON
 {
-  "component_name" : PageElement,
-  "component_name" : PageElement,
-  ...
+  "type" : "button",
+  "text" : "click me!",
+  "style" : {
+    "background" : "white",
+    "color" : "black",
+    "border" : "1px solid black"
+  }
+}
+```
+
+Import component:
+
+```JSON
+{
+ "import" : "dreamfriday.com/component/Button",
+ "text" : "my own text",
+ "style" : {
+  "border" : "none"
+ }
+}
+```
+
+Will render a white button, with no border, and custom text
+
+## Component
+
+Components are named Page Elements. They are publically discoverable via the **/components** route. As components are Page Elements, they can also import other internal or external components when being rendered, allowing one to build both local and cross-site component chains.
+
+```JSON
+{
+  "component1" : {},
+  "component2" : {}
 }
 ```
 
