@@ -1,6 +1,4 @@
-# Dream Friday
-
-**Dream Friday** 
+## [dreamfriday.com](https://dreamfriday.com)
 
 A decentralized, multi-tenant, JSON-based, CMS for creating and sharing composible UI. 
 
