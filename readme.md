@@ -76,12 +76,12 @@ Page structure holds a page's head, body, and a set of redirection flags.
 
 ```JSON
 {
-  "type" : "element_type" 
-	"attributes" : { "key1" : "value", "key2" : "value2"}
-	"elements": [ ]
-	"text" : "string"
-	"style" :  { "key1" : "value", "key2" : "value2"}
-	"import" : "component_name" 
+  "type" : "element_type",
+	"attributes" : { "key1" : "value", "key2" : "value2"},
+	"elements": [ ],
+	"text" : "string",
+	"style" :  { "key1" : "value", "key2" : "value2"},
+	"import" : "component_name", 
 	"private"  false 
 }
 ```
