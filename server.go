@@ -12,8 +12,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/a-h/templ"
-
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -326,20 +324,6 @@ func main() {
 	}
 }
 
-func HTML(c echo.Context, cmp templ.Component) error {
-	// Set the Content-Type header to text/html
-	c.Response().Header().Set(echo.HeaderContentType, echo.MIMETextHTMLCharsetUTF8)
-
-	// Render the component directly to the response writer
-	err := cmp.Render(c.Request().Context(), c.Response().Writer)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "Error rendering template: "+err.Error())
-	}
-
-	// Return nil as rendering is already done
-	return nil
-}
-
 func TogglePreview(c echo.Context) error {
 	host := c.Request().Host
 	log.Println("Toggling preview mode for:", host)
@@ -458,25 +442,6 @@ func Page(c echo.Context) error {
 func RegisterForm(c echo.Context) error {
 	return RenderTemplate(c, http.StatusOK, Views.Register())
 }
-*/
-
-func RenderTemplate(c echo.Context, status int, cmp templ.Component) error {
-	// Set the Content-Type header to text/html
-	c.Response().Header().Set(echo.HeaderContentType, echo.MIMETextHTMLCharsetUTF8)
-
-	// Set the response status code to the provided status
-	c.Response().WriteHeader(status)
-
-	// Render the component directly to the response writer
-	err := cmp.Render(c.Request().Context(), c.Response().Writer)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "Error rendering template: "+err.Error())
-	}
-
-	// Return nil as rendering is already done
-	return nil
-}
-
 /*
 
 Place holder Registeration support for auth0
