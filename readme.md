@@ -1,6 +1,6 @@
 ## [dreamfriday.com](https://dreamfriday.com)
 
-A tiny, decentralized, multi-tenant JSON-based CMS for creating and sharing composable UI.
+A tiny, multi-tenant, JSON-based CMS for creating and sharing composable UI.
 
 The platform's page rendering engine dynamically constructs a component tree by interpreting JSON data stored in PostgreSQL, keyed by domain. On request, it retrieves the site's complete topology including pages, elements, attributes, styling, and nested structures, then recursively builds and streams the rendered HTML. Styles are aggregated and injected into the document head, with class names generated on the fly to link elements efficiently.
 
@@ -9,8 +9,7 @@ The platform's page rendering engine dynamically constructs a component tree by 
 
 ### Authentication
 
-Uses the **AT Protocol** for authentications. 
-Users may selected between **BlueSky** (default), or supply their own **Personal Data Server** (PDS)
+Currently uses Auth0
 
 ### Routes:
 
