@@ -7,41 +7,15 @@
             <section>
                 <h1>Login!</h1>
                 <form hx-post="/login" hx-target="#messages" hx-swap="innerHTML">
-                    <label for="handle">Handle</label>
-                    <input type="text" id="handle" name="handle" required>
-                    
-                    <label for="password">Password</label>
+                    <label for="email">email</label>
+                    <input type="text" id="email" name="email" required>
+
+                    <label for="password">password</label>
                     <input type="password" id="password" name="password" required>
-
-                  
-                        <!-- Default AT Server Display -->
-                        <div id="default-server">
-                            <p>AT Server: BlueSky</p>
-                            <a href="#" id="custom-server-btn" 
-                                    hx-on:click="document.getElementById('default-server').style.display='none';
-                                                 document.getElementById('server-input-group').style.display='block';">
-                                Use Custom AT Server
-                            </button>
-                        </div>
-
-                        <!-- Hidden input field for custom AT Server -->
-                        <div id="server-input-group" style="display: none;">
-                            <label for="server">AT Server</label>
-                            <input type="text" id="server" name="server">
-
-                            <!-- Link to switch back to BlueSky -->
-                            <p>
-                                <a href="#" id="back-to-bluesky" 
-                                   hx-on:click="document.getElementById('server-input-group').style.display='none';
-                                                document.getElementById('default-server').style.display='block';">
-                                    Login with BlueSky instead
-                                </a>
-                            </p>
-                        </div>
-
+                    
                     <button type="submit">Login</button>
                 </form>
-                <span id="messages"></span>
+                <span id="messages">{{.message}}</span>
             </section>
         </main>
     </body>

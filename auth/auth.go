@@ -8,24 +8,20 @@ import (
 
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo/v4"
+
+	models "dreamfriday/models"
 )
 
 var store *sessions.CookieStore
 
 // Authenticator interface for multiple authentication providers
 type Authenticator interface {
-	Login(handle, password string) (*AuthResponse, error)
-	ValidateSession(token, server string) bool
-	StoreSession(c echo.Context, token, did, pds string) error
 	Logout(c echo.Context) error
-	GetAuthMethod() string
-}
-
-// AuthResponse represents a generic authentication response
-type AuthResponse struct {
-	AccessToken string
-	DID         string
-	PDS         string
+	Login(c echo.Context, email, password string) error
+	PasswordReset(email string) error
+	Register(email string, password string) (*models.Auth0RegisterResponse, error)
+	StoreSession(c echo.Context, token string, _ string) error
+	ValidateSession(token string) bool
 }
 
 // InitSessionStore initializes the session store
@@ -63,7 +59,7 @@ func GetSessionStore() *sessions.CookieStore {
 }
 
 func IsAuthenticated(c echo.Context) bool {
-	// Retrieve session
+
 	session, err := store.Get(c.Request(), "session")
 	if err != nil {
 		log.Println("Failed to retrieve session:", err)
@@ -80,20 +76,14 @@ func IsAuthenticated(c echo.Context) bool {
 		return false
 	}
 
-	// Retrieve server (if required by auth method)
-	server, ok := session.Values["server"].(string)
-	if !ok || server == "" {
-		log.Println("Server not set in session")
-		return false
-	}
-
 	// Validate session token
-	if !authenticator.ValidateSession(token, server) {
+	if !authenticator.ValidateSession(token) {
 		log.Println("Session validation failed")
 		return false
 	}
 
 	return true
+
 }
 
 // Middleware version of IsAuthenticated for Echo
@@ -108,5 +98,5 @@ func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 
 // Factory function to get the correct authenticator
 func GetAuthenticator() Authenticator {
-	return &ATAuthenticator{}
+	return &Auth0Authenticator{}
 }

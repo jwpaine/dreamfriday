@@ -50,17 +50,17 @@ func loadSiteDataMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		if session.Values["preview"] == true {
 			log.Println("Preview mode enabled")
 
-			did, ok := session.Values["did"].(string)
-			if !ok || did == "" {
-				log.Println("Preview mode disabled: No valid did in session")
+			handle, ok := session.Values["handle"].(string)
+			if !ok || handle == "" {
+				log.Println("Preview mode disabled: No valid handle in session")
 				session.Values["preview"] = false
 				if err := session.Save(c.Request(), c.Response()); err != nil {
 					log.Println("Failed to save session:", err)
 				}
 			} else {
-				log.Printf("Fetching preview data for domain: %s (User: %s)\n", domain, did)
+				log.Printf("Fetching preview data for domain: %s (User: %s)\n", domain, handle)
 
-				previewData, _, err := Database.FetchPreviewData(domain, did)
+				previewData, _, err := Database.FetchPreviewData(domain, handle)
 				if err != nil {
 					log.Println("Failed to fetch preview data:", err)
 				} else {
@@ -118,6 +118,7 @@ func init() {
 		log.Fatal("DATABASE_CONNECTION_STRING environment variable not set")
 	}
 	// Initialize the session store
+
 	auth.InitSessionStore()
 
 	authenticator = auth.GetAuthenticator()
@@ -141,12 +142,12 @@ func routeInternal(path string, c echo.Context) (interface{}, error) {
 		if err != nil {
 			return nil, err
 		}
-		did, ok := session.Values["did"].(string)
-		if !ok || did == "" {
-			return nil, fmt.Errorf("AT Protocol: DID not set or invalid in the session")
+		handle, ok := session.Values["handle"].(string)
+		if !ok || handle == "" {
+			return nil, fmt.Errorf("AT Protocol: handle not set or invalid in the session")
 		}
 		// Check cache for user data
-		cachedUserData, found := userDataStore.Load(did)
+		cachedUserData, found := userDataStore.Load(handle)
 		if found {
 			return cachedUserData.(struct {
 				sites pageengine.PageElement
@@ -154,7 +155,7 @@ func routeInternal(path string, c echo.Context) (interface{}, error) {
 		}
 
 		// Fetch sites for the owner from the database
-		siteStrings, err := Database.GetSitesForOwner(did)
+		siteStrings, err := Database.GetSitesForOwner(handle)
 		if err != nil {
 			return nil, err
 		}
@@ -181,7 +182,7 @@ func routeInternal(path string, c echo.Context) (interface{}, error) {
 		}
 
 		// Cache the user data
-		userDataStore.Store(did, struct {
+		userDataStore.Store(handle, struct {
 			sites pageengine.PageElement
 		}{sites: pageElement})
 
@@ -217,8 +218,8 @@ func main() {
 	// Add middleware to load site data once
 	e.Use(loadSiteDataMiddleware)
 
-	//e.GET("/login", LoginForm) // Display login form
-	e.POST("/login", Login) // Handle form submission and login
+	e.GET("/login", LoginForm) // Display login form
+	e.POST("/login", Login)    // Handle form submission and login
 
 	e.GET("/logout", Logout) // Display login form
 
@@ -494,12 +495,10 @@ func LoginForm(c echo.Context) error {
 		return c.Redirect(http.StatusFound, "/admin")
 	}
 
-	log.Printf("Authentication method: %s", authenticator.GetAuthMethod())
-
 	// Render the login page
 	return c.Render(http.StatusOK, "login.html", map[string]interface{}{
-		"title": "Login",
-		"msg":   "Please enter your credentials",
+		"title":   "Login",
+		"message": "Ready for login",
 	})
 }
 
@@ -520,35 +519,23 @@ func PasswordReset(c echo.Context) error {
 	return HTML(c, Views.ConfirmPasswordReset(email))
 } */
 
-// Login handles the form submission and sends credentials to Auth0
 func Login(c echo.Context) error {
-	handle := c.FormValue("handle")
+	email := c.FormValue("email")
+	email = strings.ToLower(email)
+
 	password := c.FormValue("password")
 
-	handle = strings.ToLower(handle)
-	log.Printf("Attempting login for: %s\n", handle)
-
-	// Perform login
-	tokenResponse, err := authenticator.Login(handle, password)
+	err := authenticator.Login(c, email, password)
 	if err != nil {
 		log.Println("Login failed:", err)
 		return c.Render(http.StatusOK, "message.html", map[string]interface{}{
-			"message": err.Error(),
+			"message": "Login failed: " + err.Error(),
 		})
 	}
 
-	// Retrieve session and store authentication details using StoreSession
-	err = authenticator.StoreSession(c, tokenResponse.AccessToken, tokenResponse.DID, tokenResponse.PDS)
-	if err != nil {
-		log.Println("Failed to store session:", err)
-		return c.Render(http.StatusOK, "message.html", map[string]interface{}{
-			"message": "Failed to store session",
-		})
-	}
-
-	// Redirect to admin page after successful login
-	log.Printf("Session saved for %s\n", handle)
+	// send user to the admin page by sending a script to the browser:
 	return c.HTML(http.StatusOK, `<script>window.location.href = '/admin';</script>`)
+
 }
 
 func Logout(c echo.Context) error {
@@ -565,16 +552,16 @@ func Admin(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, "Failed to retrieve session")
 	}
 
-	did, ok := session.Values["did"].(string)
-	if !ok || did == "" {
-		log.Println("AT Protocol: DID not set or invalid in the session")
-		return c.String(http.StatusUnauthorized, "Unauthorized: DID not found in session")
+	handle, ok := session.Values["handle"].(string)
+	if !ok || handle == "" {
+		log.Println("handle not set or invalid in the session")
+		return c.String(http.StatusUnauthorized, "Unauthorized: handle not found in session")
 	}
 
-	// Fetch sites for the owner (email or DID)
-	siteStrings, err := Database.GetSitesForOwner(did)
+	// Fetch sites for the owner (email or handle)
+	siteStrings, err := Database.GetSitesForOwner(handle)
 	if err != nil {
-		log.Println("Failed to fetch sites for owner:", did, err)
+		log.Println("Failed to fetch sites for owner:", handle, err)
 		return c.String(http.StatusInternalServerError, "Failed to fetch sites for owner")
 	}
 
@@ -586,7 +573,7 @@ func Admin(c echo.Context) error {
 
 	// Render template using map[string]interface{}
 	return c.Render(http.StatusOK, "admin.html", map[string]interface{}{
-		"Identifier": did,
+		"Identifier": handle,
 		"Sites":      sites,
 	})
 }
@@ -601,12 +588,11 @@ func AdminSite(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, "Failed to retrieve session")
 	}
 
-	// Extract identifier (email for Auth0, DID for AT Protocol)
 	identifier, ok := session.Values["email"].(string) // Default to email
 	if !ok || identifier == "" {
-		identifier, ok = session.Values["did"].(string) // Try DID for AT Protocol
+		identifier, ok = session.Values["handle"].(string) // Try handle
 		if !ok || identifier == "" {
-			log.Println("Unauthorized: Identifier (email or DID) not found in session")
+			log.Println("Unauthorized: Identifier (email or handle) not found in session")
 			return c.String(http.StatusUnauthorized, "Unauthorized: No valid identifier found")
 		}
 	}
@@ -654,14 +640,14 @@ func CreateSite(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, "Failed to retrieve session")
 	}
 
-	// Get DID from session (if present)
-	did, ok := session.Values["did"].(string)
-	if !ok || did == "" {
-		log.Println("Unauthorized: DID not found in session")
+	// Get handle from session (if present)
+	handle, ok := session.Values["handle"].(string)
+	if !ok || handle == "" {
+		log.Println("Unauthorized: handle not found in session")
 		return c.String(http.StatusUnauthorized, "Unauthorized: No valid identifier found")
 	}
 
-	// print did
+	// print handle
 
 	// Retrieve form values
 	domain := strings.TrimSpace(c.FormValue("domain"))
@@ -675,8 +661,8 @@ func CreateSite(c echo.Context) error {
 		})
 	}
 
-	// Log the creation request with the identifier (DID or Email)
-	log.Printf("Creating new site - Domain: %s for Identifier: %s", domain, did)
+	// Log the creation request with the identifier (handle or Email)
+	log.Printf("Creating new site - Domain: %s for Identifier: %s", domain, handle)
 
 	// fetch site data from the template url:
 
@@ -706,10 +692,11 @@ func CreateSite(c echo.Context) error {
 			"message": fmt.Sprintf("Failed to unmarshal template: %s", err),
 		})
 	}
-	// Create site in the database, pass identifier (email or ddid)
-	err = Database.CreateSite(domain, did, string(templateJSON))
+
+	// Create site in the database, pass identifier
+	err = Database.CreateSite(domain, handle, string(templateJSON))
 	if err != nil {
-		log.Printf("Failed to create site: %s for Identifier: %s - Error: %v", domain, did, err)
+		log.Printf("Failed to create site: %s for Identifier: %s - Error: %v", domain, handle, err)
 		return c.Render(http.StatusOK, "message.html", map[string]interface{}{
 			"message": "Unable to save site to database",
 		})
@@ -727,10 +714,10 @@ func UpdatePreview(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, "Failed to retrieve session")
 	}
 
-	// Get user did from session
-	did, ok := session.Values["did"].(string)
-	if !ok || did == "" {
-		log.Println("Unauthorized: did not found in session")
+	// Get user handle from session
+	handle, ok := session.Values["handle"].(string)
+	if !ok || handle == "" {
+		log.Println("Unauthorized: handle not found in session")
 		return c.String(http.StatusUnauthorized, "Unauthorized: No valid identifier found")
 	}
 
@@ -741,7 +728,7 @@ func UpdatePreview(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "Domain is required")
 	}
 
-	log.Printf("Updating preview data for Domain: %s for Email: %s", domain, did)
+	log.Printf("Updating preview data for Domain: %s for Email: %s", domain, handle)
 
 	// Retrieve and validate preview data
 	previewData := strings.TrimSpace(c.FormValue("previewData"))
@@ -768,7 +755,7 @@ func UpdatePreview(c echo.Context) error {
 	}
 
 	// Save preview data to the database and mark as "unpublished"
-	err = Database.UpdatePreviewData(domain, did, previewData)
+	err = Database.UpdatePreviewData(domain, handle, previewData)
 	if err != nil {
 		log.Printf("Failed to update preview data for domain %s: %v", domain, err)
 		return c.Render(http.StatusOK, "manageButtons.html", map[string]interface{}{
@@ -798,8 +785,8 @@ func Publish(c echo.Context) error {
 	}
 
 	// Get user email from session
-	did, ok := session.Values["did"].(string)
-	if !ok || did == "" {
+	handle, ok := session.Values["handle"].(string)
+	if !ok || handle == "" {
 		log.Println("Unauthorized: Email not found in session")
 		return c.String(http.StatusUnauthorized, "Unauthorized")
 	}
@@ -811,12 +798,12 @@ func Publish(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "Domain is required")
 	}
 
-	log.Printf("Publishing Domain: %s for Email: %s", domain, did)
+	log.Printf("Publishing Domain: %s for Email: %s", domain, handle)
 
 	// Attempt to publish the site
-	err = Database.Publish(domain, did)
+	err = Database.Publish(domain, handle)
 	if err != nil {
-		log.Printf("Failed to publish domain %s for email %s: %v", domain, did, err)
+		log.Printf("Failed to publish domain %s for email %s: %v", domain, handle, err)
 		return c.Render(http.StatusOK, "manageButtons.html", map[string]interface{}{
 			"domain":  domain,
 			"status":  "",

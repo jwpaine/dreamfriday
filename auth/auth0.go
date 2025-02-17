@@ -16,14 +16,23 @@ import (
 // Auth0Authenticator struct implements Authenticator for Auth0
 type Auth0Authenticator struct{}
 
+type AuthResponse struct {
+	AccessToken string // Auth0: access_token
+}
+
 // Login with Auth0
-func (a *Auth0Authenticator) Login(handle, password, _ string) (*AuthResponse, error) {
+func (a *Auth0Authenticator) Login(c echo.Context, email, password string) error {
 	auth0Domain := os.Getenv("AUTH0_DOMAIN")
 	clientID := os.Getenv("AUTH0_CLIENT_ID")
 	clientSecret := os.Getenv("AUTH0_CLIENT_SECRET")
 
+	// log env vars
+	log.Println("AUTH0_DOMAIN:", auth0Domain)
+	log.Println("AUTH0_CLIENT_ID:", clientID)
+	log.Println("AUTH0_CLIENT_SECRET:", clientSecret)
+
 	if auth0Domain == "" || clientID == "" || clientSecret == "" {
-		return nil, fmt.Errorf("Environment variables are not set properly")
+		return fmt.Errorf("Environment variables are not set properly")
 	}
 
 	// Prepare request
@@ -31,19 +40,19 @@ func (a *Auth0Authenticator) Login(handle, password, _ string) (*AuthResponse, e
 		"grant_type":    "password",
 		"client_id":     clientID,
 		"client_secret": clientSecret,
-		"username":      handle,
+		"username":      email,
 		"password":      password,
 		"scope":         "openid profile email",
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal request body: %v", err)
+		return fmt.Errorf("failed to marshal request body: %v", err)
 	}
 
 	// Send request to Auth0
 	url := fmt.Sprintf("https://%s/oauth/token", auth0Domain)
 	resp, err := http.Post(url, "application/json", bytes.NewBuffer(requestBody))
 	if err != nil {
-		return nil, fmt.Errorf("failed to send request to Auth0: %v", err)
+		return fmt.Errorf("failed to send request to Auth0: %v", err)
 	}
 	defer resp.Body.Close()
 
@@ -51,7 +60,7 @@ func (a *Auth0Authenticator) Login(handle, password, _ string) (*AuthResponse, e
 	if resp.StatusCode != http.StatusOK {
 		var errorResponse map[string]interface{}
 		json.NewDecoder(resp.Body).Decode(&errorResponse)
-		return nil, fmt.Errorf("auth0 login failed: %v", errorResponse["error_description"])
+		return fmt.Errorf("auth0 login failed: %v", errorResponse["error_description"])
 	}
 
 	var tokenResponse struct {
@@ -59,23 +68,25 @@ func (a *Auth0Authenticator) Login(handle, password, _ string) (*AuthResponse, e
 	}
 	err = json.NewDecoder(resp.Body).Decode(&tokenResponse)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse Auth0 login response: %v", err)
+		return fmt.Errorf("failed to parse Auth0 login response: %v", err)
 	}
 
-	return &AuthResponse{AccessToken: tokenResponse.AccessToken, DID: ""}, nil
+	// return &AuthResponse{AccessToken: tokenResponse.AccessToken}, nil
+	return a.StoreSession(c, tokenResponse.AccessToken, email)
 }
 
 // ValidateSession for Auth0
-func (a *Auth0Authenticator) ValidateSession(token, _ string) bool {
+func (a *Auth0Authenticator) ValidateSession(token string) bool {
 	return token != "" // JWT validation can be added later
 }
 
 // StoreSession stores the Auth0 session
-func (a *Auth0Authenticator) StoreSession(c echo.Context, token, _ string) error {
+func (a *Auth0Authenticator) StoreSession(c echo.Context, token, email string) error {
 	store := GetSessionStore()
 	session, _ := store.Get(c.Request(), "session")
 	session.Values["authMethod"] = "auth0"
 	session.Values["accessToken"] = token
+	session.Values["handle"] = email
 	session.Save(c.Request(), c.Response())
 	return nil
 }
