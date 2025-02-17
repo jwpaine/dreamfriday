@@ -524,20 +524,12 @@ func PasswordReset(c echo.Context) error {
 func Login(c echo.Context) error {
 	handle := c.FormValue("handle")
 	password := c.FormValue("password")
-	server := c.FormValue("server") // AT Server field (empty for Auth0)
-
-	if server == "" {
-		server = "https://bsky.social" // Default to Bluesky PDS
-	}
 
 	handle = strings.ToLower(handle)
 	log.Printf("Attempting login for: %s\n", handle)
 
-	// Get the appropriate authenticator based on auth method
-	authenticator := auth.GetAuthenticator()
-
 	// Perform login
-	tokenResponse, err := authenticator.Login(handle, password, server)
+	tokenResponse, err := authenticator.Login(handle, password)
 	if err != nil {
 		log.Println("Login failed:", err)
 		return c.Render(http.StatusOK, "message.html", map[string]interface{}{
@@ -545,32 +537,17 @@ func Login(c echo.Context) error {
 		})
 	}
 
-	// Retrieve session
-	session, err := auth.GetSession(c.Request())
+	// Retrieve session and store authentication details using StoreSession
+	err = authenticator.StoreSession(c, tokenResponse.AccessToken, tokenResponse.DID, tokenResponse.PDS)
 	if err != nil {
-		log.Println("Failed to get session:", err)
-		return c.String(http.StatusInternalServerError, "Failed to retrieve session")
-	}
-
-	log.Printf("Storing session values: %+v\n", session.Values)
-
-	// Store authentication details
-	session.Values["accessToken"] = tokenResponse.AccessToken
-	session.Values["did"] = tokenResponse.DID // Store DID for AT Protocol
-	session.Values["server"] = server         // Store AT Server in session
-
-	// Save session
-	err = session.Save(c.Request(), c.Response())
-	if err != nil {
-		log.Println("Failed to save session:", err)
+		log.Println("Failed to store session:", err)
 		return c.Render(http.StatusOK, "message.html", map[string]interface{}{
-			"message": "Failed To Save Session",
+			"message": "Failed to store session",
 		})
 	}
 
-	log.Printf("Session saved for %s Server: %s\n", handle, server)
-
-	// Redirect to admin
+	// Redirect to admin page after successful login
+	log.Printf("Session saved for %s\n", handle)
 	return c.HTML(http.StatusOK, `<script>window.location.href = '/admin';</script>`)
 }
 
