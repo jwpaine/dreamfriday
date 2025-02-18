@@ -17,6 +17,7 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 
 	pageengine "dreamfriday/pageengine"
+	"dreamfriday/routes"
 
 	"dreamfriday/auth"
 	Database "dreamfriday/database"
@@ -25,7 +26,6 @@ import (
 var siteDataStore sync.Map    // public thread-safe map to cache site data
 var previewDataStore sync.Map // private thread-safe map to cache preview data
 var userDataStore sync.Map    // private thread-safe map to cache user data
-var authenticator auth.Authenticator
 
 type PreviewData struct {
 	SiteData   *pageengine.SiteData
@@ -163,11 +163,6 @@ func init() {
 	if Database.ConnStr == "" {
 		log.Fatal("DATABASE_CONNECTION_STRING environment variable not set")
 	}
-	// Initialize the session store
-
-	auth.InitSessionStore()
-
-	authenticator = auth.GetAuthenticator()
 
 }
 
@@ -268,10 +263,12 @@ func main() {
 	// Add middleware to load site data once
 	e.Use(loadSiteDataMiddleware)
 
-	// e.GET("/login", LoginForm) // Display login form
-	e.POST("/login", Login) // Handle form submission and login
+	auth.InitSessionStore()
 
-	e.GET("/logout", Logout) // Display login form
+	routes.RegisterRoutes(e)
+
+	// e.GET("/login", LoginForm) // Display login form
+	// e.POST("/login", Login) // Handle form submission and login
 
 	// e.GET("/admin", Admin, auth.AuthMiddleware)
 	// e.GET("/admin", Admin)
@@ -613,29 +610,6 @@ func PasswordReset(c echo.Context) error {
 	}
 	return HTML(c, Views.ConfirmPasswordReset(email))
 } */
-
-func Login(c echo.Context) error {
-	email := c.FormValue("email")
-	email = strings.ToLower(email)
-
-	password := c.FormValue("password")
-
-	err := authenticator.Login(c, email, password)
-	if err != nil {
-		log.Println("Login failed:", err)
-		return c.Render(http.StatusOK, "message.html", map[string]interface{}{
-			"message": "Login failed: " + err.Error(),
-		})
-	}
-
-	// send user to the admin page by sending a script to the browser:
-	return c.HTML(http.StatusOK, `<script>window.location.href = '/admin';</script>`)
-
-}
-
-func Logout(c echo.Context) error {
-	return authenticator.Logout(c)
-}
 
 // Admin is a protected route that requires a valid session
 func Admin(c echo.Context) error {
