@@ -201,8 +201,8 @@ func (a *Auth0Authenticator) Logout(c echo.Context) error {
 	session, _ := GetSession(c.Request())
 
 	// Log the user being logged out
-	if email, ok := session.Values["email"].(string); ok {
-		log.Printf("Logging out Auth0 user: %s", email)
+	if handle, ok := session.Values["handle"].(string); ok {
+		log.Printf("Logging out Auth0 user: %s", handle)
 	} else {
 		log.Println("Logging out anonymous session")
 	}

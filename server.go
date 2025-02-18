@@ -22,8 +22,10 @@ import (
 	Database "dreamfriday/database"
 )
 
-var siteDataStore sync.Map // public thread-safe map to cache site data
-var userDataStore sync.Map // private thread-safe map to cache user data
+var siteDataStore sync.Map    // public thread-safe map to cache site data
+var previewDataStore sync.Map // private thread-safe map to cache preview data
+var userDataStore sync.Map    // private thread-safe map to cache user data
+
 var authenticator auth.Authenticator
 
 func loadSiteDataMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
@@ -60,14 +62,30 @@ func loadSiteDataMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			} else {
 				log.Printf("Fetching preview data for domain: %s (User: %s)\n", domain, handle)
 
+				// load preview data from previewDataStore by handle -> domain -> previewData:
+				if userPreviewData, found := previewDataStore.Load(handle); found {
+					if previewData, found := userPreviewData.(map[string]*pageengine.SiteData)[domain]; found {
+						log.Println("Serving cached preview data for domain:", domain)
+						c.Set("siteData", previewData)
+						return next(c)
+					}
+					log.Println("Preview data not found in cache for domain:", domain)
+				} else {
+					log.Println("No preview data found in cache for handle:", handle)
+				}
+
 				previewData, _, err := Database.FetchPreviewData(domain, handle)
 				if err != nil {
 					log.Println("Failed to fetch preview data:", err)
-				} else {
-					log.Println("Preview data loaded successfully for domain:", domain)
-					c.Set("siteData", previewData)
-					return next(c)
+					return c.String(http.StatusInternalServerError, "Failed to fetch preview data")
 				}
+				// add previewData to the cache by handle : {domain : previewData}
+				log.Println("Caching preview data for domain:", domain)
+				previewDataStore.Store(handle, map[string]*pageengine.SiteData{domain: previewData})
+				log.Println("Preview data loaded successfully from database for domain:", domain)
+				c.Set("siteData", previewData)
+				return next(c)
+
 			}
 		}
 
@@ -542,6 +560,18 @@ func Login(c echo.Context) error {
 }
 
 func Logout(c echo.Context) error {
+	// purge previewDataStore by handle
+	session, err := auth.GetSession(c.Request())
+	if err != nil {
+		log.Println("Failed to get session:", err)
+		return c.String(http.StatusInternalServerError, "Failed to retrieve session")
+	}
+	handle, ok := session.Values["handle"].(string)
+	if ok && handle != "" {
+		log.Println("Purging preview data for handle:", handle)
+		previewDataStore.Delete(handle)
+	}
+	// Call the authenticator's Logout method
 	return authenticator.Logout(c)
 }
 
@@ -769,6 +799,9 @@ func UpdatePreview(c echo.Context) error {
 	}
 
 	log.Printf("Successfully updated preview data for Domain: %s (Status: unpublished)", domain)
+
+	// purge handle -> domain from previewDataStore
+	previewDataStore.Delete(handle)
 
 	// Return success response
 	return c.Render(http.StatusOK, "manageButtons.html", map[string]interface{}{
