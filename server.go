@@ -230,8 +230,8 @@ func main() {
 	// e.GET("/admin", Admin, auth.AuthMiddleware)
 	// e.GET("/admin", Admin)
 
-	e.GET("/admin/create", CreateSiteForm, auth.AuthMiddleware) // @TODO: use JSON-based page instead
-	e.POST("/admin/create", CreateSite, auth.AuthMiddleware)
+	//	e.GET("/admin/create", CreateSiteForm, auth.AuthMiddleware) // @TODO: use JSON-based page instead
+	e.POST("/create", CreateSite, auth.AuthMiddleware)
 
 	e.GET("/admin/:domain", AdminSite) // @TODO: use JSON-based page instead
 	e.POST("/admin/:domain", UpdatePreview, auth.AuthMiddleware)
