@@ -177,6 +177,10 @@ func routeInternal(path string, c echo.Context) (interface{}, error) {
 					"href":  "/admin/" + site,
 					"class": "external-link",
 				},
+				Style: map[string]string{
+					"color":           "white",
+					"text-decoration": "none",
+				},
 				Text: site,
 			}
 		}
@@ -218,8 +222,8 @@ func main() {
 	// Add middleware to load site data once
 	e.Use(loadSiteDataMiddleware)
 
-	e.GET("/login", LoginForm) // Display login form
-	e.POST("/login", Login)    // Handle form submission and login
+	// e.GET("/login", LoginForm) // Display login form
+	e.POST("/login", Login) // Handle form submission and login
 
 	e.GET("/logout", Logout) // Display login form
 
@@ -299,7 +303,6 @@ func main() {
 
 	// Echo Route Handler
 	e.GET("/mysites", func(c echo.Context) error {
-
 		result, err := routeInternal("/mysites", c)
 		if err != nil {
 			log.Println("Error fetching sites for owner:", err)
