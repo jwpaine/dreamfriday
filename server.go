@@ -32,6 +32,39 @@ type PreviewData struct {
 	PreviewMap map[string]*pageengine.PageElement
 }
 
+func getPreviewData(handle, domain string) (*PreviewData, error) {
+	// Try to load PreviewData for this handle
+	if previewDataIface, found := previewDataStore.Load(handle); found {
+		if previewData, ok := previewDataIface.(*PreviewData); ok {
+			log.Println("Serving cached preview data for handle:", handle)
+			return previewData, nil
+		}
+		return nil, fmt.Errorf("Type assertion failed for previewData")
+	}
+
+	log.Println("Preview data not found in cache, fetching from database for domain:", domain)
+
+	// Fetch preview data from database
+	previewSiteData, _, err := Database.FetchPreviewData(domain, handle)
+	if err != nil {
+		log.Println("Failed to fetch preview data:", err)
+		return nil, err
+	}
+
+	// Create new PreviewData entry
+	newPreviewData := &PreviewData{
+		SiteData:   previewSiteData,
+		PreviewMap: make(map[string]*pageengine.PageElement),
+	}
+
+	// Store fetched PreviewData in sync.Map
+	previewDataStore.Store(handle, newPreviewData)
+
+	log.Println("Cached preview data for handle:", handle)
+
+	return newPreviewData, nil
+}
+
 func loadSiteDataMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		// Skip middleware for static files
@@ -41,7 +74,7 @@ func loadSiteDataMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			return next(c)
 		}
 
-		// Extract domain from Host header
+		// Normalize domain
 		domain := c.Request().Host
 		if domain == "localhost:8081" {
 			domain = "dreamfriday.com"
@@ -59,50 +92,36 @@ func loadSiteDataMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			handle, ok := session.Values["handle"].(string)
 			if !ok || handle == "" {
 				log.Println("Preview mode disabled: No valid handle in session")
-				session.Values["preview"] = false
-				if err := session.Save(c.Request(), c.Response()); err != nil {
-					log.Println("Failed to save session:", err)
+				if session.Values["preview"] == true { // Prevent unnecessary session write
+					session.Values["preview"] = false
+					if err := session.Save(c.Request(), c.Response()); err != nil {
+						log.Println("Failed to save session:", err)
+					}
 				}
 			} else {
 				log.Printf("Fetching preview data for domain: %s (User: %s)\n", domain, handle)
 
-				// load preview data from previewDataStore by handle -> domain -> previewData:
-				if userPreviewData, found := previewDataStore.Load(handle); found {
-					if previewData, found := userPreviewData.(map[string]*PreviewData)[domain]; found {
-						log.Println("Serving cached preview data for domain:", domain)
-						c.Set("siteData", previewData.SiteData)
-						return next(c)
-					}
-					log.Println("Preview data not found in cache for domain:", domain)
-				} else {
-					log.Println("No preview data found in cache for handle:", handle)
-				}
-
-				previewData, _, err := Database.FetchPreviewData(domain, handle)
+				// Retrieve preview data for the domain
+				previewData, err := getPreviewData(handle, domain)
 				if err != nil {
 					log.Println("Failed to fetch preview data:", err)
 					return c.String(http.StatusInternalServerError, "Failed to fetch preview data")
 				}
-				// add previewData to the cache by handle : {domain : previewData}
-				log.Println("Caching preview data for domain:", domain)
-				previewDataStore.Store(handle, map[string]*PreviewData{
-					domain: {
-						SiteData:   previewData,
-						PreviewMap: make(map[string]*pageengine.PageElement), // Initialize the PageElements map
-					},
-				})
-				log.Println("Preview data loaded successfully from database for domain:", domain)
-				c.Set("siteData", previewData)
-				return next(c)
 
+				c.Set("siteData", previewData.SiteData)
+				return next(c)
 			}
 		}
 
+		fmt.Println("Preview mode disabled")
 		// Check cached site data
 		if cachedData, found := siteDataStore.Load(domain); found {
-			log.Println("Serving cached site data for domain:", domain)
-			c.Set("siteData", cachedData.(*pageengine.SiteData))
-			return next(c)
+			if siteData, ok := cachedData.(*pageengine.SiteData); ok {
+				log.Println("Serving cached site data for domain:", domain)
+				c.Set("siteData", siteData)
+				return next(c)
+			}
+			log.Println("Type assertion failed for cached site data")
 		}
 
 		// Fetch site data from the database
@@ -308,6 +327,14 @@ func main() {
 		if domain == "localhost:8081" {
 			domain = "dreamfriday.com"
 		}
+
+		// if session, and previewMode:
+		// session, err := auth.GetSession(c.Request())
+		// if err != nil {
+		// 	log.Println("Failed to get session:", err)
+		// 	return c.String(http.StatusInternalServerError, "Failed to retrieve session")
+		// }
+
 		if cachedData, found := siteDataStore.Load(domain); found {
 			return c.JSON(http.StatusOK, cachedData.(*pageengine.SiteData).Components)
 		}
@@ -333,8 +360,8 @@ func main() {
 		if domain == "localhost:8081" {
 			domain = "dreamfriday.com"
 		}
-		eid := c.Param("eid")
-		if eid == "" {
+		pid := c.Param("pid")
+		if pid == "" {
 			return c.JSON(http.StatusBadRequest, "Element ID is required")
 		}
 		// get handle from session
@@ -348,7 +375,7 @@ func main() {
 			// load preview data from previewDataStore by handle -> domain -> previewData:
 			if userPreviewData, found := previewDataStore.Load(handle); found {
 				if previewData, found := userPreviewData.(map[string]*PreviewData)[domain]; found {
-					if element, found := previewData.PreviewMap[eid]; found {
+					if element, found := previewData.PreviewMap[pid]; found {
 						return c.JSON(http.StatusOK, element)
 					}
 					return c.JSON(http.StatusNotFound, "Element not found")
@@ -389,35 +416,38 @@ func main() {
 }
 
 func TogglePreview(c echo.Context) error {
-	host := c.Request().Host
-	log.Println("Toggling preview mode for:", host)
-
 	// Retrieve session
 	session, err := auth.GetSession(c.Request())
 	if err != nil {
 		log.Println("Failed to get session:", err)
-		return c.String(http.StatusInternalServerError, "You need to be logged in to toggle preview mode")
+		return c.String(http.StatusUnauthorized, "You need to be logged in to toggle preview mode")
 	}
 
-	// Toggle preview mode
-	previewMode, ok := session.Values["preview"].(bool)
-	if !ok {
-		previewMode = true // Default to true if it doesn't exist
-	} else {
-		previewMode = !previewMode // Toggle existing value
+	// Validate session handle
+	handle, ok := session.Values["handle"].(string)
+	if !ok || handle == "" {
+		log.Println("Unauthorized: handle not found in session")
+		return c.String(http.StatusUnauthorized, "You need to be logged in to toggle preview mode")
 	}
 
-	// Store the new preview mode
-	session.Values["preview"] = previewMode
-	err = session.Save(c.Request(), c.Response())
-	if err != nil {
+	// Toggle preview mode (default to true if missing)
+	session.Values["preview"] = !session.Values["preview"].(bool)
+
+	// Delete preview data if disabling preview mode
+	if !session.Values["preview"].(bool) {
+		previewDataStore.Delete(handle)
+		log.Println("Deleted preview data for handle:", handle)
+	}
+
+	// Save session
+	if err := session.Save(c.Request(), c.Response()); err != nil {
 		log.Println("Failed to save session:", err)
 		return c.String(http.StatusInternalServerError, "Failed to save session")
 	}
 
-	log.Printf("Preview mode for %s set to: %v\n", host, previewMode)
+	log.Printf("Preview mode for %s set to: %v\n", c.Request().Host, session.Values["preview"])
 
-	// Redirect back to the page user came from (or home if Referer is missing)
+	// Redirect user back to previous page or home
 	referer := c.Request().Referer()
 	if referer == "" {
 		referer = "/"
@@ -433,43 +463,32 @@ func Page(c echo.Context) error {
 	log.Printf("Page requested: %s\n", pageName)
 
 	rawSiteData := c.Get("siteData")
-
 	if rawSiteData == nil {
 		log.Println("Site data is nil in context")
 		return c.String(http.StatusInternalServerError, "Site data is nil")
 	}
 
-	// Perform the type assertion to *Models.SiteData
+	// Perform type assertion
 	siteData, ok := rawSiteData.(*pageengine.SiteData)
-	if !ok {
-		log.Println("Type assertion for site data failed")
-		return c.String(http.StatusInternalServerError, "Site data type is invalid")
-	}
-
-	// Ensure the siteData is not nil
-	if siteData == nil {
-		log.Println("siteData is nil after type assertion")
-		return c.String(http.StatusInternalServerError, "Site data is nil after type assertion")
+	if !ok || siteData == nil {
+		log.Println("Site data type assertion failed or is nil")
+		return c.String(http.StatusInternalServerError, "Site data is invalid")
 	}
 
 	pageData, ok := siteData.Pages[pageName]
-
 	if !ok {
-		log.Println("not found in site data")
-		// @TODO: Render a 404 page
+		log.Println("Page not found in site data")
 		return c.String(http.StatusNotFound, "Page not found")
 	}
 
 	loggedIn := auth.IsAuthenticated(c)
-
 	log.Printf("Rendering page: %s (Logged in: %v)\n", pageName, loggedIn)
 
-	// if logged in, and redirectForLogin is set, redirect to that page
+	// Handle redirects
 	if pageData.RedirectForLogin != "" && loggedIn {
 		log.Println("Already logged in, redirecting to:", pageData.RedirectForLogin)
 		return c.Redirect(http.StatusFound, pageData.RedirectForLogin)
 	}
-	// if logged out, and redirectForLogout is set, redirect to that page
 	if pageData.RedirectForLogout != "" && !loggedIn {
 		log.Println("Logged out, redirecting to:", pageData.RedirectForLogout)
 		return c.Redirect(http.StatusFound, pageData.RedirectForLogout)
@@ -480,24 +499,14 @@ func Page(c echo.Context) error {
 	// Retrieve session
 	session, _ := auth.GetSession(c.Request())
 
-	// Retrieve session values with type assertions
-	previewMode, _ := session.Values["preview"].(bool)
+	// Check if preview mode is enabled
 	handle, ok := session.Values["handle"].(string)
+	previewMode, previewExists := session.Values["preview"].(bool)
 
-	// Check if preview mode is enabled and handle exists
-	if ok && previewMode {
-		// Obtain PageElements from the cache
-		if userPreviewData, found := previewDataStore.Load(handle); found {
-			fmt.Println("User preview data found in cache")
-
-			// Normalize domain
-			domain := c.Request().Host
-			if domain == "localhost:8081" {
-				domain = "dreamfriday.com"
-			}
-
-			// Retrieve preview data for the domain
-			if previewData, found := userPreviewData.(map[string]*PreviewData)[domain]; found {
+	if ok && previewExists && previewMode {
+		// Retrieve PreviewData from previewDataStore
+		if previewDataIface, found := previewDataStore.Load(handle); found {
+			if previewData, ok := previewDataIface.(*PreviewData); ok {
 				fmt.Println("Passing previewMap to renderPage")
 
 				// Render with preview map
@@ -521,7 +530,6 @@ func Page(c echo.Context) error {
 	}
 
 	return nil
-
 }
 
 // RegisterForm renders the registration form

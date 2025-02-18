@@ -202,6 +202,11 @@ func (p *PageElement) Render(w io.Writer, components map[string]*PageElement, cl
 				clonedComponent.Attributes["class"] = className
 			}
 
+			// Ensure the correct pid is used
+			if p.Pid != "" {
+				clonedComponent.Pid = p.Pid
+			}
+
 			// Render cloned component
 			clonedComponent.Render(w, components, classMap, visited, previewElementMap)
 
@@ -226,22 +231,21 @@ func (p *PageElement) Render(w io.Writer, components map[string]*PageElement, cl
 	fmt.Fprintf(w, "<%s", p.Type)
 
 	if previewElementMap != nil {
+
+		// Generate a new pid and add it to the preview element map
+
 		if p.Pid == "" {
-			// Generate a new pid and add it to the preview element map
-			// fmt.Println("Generating new pid for:", p.Type)
-			if hasClass {
-				fmt.Fprintf(w, ` pid="%s"`, className)
-				previewElementMap[className] = p
-				p.Pid = className
-			} else {
-				pid := generateRandomClassName(6)
-				fmt.Fprintf(w, ` pid="%s"`, pid)
-				previewElementMap[pid] = p
-				p.Pid = pid
-			}
+			fmt.Println("Generating new pid for", p.Type)
+			pid := generateRandomClassName(6)
+			p.Pid = pid
+			fmt.Fprintf(w, ` pid="%s"`, pid)
+			previewElementMap[p.Pid] = p
 		} else {
-			// fmt.Println("pid already exists:", p.Pid)
+			fmt.Printf("Found existing pid for %s : %s\n", p.Type, p.Pid)
+			fmt.Fprintf(w, ` pid="%s"`, p.Pid)
+			previewElementMap[p.Pid] = p
 		}
+
 	}
 
 	// Process attributes
@@ -300,6 +304,10 @@ func RenderPage(pageData Page, components map[string]*PageElement, w io.Writer, 
 	// Start streaming HTML immediately
 	fmt.Fprint(w, "<!DOCTYPE html><html><head>")
 
+	if previewElementMap != nil {
+		fmt.Fprint(w, "<style>body { border: 2px solid red; }</style>")
+	}
+
 	// Render `<head>` elements
 	for i := range pageData.Head.Elements {
 		pageData.Head.Elements[i].Render(w, components, nil, nil, previewElementMap)
@@ -324,12 +332,12 @@ func RenderPage(pageData Page, components map[string]*PageElement, w io.Writer, 
 	fmt.Fprint(w, "</body></html>")
 
 	// Print preview element map for debugging
-	if previewElementMap != nil {
-		fmt.Println("Preview element map:")
-		for key, _ := range previewElementMap {
-			fmt.Printf("%s, pid: %s\n", previewElementMap[key].Type, key)
-		}
-	}
+	// if previewElementMap != nil {
+	// 	fmt.Println("Preview element map:")
+	// 	for key, _ := range previewElementMap {
+	// 		fmt.Printf("%s, pid: %s\n", previewElementMap[key].Type, key)
+	// 	}
+	// }
 
 	return nil
 }
