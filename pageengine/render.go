@@ -167,7 +167,7 @@ func GetExternalComponent(c echo.Context, uri string, routeInternal func(string,
 }
 
 // Stream HTML directly using pre-assigned class names
-func (p *PageElement) Render(w io.Writer, components map[string]*PageElement, classMap map[*PageElement]string, visited map[string]bool, previewMode bool) {
+func (p *PageElement) Render(w io.Writer, components map[string]*PageElement, classMap map[*PageElement]string, visited map[string]bool, previewElementMap map[string]*PageElement) {
 	if p == nil {
 		return
 	}
@@ -203,7 +203,7 @@ func (p *PageElement) Render(w io.Writer, components map[string]*PageElement, cl
 			}
 
 			// Render cloned component
-			clonedComponent.Render(w, components, classMap, visited, previewMode)
+			clonedComponent.Render(w, components, classMap, visited, previewElementMap)
 
 			delete(visited, p.Import) // Allow reuse in different parts of the page
 			// delete the import from components now if it contains the private flag
@@ -224,6 +224,25 @@ func (p *PageElement) Render(w io.Writer, components map[string]*PageElement, cl
 
 	// Open HTML tag
 	fmt.Fprintf(w, "<%s", p.Type)
+
+	if previewElementMap != nil {
+		if p.Pid == "" {
+			// Generate a new pid and add it to the preview element map
+			// fmt.Println("Generating new pid for:", p.Type)
+			if hasClass {
+				fmt.Fprintf(w, ` pid="%s"`, className)
+				previewElementMap[className] = p
+				p.Pid = className
+			} else {
+				pid := generateRandomClassName(6)
+				fmt.Fprintf(w, ` pid="%s"`, pid)
+				previewElementMap[pid] = p
+				p.Pid = pid
+			}
+		} else {
+			// fmt.Println("pid already exists:", p.Pid)
+		}
+	}
 
 	// Process attributes
 	var customClass string
@@ -265,7 +284,7 @@ func (p *PageElement) Render(w io.Writer, components map[string]*PageElement, cl
 
 	// Recursively render child elements
 	for i := range p.Elements {
-		p.Elements[i].Render(w, components, classMap, visited, previewMode)
+		p.Elements[i].Render(w, components, classMap, visited, previewElementMap)
 	}
 
 	// Close HTML tag
@@ -273,21 +292,24 @@ func (p *PageElement) Render(w io.Writer, components map[string]*PageElement, cl
 }
 
 // routeInternal is a function
-func RenderPage(pageData Page, components map[string]*PageElement, w io.Writer, c echo.Context, routeInternal func(string, echo.Context) (interface{}, error), previewMode bool) error {
+func RenderPage(pageData Page, components map[string]*PageElement, w io.Writer, c echo.Context, routeInternal func(string, echo.Context) (interface{}, error), previewElementMap map[string]*PageElement) error {
+	// map a pid value to a page element so we can target them in the preview
+
+	fmt.Println("rendering page. previewElementMap enabled:", previewElementMap != nil)
+
 	// Start streaming HTML immediately
 	fmt.Fprint(w, "<!DOCTYPE html><html><head>")
 
-	// create a map to cache externally sourced components:
-
 	// Render `<head>` elements
 	for i := range pageData.Head.Elements {
-		pageData.Head.Elements[i].Render(w, components, nil, nil, previewMode)
+		pageData.Head.Elements[i].Render(w, components, nil, nil, previewElementMap)
 	}
 
 	// Collect and stream CSS
 	fmt.Fprint(w, "<style>")
 	classMap := make(map[*PageElement]string) // Map to track generated class names
 	visited := make(map[string]bool)          // Track visited imports to avoid circular dependencies
+
 	for i := range pageData.Body.Elements {
 		CollectCSS(&pageData.Body.Elements[i], w, classMap, components, visited, c, routeInternal)
 	}
@@ -296,9 +318,18 @@ func RenderPage(pageData Page, components map[string]*PageElement, w io.Writer, 
 	visited = make(map[string]bool) // Reset before rendering HTML
 	// Render and stream HTML
 	for i := range pageData.Body.Elements {
-		pageData.Body.Elements[i].Render(w, components, classMap, visited, previewMode)
+		pageData.Body.Elements[i].Render(w, components, classMap, visited, previewElementMap)
 	}
 
 	fmt.Fprint(w, "</body></html>")
+
+	// Print preview element map for debugging
+	if previewElementMap != nil {
+		fmt.Println("Preview element map:")
+		for key, _ := range previewElementMap {
+			fmt.Printf("%s, pid: %s\n", previewElementMap[key].Type, key)
+		}
+	}
+
 	return nil
 }

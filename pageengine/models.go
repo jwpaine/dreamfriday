@@ -28,7 +28,7 @@ type PageElement struct {
 	Style      map[string]string `json:"style,omitempty"`    // For CSS styling properties
 	Import     string            `json:"import,omitempty"`   // For component imports
 	Private    bool              `json:"private,omitempty"`  // For private components. Will never show in /components export
-
+	Pid        string            `json:"pid,omitempty"`      // For previewing components
 }
 
 type Message struct {

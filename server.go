@@ -25,8 +25,12 @@ import (
 var siteDataStore sync.Map    // public thread-safe map to cache site data
 var previewDataStore sync.Map // private thread-safe map to cache preview data
 var userDataStore sync.Map    // private thread-safe map to cache user data
-
 var authenticator auth.Authenticator
+
+type PreviewData struct {
+	SiteData   *pageengine.SiteData
+	PreviewMap map[string]*pageengine.PageElement
+}
 
 func loadSiteDataMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
@@ -64,9 +68,9 @@ func loadSiteDataMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 
 				// load preview data from previewDataStore by handle -> domain -> previewData:
 				if userPreviewData, found := previewDataStore.Load(handle); found {
-					if previewData, found := userPreviewData.(map[string]*pageengine.SiteData)[domain]; found {
+					if previewData, found := userPreviewData.(map[string]*PreviewData)[domain]; found {
 						log.Println("Serving cached preview data for domain:", domain)
-						c.Set("siteData", previewData)
+						c.Set("siteData", previewData.SiteData)
 						return next(c)
 					}
 					log.Println("Preview data not found in cache for domain:", domain)
@@ -81,7 +85,12 @@ func loadSiteDataMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 				}
 				// add previewData to the cache by handle : {domain : previewData}
 				log.Println("Caching preview data for domain:", domain)
-				previewDataStore.Store(handle, map[string]*pageengine.SiteData{domain: previewData})
+				previewDataStore.Store(handle, map[string]*PreviewData{
+					domain: {
+						SiteData:   previewData,
+						PreviewMap: make(map[string]*pageengine.PageElement), // Initialize the PageElements map
+					},
+				})
 				log.Println("Preview data loaded successfully from database for domain:", domain)
 				c.Set("siteData", previewData)
 				return next(c)
@@ -437,19 +446,49 @@ func Page(c echo.Context) error {
 
 	// Retrieve session
 	session, _ := auth.GetSession(c.Request())
-	previewMode := session.Values["preview"]
-	if previewMode == nil {
-		previewMode = false
+
+	// Retrieve session values with type assertions
+	previewMode, _ := session.Values["preview"].(bool)
+	handle, ok := session.Values["handle"].(string)
+
+	// Check if preview mode is enabled and handle exists
+	if ok && previewMode {
+		// Obtain PageElements from the cache
+		if userPreviewData, found := previewDataStore.Load(handle); found {
+			fmt.Println("User preview data found in cache")
+
+			// Normalize domain
+			domain := c.Request().Host
+			if domain == "localhost:8081" {
+				domain = "dreamfriday.com"
+			}
+
+			// Retrieve preview data for the domain
+			if previewData, found := userPreviewData.(map[string]*PreviewData)[domain]; found {
+				fmt.Println("Passing previewMap to renderPage")
+
+				// Render with preview map
+				c.Response().Header().Set("Content-Type", "text/html; charset=utf-8")
+				if err := pageengine.RenderPage(pageData, components, c.Response().Writer, c, routeInternal, previewData.PreviewMap); err != nil {
+					log.Println("Unable to render page with preview data:", err)
+					return c.String(http.StatusInternalServerError, err.Error())
+				}
+				return nil
+			}
+		}
 	}
 
-	// Stream the response directly to the writer
+	fmt.Println("Not passing previewMap to renderPage")
+
+	// Render without preview map
 	c.Response().Header().Set("Content-Type", "text/html; charset=utf-8")
-	err := pageengine.RenderPage(pageData, components, c.Response().Writer, c, routeInternal, previewMode.(bool))
-	if err != nil {
+	if err := pageengine.RenderPage(pageData, components, c.Response().Writer, c, routeInternal, nil); err != nil {
 		log.Println("Unable to render page:", err)
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
+
 	return nil
+
 }
 
 // RegisterForm renders the registration form
@@ -476,7 +515,7 @@ func Register(c echo.Context) error {
 	// Ensure authenticator is an Auth0Authenticator
 	auth0Auth, ok := authenticator.(*auth.Auth0Authenticator)
 	if !ok {
-		log.Println("Error: Authenticator is not an Auth0 instance")
+	logPrintln("rror: Autenticatoris not anAuth0 insance")
 		return c.String(http.StatusInternalServerError, "Internal server error")
 	}
 	// Register the user via Auth0
