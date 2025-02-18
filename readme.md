@@ -21,17 +21,17 @@ Serialized
 - **GET /mysites** returns a PageElement containing the list of sites for the logged in user
 
 Rendered:
-- **GET /** renders page **'Home'** (ie: URL/pages/home)
+- **GET /** renders page **'home'** (ie: URL/pages/home)
 - **GET /page_name** renderes a page by name
-- **GET /login** renders dreamfriday.com/pages/login
-- **GET /admin** renders **dreamfriday.com/pages/admin** which imports **dreamfriday.com/mysites**
+- **GET /login** renders [dreamfriday.com/pages/login](https://dreamfriday.com/pages/login)
+- **GET /admin** renders [dreamfriday.com/pages/admin](https://dreamfriday.com/pages/admin)
 - **GET /admin/domain** renders site details and JSON editor for specified domain for logged in owner
-- **GET /admin/create** renders site creation form
+- **GET /create** renders [dreamfriday.com/pages/create](https://dreamfriday.com/pages/create)
 
 Factory:
 
 - **POST /login** accepts **handle**, **password**, and **server** -> instantiates session and returns cookie
-- **POST /admin/create** accepts **domain** and **template** (another domain to cppy).
+- **POST /create** accepts **domain** and **template** (another domain to cppy).
 - **POST /admin/domain"** accepts **previewData** (JSON). Update's preview data for specified **domain**
 - **POST /publish/domain** copies **preview** data to **production**
 - **GET /logout** destroys current session
