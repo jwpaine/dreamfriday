@@ -435,22 +435,16 @@ func Page(c echo.Context) error {
 
 	components := siteData.Components
 
-	/*
-		@TODO: Implement preview mode visibility
-		session, err := Auth.GetSession(c.Request(), "session")
+	// Retrieve session
+	session, _ := auth.GetSession(c.Request())
+	previewMode := session.Values["preview"]
+	if previewMode == nil {
+		previewMode = false
+	}
 
-		previewMode := false
-		if err == nil {
-			if session.Values["preview"] != nil {
-				previewMode = session.Values["preview"].(bool)
-			}
-		}
-		fmt.Println("rendering page with Preview mode:", previewMode)
-	*/
-
-	// 🔹 Stream the response directly to the writer
+	// Stream the response directly to the writer
 	c.Response().Header().Set("Content-Type", "text/html; charset=utf-8")
-	err := pageengine.RenderPage(pageData, components, c.Response().Writer, c, routeInternal)
+	err := pageengine.RenderPage(pageData, components, c.Response().Writer, c, routeInternal, previewMode.(bool))
 	if err != nil {
 		log.Println("Unable to render page:", err)
 		return c.String(http.StatusInternalServerError, err.Error())

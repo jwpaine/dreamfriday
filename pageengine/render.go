@@ -167,7 +167,7 @@ func GetExternalComponent(c echo.Context, uri string, routeInternal func(string,
 }
 
 // Stream HTML directly using pre-assigned class names
-func (p *PageElement) Render(w io.Writer, components map[string]*PageElement, classMap map[*PageElement]string, visited map[string]bool) {
+func (p *PageElement) Render(w io.Writer, components map[string]*PageElement, classMap map[*PageElement]string, visited map[string]bool, previewMode bool) {
 	if p == nil {
 		return
 	}
@@ -203,7 +203,7 @@ func (p *PageElement) Render(w io.Writer, components map[string]*PageElement, cl
 			}
 
 			// Render cloned component
-			clonedComponent.Render(w, components, classMap, visited)
+			clonedComponent.Render(w, components, classMap, visited, previewMode)
 
 			delete(visited, p.Import) // Allow reuse in different parts of the page
 			// delete the import from components now if it contains the private flag
@@ -265,7 +265,7 @@ func (p *PageElement) Render(w io.Writer, components map[string]*PageElement, cl
 
 	// Recursively render child elements
 	for i := range p.Elements {
-		p.Elements[i].Render(w, components, classMap, visited)
+		p.Elements[i].Render(w, components, classMap, visited, previewMode)
 	}
 
 	// Close HTML tag
@@ -273,7 +273,7 @@ func (p *PageElement) Render(w io.Writer, components map[string]*PageElement, cl
 }
 
 // routeInternal is a function
-func RenderPage(pageData Page, components map[string]*PageElement, w io.Writer, c echo.Context, routeInternal func(string, echo.Context) (interface{}, error)) error {
+func RenderPage(pageData Page, components map[string]*PageElement, w io.Writer, c echo.Context, routeInternal func(string, echo.Context) (interface{}, error), previewMode bool) error {
 	// Start streaming HTML immediately
 	fmt.Fprint(w, "<!DOCTYPE html><html><head>")
 
@@ -281,7 +281,7 @@ func RenderPage(pageData Page, components map[string]*PageElement, w io.Writer, 
 
 	// Render `<head>` elements
 	for i := range pageData.Head.Elements {
-		pageData.Head.Elements[i].Render(w, components, nil, nil)
+		pageData.Head.Elements[i].Render(w, components, nil, nil, previewMode)
 	}
 
 	// Collect and stream CSS
@@ -296,7 +296,7 @@ func RenderPage(pageData Page, components map[string]*PageElement, w io.Writer, 
 	visited = make(map[string]bool) // Reset before rendering HTML
 	// Render and stream HTML
 	for i := range pageData.Body.Elements {
-		pageData.Body.Elements[i].Render(w, components, classMap, visited)
+		pageData.Body.Elements[i].Render(w, components, classMap, visited, previewMode)
 	}
 
 	fmt.Fprint(w, "</body></html>")
