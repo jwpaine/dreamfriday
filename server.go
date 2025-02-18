@@ -328,6 +328,39 @@ func main() {
 		return c.JSON(http.StatusNotFound, "Page not found")
 	})
 
+	e.GET("/element/:eid", func(c echo.Context) error {
+		domain := c.Request().Host
+		if domain == "localhost:8081" {
+			domain = "dreamfriday.com"
+		}
+		eid := c.Param("eid")
+		if eid == "" {
+			return c.JSON(http.StatusBadRequest, "Element ID is required")
+		}
+		// get handle from session
+		session, err := auth.GetSession(c.Request())
+		if err != nil {
+			log.Println("Failed to get session:", err)
+			return c.String(http.StatusInternalServerError, "Failed to retrieve session")
+		}
+		handle, ok := session.Values["handle"].(string)
+		if ok && handle != "" {
+			// load preview data from previewDataStore by handle -> domain -> previewData:
+			if userPreviewData, found := previewDataStore.Load(handle); found {
+				if previewData, found := userPreviewData.(map[string]*PreviewData)[domain]; found {
+					if element, found := previewData.PreviewMap[eid]; found {
+						return c.JSON(http.StatusOK, element)
+					}
+					return c.JSON(http.StatusNotFound, "Element not found")
+				}
+				return c.JSON(http.StatusNotFound, "no active preview data")
+			}
+			return c.JSON(http.StatusNotFound, "no active preview data")
+		}
+		// must be logged in
+		return c.JSON(http.StatusUnauthorized, "Unauthorized")
+	}, auth.AuthMiddleware)
+
 	// Echo Route Handler
 	e.GET("/mysites", func(c echo.Context) error {
 		result, err := routeInternal("/mysites", c)
