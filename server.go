@@ -328,7 +328,7 @@ func main() {
 		return c.JSON(http.StatusNotFound, "Page not found")
 	})
 
-	e.GET("/element/:eid", func(c echo.Context) error {
+	e.GET("/element/:pid", func(c echo.Context) error {
 		domain := c.Request().Host
 		if domain == "localhost:8081" {
 			domain = "dreamfriday.com"
@@ -626,18 +626,6 @@ func Login(c echo.Context) error {
 }
 
 func Logout(c echo.Context) error {
-	// purge previewDataStore by handle
-	session, err := auth.GetSession(c.Request())
-	if err != nil {
-		log.Println("Failed to get session:", err)
-		return c.String(http.StatusInternalServerError, "Failed to retrieve session")
-	}
-	handle, ok := session.Values["handle"].(string)
-	if ok && handle != "" {
-		log.Println("Purging preview data for handle:", handle)
-		previewDataStore.Delete(handle)
-	}
-	// Call the authenticator's Logout method
 	return authenticator.Logout(c)
 }
 

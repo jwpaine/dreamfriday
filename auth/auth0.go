@@ -210,6 +210,7 @@ func (a *Auth0Authenticator) Logout(c echo.Context) error {
 	// Remove session values
 	delete(session.Values, "accessToken")
 	delete(session.Values, "email")
+	delete(session.Values, "previewMode")
 
 	// Invalidate session
 	session.Options.MaxAge = -1
