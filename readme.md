@@ -23,10 +23,10 @@ Serialized
 Rendered:
 - **GET /** renders page **'home'** (ie: URL/pages/home)
 - **GET /page_name** renderes a page by name
-- **GET /login** renders [dreamfriday.com/pages/login](https://dreamfriday.com/pages/login)
-- **GET /admin** renders [dreamfriday.com/pages/admin](https://dreamfriday.com/pages/admin)
+- **GET /login** renders [dreamfriday.com/page/login](https://dreamfriday.com/page/login)
+- **GET /admin** renders [dreamfriday.com/page/admin](https://dreamfriday.com/page/admin)
 - **GET /admin/domain** renders site details and JSON editor for specified domain for logged in owner
-- **GET /create** renders [dreamfriday.com/pages/create](https://dreamfriday.com/pages/create)
+- **GET /create** renders [dreamfriday.com/page/create](https://dreamfriday.com/page/create)
 
 Factory:
 
