@@ -5,6 +5,8 @@ import (
 	cache "dreamfriday/cache"
 	database "dreamfriday/database"
 	pageengine "dreamfriday/pageengine"
+	"encoding/json"
+	"strings"
 
 	"fmt"
 	"log"
@@ -12,6 +14,11 @@ import (
 
 	"github.com/labstack/echo/v4"
 )
+
+type PreviewData struct {
+	SiteData   *pageengine.SiteData
+	PreviewMap map[string]*pageengine.PageElement
+}
 
 func GetPreviewData(handle, domain string) (*PreviewData, error) {
 	// Try to load PreviewData for this handle
@@ -44,6 +51,79 @@ func GetPreviewData(handle, domain string) (*PreviewData, error) {
 	log.Println("Cached preview data for handle:", handle)
 
 	return newPreviewData, nil
+}
+
+func UpdatePreview(c echo.Context) error {
+	// Retrieve the session
+	session, err := auth.GetSession(c.Request())
+	if err != nil {
+		log.Println("Failed to get session:", err)
+		return c.String(http.StatusInternalServerError, "Failed to retrieve session")
+	}
+
+	// Get user handle from session
+	handle, ok := session.Values["handle"].(string)
+	if !ok || handle == "" {
+		log.Println("Unauthorized: handle not found in session")
+		return c.String(http.StatusUnauthorized, "Unauthorized: No valid identifier found")
+	}
+
+	// Retrieve domain from route parameter
+	domain := strings.TrimSpace(c.Param("domain"))
+	if domain == "" {
+		log.Println("Bad Request: Domain is required")
+		return c.String(http.StatusBadRequest, "Domain is required")
+	}
+
+	log.Printf("Updating preview data for Domain: %s for Email: %s", domain, handle)
+
+	// Retrieve and validate preview data
+	previewData := strings.TrimSpace(c.FormValue("previewData"))
+	if previewData == "" {
+		log.Println("Bad Request: Preview data is empty")
+		return c.Render(http.StatusOK, "manageButtons.html", map[string]interface{}{
+			"domain":  domain,
+			"status":  "",
+			"message": "Preview data is required",
+		})
+	}
+
+	// Validate JSON structure
+	var parsedPreviewData pageengine.SiteData
+	err = json.Unmarshal([]byte(previewData), &parsedPreviewData)
+	if err != nil {
+		log.Printf("Failed to unmarshal site data for domain %s: %v", domain, err)
+		return c.Render(http.StatusOK, "manageButtons.html", map[string]interface{}{
+			"domain":      domain,
+			"previewData": previewData,
+			"status":      "",
+			"message":     "Invalid JSON structure",
+		})
+	}
+
+	// Save preview data to the database and mark as "unpublished"
+	err = database.UpdatePreviewData(domain, handle, previewData)
+	if err != nil {
+		log.Printf("Failed to update preview data for domain %s: %v", domain, err)
+		return c.Render(http.StatusOK, "manageButtons.html", map[string]interface{}{
+			"domain":  domain,
+			"status":  "",
+			"message": "Failed to save, please try again.",
+		})
+	}
+
+	log.Printf("Successfully updated preview data for Domain: %s (Status: unpublished)", domain)
+
+	// purge handle -> domain from previewDataStore
+	cache.PreviewCache.Delete(handle)
+
+	// Return success response
+	return c.Render(http.StatusOK, "manageButtons.html", map[string]interface{}{
+		"domain":      domain,
+		"previewData": previewData,
+		"status":      "unpublished",
+		"message":     "Draft saved",
+	})
 }
 
 func GetPreviewElement(c echo.Context) error {

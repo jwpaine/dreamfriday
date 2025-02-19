@@ -10,4 +10,5 @@ import (
 func RegisterPreviewRoutes(e *echo.Echo) {
 	e.GET("/preview", handlers.TogglePreview)
 	e.GET("/preview/:pid", handlers.GetPreviewElement, auth.AuthMiddleware)
+	e.POST("/preview/:domain", handlers.UpdatePreview, auth.AuthMiddleware)
 }
