@@ -16,140 +16,18 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 
+	"dreamfriday/handlers"
 	pageengine "dreamfriday/pageengine"
 	"dreamfriday/routes"
 
 	"dreamfriday/auth"
 	Database "dreamfriday/database"
+	Middleware "dreamfriday/middleware"
 
 	cache "dreamfriday/cache"
 )
 
-var siteDataStore sync.Map // public thread-safe map to cache site data
-
 var userDataStore sync.Map // private thread-safe map to cache user data
-
-type PreviewData struct {
-	SiteData   *pageengine.SiteData
-	PreviewMap map[string]*pageengine.PageElement
-}
-
-func getPreviewData(handle, domain string) (*PreviewData, error) {
-	// Try to load PreviewData for this handle
-	if previewDataIface, found := cache.PreviewCache.Get(handle); found {
-		if previewData, ok := previewDataIface.(*PreviewData); ok {
-			log.Println("Serving cached preview data for handle:", handle)
-			return previewData, nil
-		}
-		return nil, fmt.Errorf("Type assertion failed for previewData")
-	}
-
-	log.Println("Preview data not found in cache, fetching from database for domain:", domain)
-
-	// Fetch preview data from database
-	previewSiteData, _, err := Database.FetchPreviewData(domain, handle)
-	if err != nil {
-		log.Println("Failed to fetch preview data:", err)
-		return nil, err
-	}
-
-	// Create new PreviewData entry
-	newPreviewData := &PreviewData{
-		SiteData:   previewSiteData,
-		PreviewMap: make(map[string]*pageengine.PageElement),
-	}
-
-	// Store fetched PreviewData in sync.Map
-	cache.PreviewCache.Set(handle, newPreviewData)
-
-	log.Println("Cached preview data for handle:", handle)
-
-	return newPreviewData, nil
-}
-
-func loadSiteDataMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		// Skip middleware for static files
-		path := c.Request().URL.Path
-		if strings.HasPrefix(path, "/static/") || path == "/favicon.ico" {
-			log.Println("Skipping middleware for static or favicon request:", path)
-			return next(c)
-		}
-
-		// Normalize domain
-		domain := c.Request().Host
-		if domain == "localhost:8081" {
-			domain = "dreamfriday.com"
-		}
-
-		log.Printf("Processing request for domain: %s\n", domain)
-
-		// Retrieve session
-		session, _ := auth.GetSession(c.Request())
-
-		// Handle preview mode
-		if session.Values["preview"] == true {
-			log.Println("Preview mode enabled")
-
-			handle, ok := session.Values["handle"].(string)
-			if !ok || handle == "" {
-				log.Println("Preview mode disabled: No valid handle in session")
-				if session.Values["preview"] == true { // Prevent unnecessary session write
-					session.Values["preview"] = false
-					if err := session.Save(c.Request(), c.Response()); err != nil {
-						log.Println("Failed to save session:", err)
-					}
-				}
-			} else {
-				log.Printf("Fetching preview data for domain: %s (User: %s)\n", domain, handle)
-
-				// Retrieve preview data for the domain
-				previewData, err := getPreviewData(handle, domain)
-				if err != nil {
-					log.Println("Failed to fetch preview data:", err)
-					return c.String(http.StatusInternalServerError, "Failed to fetch preview data")
-				}
-
-				c.Set("siteData", previewData.SiteData)
-				return next(c)
-			}
-		}
-
-		fmt.Println("Preview mode disabled")
-		// Check cached site data
-		if cachedData, found := siteDataStore.Load(domain); found {
-			if siteData, ok := cachedData.(*pageengine.SiteData); ok {
-				log.Println("Serving cached site data for domain:", domain)
-				c.Set("siteData", siteData)
-				return next(c)
-			}
-			log.Println("Type assertion failed for cached site data")
-		}
-
-		// Fetch site data from the database
-		log.Println("Fetching site data from database for domain:", domain)
-		siteData, err := Database.FetchSiteDataForDomain(domain)
-		if err != nil {
-			log.Printf("Failed to load site data for domain %s: %v", domain, err)
-			return c.JSON(http.StatusInternalServerError, fmt.Sprintf("Failed to load site data for domain %s", domain))
-		}
-
-		// Ensure valid site data
-		if siteData == nil {
-			log.Println("Fetched site data is nil for domain:", domain)
-			return c.String(http.StatusInternalServerError, "Fetched site data is nil")
-		}
-
-		// Cache site data
-		log.Println("Caching site data for domain:", domain)
-		siteDataStore.Store(domain, siteData)
-
-		// Set site data in request context
-		c.Set("siteData", siteData)
-
-		return next(c)
-	}
-}
 
 // Load environment variables
 func init() {
@@ -263,7 +141,7 @@ func main() {
 		templates: template.Must(template.ParseGlob("views/*.html")),
 	}
 	// Add middleware to load site data once
-	e.Use(loadSiteDataMiddleware)
+	e.Use(Middleware.LoadSiteDataMiddleware)
 
 	auth.InitSessionStore()
 
@@ -286,17 +164,6 @@ func main() {
 	e.GET("/", Page)          // This will match any route that does not match the specific ones above
 	e.GET("/:pageName", Page) // This will match any route that does not match the specific ones above
 
-	e.GET("/json", func(c echo.Context) error {
-		domain := c.Request().Host
-		if domain == "localhost:8081" {
-			domain = "dreamfriday.com"
-		}
-		if cachedData, found := siteDataStore.Load(domain); found {
-			return c.JSON(http.StatusOK, cachedData)
-		}
-		return c.JSON(http.StatusNotFound, "Site data not found")
-	})
-
 	// /component route returns the named component if available
 	e.GET("/component/:name", func(c echo.Context) error {
 		domain := c.Request().Host
@@ -304,7 +171,7 @@ func main() {
 			domain = "dreamfriday.com"
 		}
 		name := c.Param("name")
-		if cachedData, found := siteDataStore.Load(domain); found {
+		if cachedData, found := cache.SiteDataStore.Get(domain); found {
 			if cachedData.(*pageengine.SiteData).Components[name] != nil {
 				return c.JSON(http.StatusOK, cachedData.(*pageengine.SiteData).Components[name])
 			}
@@ -325,7 +192,7 @@ func main() {
 		// 	return c.String(http.StatusInternalServerError, "Failed to retrieve session")
 		// }
 
-		if cachedData, found := siteDataStore.Load(domain); found {
+		if cachedData, found := cache.SiteDataStore.Get(domain); found {
 			return c.JSON(http.StatusOK, cachedData.(*pageengine.SiteData).Components)
 		}
 		return c.JSON(http.StatusNotFound, "Components not found")
@@ -337,46 +204,13 @@ func main() {
 			domain = "dreamfriday.com"
 		}
 		pageName := c.Param("pageName")
-		if cachedData, found := siteDataStore.Load(domain); found {
+		if cachedData, found := cache.SiteDataStore.Get(domain); found {
 			if _, ok := cachedData.(*pageengine.SiteData).Pages[pageName]; ok {
 				return c.JSON(http.StatusOK, cachedData.(*pageengine.SiteData).Pages[pageName])
 			}
 		}
 		return c.JSON(http.StatusNotFound, "Page not found")
 	})
-
-	e.GET("/element/:pid", func(c echo.Context) error {
-		domain := c.Request().Host
-		if domain == "localhost:8081" {
-			domain = "dreamfriday.com"
-		}
-		pid := c.Param("pid")
-		if pid == "" {
-			return c.JSON(http.StatusBadRequest, "Element ID is required")
-		}
-		// get handle from session
-		session, err := auth.GetSession(c.Request())
-		if err != nil {
-			log.Println("Failed to get session:", err)
-			return c.String(http.StatusInternalServerError, "Failed to retrieve session")
-		}
-		handle, ok := session.Values["handle"].(string)
-		if ok && handle != "" {
-			// load preview data from previewDataStore by handle -> domain -> previewData:
-			if userPreviewData, found := cache.PreviewCache.Get(handle); found {
-				if previewData, found := userPreviewData.(map[string]*PreviewData)[domain]; found {
-					if element, found := previewData.PreviewMap[pid]; found {
-						return c.JSON(http.StatusOK, element)
-					}
-					return c.JSON(http.StatusNotFound, "Element not found")
-				}
-				return c.JSON(http.StatusNotFound, "no active preview data")
-			}
-			return c.JSON(http.StatusNotFound, "no active preview data")
-		}
-		// must be logged in
-		return c.JSON(http.StatusUnauthorized, "Unauthorized")
-	}, auth.AuthMiddleware)
 
 	// Echo Route Handler
 	e.GET("/mysites", func(c echo.Context) error {
@@ -456,7 +290,7 @@ func Page(c echo.Context) error {
 	if ok && previewExists && previewMode {
 		// Retrieve PreviewData from previewDataStore
 		if previewDataIface, found := cache.PreviewCache.Get(handle); found {
-			if previewData, ok := previewDataIface.(*PreviewData); ok {
+			if previewData, ok := previewDataIface.(*handlers.PreviewData); ok {
 				fmt.Println("Passing previewMap to renderPage")
 
 				// Render with preview map
@@ -837,7 +671,7 @@ func Publish(c echo.Context) error {
 	}
 
 	// Purge cache for the domain
-	siteDataStore.Delete(domain)
+	cache.SiteDataStore.Delete(domain)
 	log.Printf("Cache purged for domain: %s", domain)
 
 	log.Printf("Successfully published Domain: %s", domain)

@@ -7,3 +7,4 @@ type Cache interface {
 }
 
 var PreviewCache Cache = NewMemoryCache()
+var SiteDataStore Cache = NewMemoryCache()
