@@ -6,5 +6,9 @@ type Cache interface {
 	Delete(key string)
 }
 
-var PreviewCache Cache = NewMemoryCache()
+/* public */
 var SiteDataStore Cache = NewMemoryCache()
+
+/* private */
+var PreviewCache Cache = NewMemoryCache()
+var UserDataStore Cache = NewMemoryCache()

@@ -10,13 +10,11 @@ import (
 	"net/http"
 	"os"
 	"strings"
-	"sync"
 
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 
-	"dreamfriday/handlers"
 	pageengine "dreamfriday/pageengine"
 	"dreamfriday/routes"
 
@@ -26,8 +24,6 @@ import (
 
 	cache "dreamfriday/cache"
 )
-
-var userDataStore sync.Map // private thread-safe map to cache user data
 
 // Load environment variables
 func init() {
@@ -53,69 +49,6 @@ type TemplateRegistry struct {
 // Implement e.Renderer interface
 func (t *TemplateRegistry) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
 	return t.templates.ExecuteTemplate(w, name, data)
-}
-
-func routeInternal(path string, c echo.Context) (interface{}, error) {
-	switch path {
-	case "/mysites":
-		// Check cache first
-		session, err := auth.GetSession(c.Request())
-		if err != nil {
-			return nil, err
-		}
-		handle, ok := session.Values["handle"].(string)
-		if !ok || handle == "" {
-			return nil, fmt.Errorf("AT Protocol: handle not set or invalid in the session")
-		}
-		// Check cache for user data
-		cachedUserData, found := userDataStore.Load(handle)
-		if found {
-			return cachedUserData.(struct {
-				sites pageengine.PageElement
-			}).sites, nil
-		}
-
-		// Fetch sites for the owner from the database
-		siteStrings, err := Database.GetSitesForOwner(handle)
-		if err != nil {
-			return nil, err
-		}
-
-		// Convert site list into PageElement JSON format
-		pageElement := pageengine.PageElement{
-			Type: "div",
-			Attributes: map[string]string{
-				"class": "site-links-container",
-			},
-			Elements: make([]pageengine.PageElement, len(siteStrings)),
-		}
-
-		// Map sites into anchor (`a`) elements
-		for i, site := range siteStrings {
-			pageElement.Elements[i] = pageengine.PageElement{
-				Type: "a",
-				Attributes: map[string]string{
-					"href":  "/admin/" + site,
-					"class": "external-link",
-				},
-				Style: map[string]string{
-					"color":           "white",
-					"text-decoration": "none",
-				},
-				Text: site,
-			}
-		}
-
-		// Cache the user data
-		userDataStore.Store(handle, struct {
-			sites pageengine.PageElement
-		}{sites: pageElement})
-
-		return pageElement, nil
-
-	default:
-		return nil, fmt.Errorf("unknown internal route: %s", path)
-	}
 }
 
 func main() {
@@ -160,9 +93,6 @@ func main() {
 		return c.File("static/favicon.ico")
 	})
 
-	e.GET("/", Page)          // This will match any route that does not match the specific ones above
-	e.GET("/:pageName", Page) // This will match any route that does not match the specific ones above
-
 	// /component route returns the named component if available
 	e.GET("/component/:name", func(c echo.Context) error {
 		domain := c.Request().Host
@@ -183,14 +113,6 @@ func main() {
 		if domain == "localhost:8081" {
 			domain = "dreamfriday.com"
 		}
-
-		// if session, and previewMode:
-		// session, err := auth.GetSession(c.Request())
-		// if err != nil {
-		// 	log.Println("Failed to get session:", err)
-		// 	return c.String(http.StatusInternalServerError, "Failed to retrieve session")
-		// }
-
 		if cachedData, found := cache.SiteDataStore.Get(domain); found {
 			return c.JSON(http.StatusOK, cachedData.(*pageengine.SiteData).Components)
 		}
@@ -212,14 +134,6 @@ func main() {
 	})
 
 	// Echo Route Handler
-	e.GET("/mysites", func(c echo.Context) error {
-		result, err := routeInternal("/mysites", c)
-		if err != nil {
-			log.Println("Error fetching sites for owner:", err)
-			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch sites for owner"})
-		}
-		return c.JSON(http.StatusOK, result)
-	}, auth.AuthMiddleware)
 
 	listener, err := net.Listen("tcp4", "0.0.0.0:8081")
 	if err != nil {
@@ -236,83 +150,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("Server error: %v", err)
 	}
-}
-
-func Page(c echo.Context) error {
-	pageName := c.Param("pageName")
-	if pageName == "" {
-		pageName = "home"
-	}
-	log.Printf("Page requested: %s\n", pageName)
-
-	rawSiteData := c.Get("siteData")
-	if rawSiteData == nil {
-		log.Println("Site data is nil in context")
-		return c.String(http.StatusInternalServerError, "Site data is nil")
-	}
-
-	// Perform type assertion
-	siteData, ok := rawSiteData.(*pageengine.SiteData)
-	if !ok || siteData == nil {
-		log.Println("Site data type assertion failed or is nil")
-		return c.String(http.StatusInternalServerError, "Site data is invalid")
-	}
-
-	pageData, ok := siteData.Pages[pageName]
-	if !ok {
-		log.Println("Page not found in site data")
-		return c.String(http.StatusNotFound, "Page not found")
-	}
-
-	loggedIn := auth.IsAuthenticated(c)
-	log.Printf("Rendering page: %s (Logged in: %v)\n", pageName, loggedIn)
-
-	// Handle redirects
-	if pageData.RedirectForLogin != "" && loggedIn {
-		log.Println("Already logged in, redirecting to:", pageData.RedirectForLogin)
-		return c.Redirect(http.StatusFound, pageData.RedirectForLogin)
-	}
-	if pageData.RedirectForLogout != "" && !loggedIn {
-		log.Println("Logged out, redirecting to:", pageData.RedirectForLogout)
-		return c.Redirect(http.StatusFound, pageData.RedirectForLogout)
-	}
-
-	components := siteData.Components
-
-	// Retrieve session
-	session, _ := auth.GetSession(c.Request())
-
-	// Check if preview mode is enabled
-	handle, ok := session.Values["handle"].(string)
-	previewMode, previewExists := session.Values["preview"].(bool)
-
-	if ok && previewExists && previewMode {
-		// Retrieve PreviewData from previewDataStore
-		if previewDataIface, found := cache.PreviewCache.Get(handle); found {
-			if previewData, ok := previewDataIface.(*handlers.PreviewData); ok {
-				fmt.Println("Passing previewMap to renderPage")
-
-				// Render with preview map
-				c.Response().Header().Set("Content-Type", "text/html; charset=utf-8")
-				if err := pageengine.RenderPage(pageData, components, c.Response().Writer, c, routeInternal, previewData.PreviewMap); err != nil {
-					log.Println("Unable to render page with preview data:", err)
-					return c.String(http.StatusInternalServerError, err.Error())
-				}
-				return nil
-			}
-		}
-	}
-
-	fmt.Println("Not passing previewMap to renderPage")
-
-	// Render without preview map
-	c.Response().Header().Set("Content-Type", "text/html; charset=utf-8")
-	if err := pageengine.RenderPage(pageData, components, c.Response().Writer, c, routeInternal, nil); err != nil {
-		log.Println("Unable to render page:", err)
-		return c.String(http.StatusInternalServerError, err.Error())
-	}
-
-	return nil
 }
 
 // RegisterForm renders the registration form
