@@ -21,11 +21,13 @@ import (
 
 	"dreamfriday/auth"
 	Database "dreamfriday/database"
+
+	cache "dreamfriday/cache"
 )
 
-var siteDataStore sync.Map    // public thread-safe map to cache site data
-var previewDataStore sync.Map // private thread-safe map to cache preview data
-var userDataStore sync.Map    // private thread-safe map to cache user data
+var siteDataStore sync.Map // public thread-safe map to cache site data
+
+var userDataStore sync.Map // private thread-safe map to cache user data
 
 type PreviewData struct {
 	SiteData   *pageengine.SiteData
@@ -34,7 +36,7 @@ type PreviewData struct {
 
 func getPreviewData(handle, domain string) (*PreviewData, error) {
 	// Try to load PreviewData for this handle
-	if previewDataIface, found := previewDataStore.Load(handle); found {
+	if previewDataIface, found := cache.PreviewCache.Get(handle); found {
 		if previewData, ok := previewDataIface.(*PreviewData); ok {
 			log.Println("Serving cached preview data for handle:", handle)
 			return previewData, nil
@@ -58,7 +60,7 @@ func getPreviewData(handle, domain string) (*PreviewData, error) {
 	}
 
 	// Store fetched PreviewData in sync.Map
-	previewDataStore.Store(handle, newPreviewData)
+	cache.PreviewCache.Set(handle, newPreviewData)
 
 	log.Println("Cached preview data for handle:", handle)
 
@@ -267,13 +269,6 @@ func main() {
 
 	routes.RegisterRoutes(e)
 
-	// e.GET("/login", LoginForm) // Display login form
-	// e.POST("/login", Login) // Handle form submission and login
-
-	// e.GET("/admin", Admin, auth.AuthMiddleware)
-	// e.GET("/admin", Admin)
-
-	//	e.GET("/admin/create", CreateSiteForm, auth.AuthMiddleware) // @TODO: use JSON-based page instead
 	e.POST("/create", CreateSite, auth.AuthMiddleware)
 
 	e.GET("/admin/:domain", AdminSite) // @TODO: use JSON-based page instead
@@ -287,8 +282,6 @@ func main() {
 		// Serve the favicon.ico file from the static directory or a default location
 		return c.File("static/favicon.ico")
 	})
-
-	e.GET("/preview", TogglePreview)
 
 	e.GET("/", Page)          // This will match any route that does not match the specific ones above
 	e.GET("/:pageName", Page) // This will match any route that does not match the specific ones above
@@ -370,7 +363,7 @@ func main() {
 		handle, ok := session.Values["handle"].(string)
 		if ok && handle != "" {
 			// load preview data from previewDataStore by handle -> domain -> previewData:
-			if userPreviewData, found := previewDataStore.Load(handle); found {
+			if userPreviewData, found := cache.PreviewCache.Get(handle); found {
 				if previewData, found := userPreviewData.(map[string]*PreviewData)[domain]; found {
 					if element, found := previewData.PreviewMap[pid]; found {
 						return c.JSON(http.StatusOK, element)
@@ -410,46 +403,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("Server error: %v", err)
 	}
-}
-
-func TogglePreview(c echo.Context) error {
-	// Retrieve session
-	session, err := auth.GetSession(c.Request())
-	if err != nil {
-		log.Println("Failed to get session:", err)
-		return c.String(http.StatusUnauthorized, "You need to be logged in to toggle preview mode")
-	}
-
-	// Validate session handle
-	handle, ok := session.Values["handle"].(string)
-	if !ok || handle == "" {
-		log.Println("Unauthorized: handle not found in session")
-		return c.String(http.StatusUnauthorized, "You need to be logged in to toggle preview mode")
-	}
-
-	// Toggle preview mode (default to true if missing)
-	session.Values["preview"] = !session.Values["preview"].(bool)
-
-	// Delete preview data if disabling preview mode
-	if !session.Values["preview"].(bool) {
-		previewDataStore.Delete(handle)
-		log.Println("Deleted preview data for handle:", handle)
-	}
-
-	// Save session
-	if err := session.Save(c.Request(), c.Response()); err != nil {
-		log.Println("Failed to save session:", err)
-		return c.String(http.StatusInternalServerError, "Failed to save session")
-	}
-
-	log.Printf("Preview mode for %s set to: %v\n", c.Request().Host, session.Values["preview"])
-
-	// Redirect user back to previous page or home
-	referer := c.Request().Referer()
-	if referer == "" {
-		referer = "/"
-	}
-	return c.Redirect(http.StatusFound, referer)
 }
 
 func Page(c echo.Context) error {
@@ -502,7 +455,7 @@ func Page(c echo.Context) error {
 
 	if ok && previewExists && previewMode {
 		// Retrieve PreviewData from previewDataStore
-		if previewDataIface, found := previewDataStore.Load(handle); found {
+		if previewDataIface, found := cache.PreviewCache.Get(handle); found {
 			if previewData, ok := previewDataIface.(*PreviewData); ok {
 				fmt.Println("Passing previewMap to renderPage")
 
@@ -837,7 +790,7 @@ func UpdatePreview(c echo.Context) error {
 	log.Printf("Successfully updated preview data for Domain: %s (Status: unpublished)", domain)
 
 	// purge handle -> domain from previewDataStore
-	previewDataStore.Delete(handle)
+	cache.PreviewCache.Delete(handle)
 
 	// Return success response
 	return c.Render(http.StatusOK, "manageButtons.html", map[string]interface{}{
