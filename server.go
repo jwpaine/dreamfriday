@@ -86,30 +86,6 @@ func main() {
 	})
 
 	// /component route returns the named component if available
-	e.GET("/component/:name", func(c echo.Context) error {
-		domain := c.Request().Host
-		if domain == "localhost:8081" {
-			domain = "dreamfriday.com"
-		}
-		name := c.Param("name")
-		if cachedData, found := cache.SiteDataStore.Get(domain); found {
-			if cachedData.(*pageengine.SiteData).Components[name] != nil {
-				return c.JSON(http.StatusOK, cachedData.(*pageengine.SiteData).Components[name])
-			}
-		}
-		return c.JSON(http.StatusNotFound, "Component not found")
-	})
-
-	e.GET("/components", func(c echo.Context) error {
-		domain := c.Request().Host
-		if domain == "localhost:8081" {
-			domain = "dreamfriday.com"
-		}
-		if cachedData, found := cache.SiteDataStore.Get(domain); found {
-			return c.JSON(http.StatusOK, cachedData.(*pageengine.SiteData).Components)
-		}
-		return c.JSON(http.StatusNotFound, "Components not found")
-	})
 
 	e.GET("/page/:pageName", func(c echo.Context) error {
 		domain := c.Request().Host
