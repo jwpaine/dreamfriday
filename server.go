@@ -226,42 +226,6 @@ func PasswordReset(c echo.Context) error {
 	return HTML(c, Views.ConfirmPasswordReset(email))
 } */
 
-// Admin is a protected route that requires a valid session
-func Admin(c echo.Context) error {
-	// Retrieve the session
-	log.Println("Admin")
-	session, err := auth.GetSession(c.Request())
-	if err != nil {
-		log.Println("Failed to get session:", err)
-		return c.String(http.StatusInternalServerError, "Failed to retrieve session")
-	}
-
-	handle, ok := session.Values["handle"].(string)
-	if !ok || handle == "" {
-		log.Println("handle not set or invalid in the session")
-		return c.String(http.StatusUnauthorized, "Unauthorized: handle not found in session")
-	}
-
-	// Fetch sites for the owner (email or handle)
-	siteStrings, err := Database.GetSitesForOwner(handle)
-	if err != nil {
-		log.Println("Failed to fetch sites for owner:", handle, err)
-		return c.String(http.StatusInternalServerError, "Failed to fetch sites for owner")
-	}
-
-	// Convert []string to []map[string]string for consistency with the template
-	var sites []map[string]string
-	for _, site := range siteStrings {
-		sites = append(sites, map[string]string{"Domain": site})
-	}
-
-	// Render template using map[string]interface{}
-	return c.Render(http.StatusOK, "admin.html", map[string]interface{}{
-		"Identifier": handle,
-		"Sites":      sites,
-	})
-}
-
 // /admin/:domain route
 func AdminSite(c echo.Context) error {
 	// Retrieve the session
