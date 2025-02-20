@@ -9,4 +9,5 @@ import (
 func RegisterPageRoutes(e *echo.Echo) {
 	e.GET("/", handlers.RenderPage)
 	e.GET("/:pageName", handlers.RenderPage)
+	e.GET("/page/:pageName", handlers.RenderPage) // json page data
 }

@@ -14,10 +14,8 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 
 	auth "dreamfriday/auth"
-	cache "dreamfriday/cache"
 	Database "dreamfriday/database"
 	Middleware "dreamfriday/middleware"
-	pageengine "dreamfriday/pageengine"
 	routes "dreamfriday/routes"
 )
 
@@ -86,20 +84,6 @@ func main() {
 	})
 
 	// /component route returns the named component if available
-
-	e.GET("/page/:pageName", func(c echo.Context) error {
-		domain := c.Request().Host
-		if domain == "localhost:8081" {
-			domain = "dreamfriday.com"
-		}
-		pageName := c.Param("pageName")
-		if cachedData, found := cache.SiteDataStore.Get(domain); found {
-			if _, ok := cachedData.(*pageengine.SiteData).Pages[pageName]; ok {
-				return c.JSON(http.StatusOK, cachedData.(*pageengine.SiteData).Pages[pageName])
-			}
-		}
-		return c.JSON(http.StatusNotFound, "Page not found")
-	})
 
 	// Echo Route Handler
 
