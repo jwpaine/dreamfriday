@@ -8,7 +8,8 @@ import (
 )
 
 func RegisterPreviewRoutes(e *echo.Echo) {
-	e.GET("/preview", handlers.TogglePreview)
-	e.GET("/preview/:pid", handlers.GetPreviewElement, auth.AuthMiddleware)
-	e.POST("/preview/:domain", handlers.UpdatePreview, auth.AuthMiddleware)
+	e.GET("/preview", handlers.TogglePreview)                               // get preview data
+	e.POST("/preview", handlers.UpdatePreview, auth.AuthMiddleware)         // update preview data
+	e.GET("/preview/:pid", handlers.GetPreviewElement, auth.AuthMiddleware) // get preview element
+
 }

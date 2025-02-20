@@ -68,8 +68,8 @@ func UpdatePreview(c echo.Context) error {
 		return c.String(http.StatusUnauthorized, "Unauthorized: No valid identifier found")
 	}
 
-	// Retrieve domain from route parameter
-	domain := strings.TrimSpace(c.Param("domain"))
+	// get domain from form data:
+	domain := strings.TrimSpace(c.FormValue("domain"))
 	if domain == "" {
 		log.Println("Bad Request: Domain is required")
 		return c.String(http.StatusBadRequest, "Domain is required")
