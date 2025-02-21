@@ -35,6 +35,6 @@ async function loginWithEth() {
         }
     } catch (error) {
         console.error("MetaMask Login Error:", error);
-        alert("Error logging in through wallet provider. Please try again.");
+        alert("Error logging in through wallet p");
     }
 }
