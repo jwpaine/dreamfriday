@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	pageengine "dreamfriday/pageengine"
 	"fmt"
+	"log"
 
 	"github.com/labstack/echo/v4"
 )
@@ -10,9 +12,29 @@ import (
 func RouteInternal(path string, c echo.Context) (interface{}, error) {
 	switch path {
 	case "/mysites":
-		return GetSitesForOwner(c)
+		// get user data from func GetUserData(c echo.Context) (interface{}, error):
+		userData, err := GetUserData(c)
+		if err != nil {
+			return nil, err
+		}
+		// Return only the "sites" element from userDataMap
+		if cachedSitesElement, exists := userData["sites"].(pageengine.PageElement); exists {
+			log.Println("Serving cached sites for user")
+			return cachedSitesElement, nil
+		}
+		return nil, fmt.Errorf("sites not found in user data")
+
 	case "/myaddress":
-		return nil, fmt.Errorf("not implemented")
+		userData, err := GetUserData(c)
+		if err != nil {
+			return nil, err
+		}
+		// Return only the "sites" element from userDataMap
+		if cachedHandleElement, exists := userData["handle"].(pageengine.PageElement); exists {
+			log.Println("Serving cached sites for user")
+			return cachedHandleElement, nil
+		}
+		return nil, fmt.Errorf("address not found in user data")
 	default:
 		return nil, fmt.Errorf("unknown internal route: %s", path)
 	}

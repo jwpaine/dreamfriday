@@ -17,4 +17,12 @@ func RegisterAuthRoutes(e *echo.Echo) {
 
 	e.POST("/auth/callback", authHandler.AuthCallback)
 	e.GET("/auth/request", authHandler.AuthRequest)
+
+	e.GET("/myaddress", func(c echo.Context) error {
+		addressElement, err := handlers.RouteInternal("/myaddress", c)
+		if err != nil {
+			return c.JSON(500, err)
+		}
+		return c.JSON(200, addressElement)
+	}, auth.AuthMiddleware)
 }

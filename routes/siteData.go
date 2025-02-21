@@ -11,7 +11,7 @@ func RegisterProductionRoutes(e *echo.Echo) {
 	e.GET("/json", handlers.GetSiteData)
 
 	e.GET("/mysites", func(c echo.Context) error {
-		sites, err := handlers.GetSitesForOwner(c)
+		sites, err := handlers.RouteInternal("/mysites", c)
 		if err != nil {
 			return c.JSON(500, err)
 		}

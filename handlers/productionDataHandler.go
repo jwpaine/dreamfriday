@@ -26,73 +26,7 @@ func GetSiteData(c echo.Context) error {
 	}
 	return c.JSON(http.StatusNotFound, "Site data not found")
 }
-func GetSitesForOwner(c echo.Context) (interface{}, error) {
 
-	session, err := auth.GetSession(c.Request())
-	if err != nil {
-		return nil, fmt.Errorf("AT Protocol: failed to get session")
-	}
-	handle, ok := session.Values["handle"].(string)
-	if !ok || handle == "" {
-		return nil, fmt.Errorf("AT Protocol: handle not set or invalid in the session")
-	}
-
-	// Check cache for user data under handle -> "sites"
-	if cachedUserData, found := cache.UserDataStore.Get(handle); found {
-		if userDataMap, ok := cachedUserData.(map[string]interface{}); ok {
-			if cachedSites, exists := userDataMap["sites"].(pageengine.PageElement); exists {
-				log.Println("Serving cached user data for handle:", handle)
-				return cachedSites, nil
-			}
-		}
-	}
-
-	// Fetch sites for the owner from the database
-	siteStrings, err := database.GetSitesForOwner(handle)
-	if err != nil {
-		return nil, err
-	}
-
-	// Convert site list into PageElement JSON format
-	pageElement := pageengine.PageElement{
-		Type: "div",
-		Attributes: map[string]string{
-			"class": "site-links-container",
-		},
-		Elements: make([]pageengine.PageElement, len(siteStrings)),
-	}
-
-	// Map sites into anchor (`a`) elements
-	for i, site := range siteStrings {
-		pageElement.Elements[i] = pageengine.PageElement{
-			Type: "a",
-			Attributes: map[string]string{
-				"href":  "/admin/" + site,
-				"class": "external-link",
-			},
-			Style: map[string]string{
-				"color":           "white",
-				"text-decoration": "none",
-			},
-			Text: site,
-		}
-	}
-
-	// Ensure user data exists in cache
-	userData := make(map[string]interface{})
-	if cachedUserData, found := cache.UserDataStore.Get(handle); found {
-		if existingData, ok := cachedUserData.(map[string]interface{}); ok {
-			userData = existingData
-		}
-	}
-
-	// Store sites under "sites" key in user data
-	userData["sites"] = pageElement
-	cache.UserDataStore.Set(handle, userData)
-
-	log.Println("Cached user data for handle:", handle)
-	return pageElement, nil
-}
 func CreateSite(c echo.Context) error {
 	// Retrieve the session
 	session, err := auth.GetSession(c.Request())
@@ -141,7 +75,7 @@ func CreateSite(c echo.Context) error {
 	if err != nil {
 		log.Println("Failed to read response body:", err)
 		return c.Render(http.StatusOK, "message.html", map[string]interface{}{
-			"message": fmt.Sprint("Failed to read response"),
+			"message": "failed to read response",
 		})
 	}
 	// Unmarshal the JSON data into a SiteData struct
@@ -150,7 +84,7 @@ func CreateSite(c echo.Context) error {
 	if err != nil {
 		log.Println("Failed to unmarshal JSON:", err)
 		return c.Render(http.StatusOK, "message.html", map[string]interface{}{
-			"message": fmt.Sprintf("Failed to unmarshal template: %s", err),
+			"message": fmt.Sprintf("failed to unmarshal template: %s", err),
 		})
 	}
 

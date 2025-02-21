@@ -56,6 +56,20 @@ func GetSessionStore() *sessions.CookieStore {
 	return store
 }
 
+func GetHandle(c echo.Context) (string, error) {
+	session, err := GetSession(c.Request())
+	if err != nil {
+		return "", fmt.Errorf("failed to get session: %v", err)
+	}
+
+	handle, ok := session.Values["handle"].(string)
+	if !ok {
+		return "", fmt.Errorf("handle not found in session")
+	}
+
+	return handle, nil
+}
+
 func IsAuthenticated(c echo.Context) bool {
 
 	session, err := store.Get(c.Request(), "session")
