@@ -280,9 +280,9 @@
                                         "type" : "button",
                                         "attributes": {
                                             "id": "loginButton",
-                                            "onclick" : "loginWithMetaMask()"
+                                            "onclick" : "loginWithEth()"
                                         },
-                                        "text" : "Login using MetaMask",
+                                        "text" : "Login Using Ethereum",
                                         "style": {
                                             "font-size": "1.2em",
                                             "padding": "10px 20px",

@@ -1,7 +1,7 @@
 
-async function loginWithMetaMask() {
+async function loginWithEth() {
     if (!window.ethereum) {
-        alert("MetaMask is not installed!");
+        alert("Ethereum provider not detected. Please install MetaMask.");
         return;
     }
 
@@ -35,6 +35,6 @@ async function loginWithMetaMask() {
         }
     } catch (error) {
         console.error("MetaMask Login Error:", error);
-        alert("Error logging in with MetaMask");
+        alert("Error logging in through wallet provider. Please try again.");
     }
 }

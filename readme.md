@@ -9,7 +9,9 @@ The platform's page rendering engine dynamically constructs a component tree by 
 
 ### Authentication
 
-Currently uses Auth0
+The authentication system follows a challenge-response model using Ethereum wallets. Users sign a unique nonce (challenge) to verify ownership of their Ethereum address. 
+
+We recommend using the MetaMask browser extension, which will allow you to create an address and login.
 
 ### Routes:
 
@@ -30,12 +32,16 @@ Rendered:
 
 Factory:
 
-- **POST /login** accepts **handle**, **password**, and **server** -> instantiates session and returns cookie
 - **POST /create** accepts **domain** and **template** (another domain to cppy).
 - **POST /admin/domain"** accepts **previewData** (JSON). Update's preview data for specified **domain**
 - **POST /publish/domain** copies **preview** data to **production**
 - **GET /logout** destroys current session
 - **GET /preview** toggle's preview mode for current session. Page routes will render preview data instead of production
+
+Auth:
+
+- **GET /auth/request?address=<wallet_address>** Generates a unique challenge (nonce) for the given Ethereum address.
+- **POST /auth/callback** Verifies the signed challenge and authenticates the user.
 
 ### Topology
 
