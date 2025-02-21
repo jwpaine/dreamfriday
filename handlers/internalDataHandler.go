@@ -25,10 +25,14 @@ func RouteInternal(path string, c echo.Context) (interface{}, error) {
 			return nil, fmt.Errorf("AT Protocol: handle not set or invalid in the session")
 		}
 
-		// Check cache for user data
+		// Check cache for user data under handle -> "sites"
 		if cachedUserData, found := cache.UserDataStore.Get(handle); found {
-			log.Println("Serving cached user data for handle:", handle)
-			return cachedUserData, nil
+			if userDataMap, ok := cachedUserData.(map[string]interface{}); ok {
+				if cachedSites, exists := userDataMap["sites"].(pageengine.PageElement); exists {
+					log.Println("Serving cached user data for handle:", handle)
+					return cachedSites, nil
+				}
+			}
 		}
 
 		// Fetch sites for the owner from the database
@@ -62,12 +66,23 @@ func RouteInternal(path string, c echo.Context) (interface{}, error) {
 			}
 		}
 
-		// Cache the user data
-		cache.UserDataStore.Set(handle, pageElement)
+		// Ensure user data exists in cache
+		userData := make(map[string]interface{})
+		if cachedUserData, found := cache.UserDataStore.Get(handle); found {
+			if existingData, ok := cachedUserData.(map[string]interface{}); ok {
+				userData = existingData
+			}
+		}
+
+		// Store sites under "sites" key in user data
+		userData["sites"] = pageElement
+		cache.UserDataStore.Set(handle, userData)
 
 		log.Println("Cached user data for handle:", handle)
 		return pageElement, nil
 
+	case "/myaddress":
+		return nil, fmt.Errorf("not implemented")
 	default:
 		return nil, fmt.Errorf("unknown internal route: %s", path)
 	}
