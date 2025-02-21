@@ -10,7 +10,10 @@ require (
 )
 
 require (
+	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.1 // indirect
+	github.com/ethereum/go-ethereum v1.15.2 // indirect
 	github.com/gorilla/securecookie v1.1.2 // indirect
+	github.com/holiman/uint256 v1.3.2 // indirect
 	github.com/labstack/gommon v0.4.2 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect

@@ -8,8 +8,6 @@ import (
 
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo/v4"
-
-	models "dreamfriday/models"
 )
 
 var store *sessions.CookieStore
@@ -19,7 +17,7 @@ type Authenticator interface {
 	Logout(c echo.Context) error
 	Login(c echo.Context, email, password string) error
 	PasswordReset(email string) error
-	Register(email string, password string) (*models.Auth0RegisterResponse, error)
+	Register(email string, password string) error
 	StoreSession(c echo.Context, token string, _ string) error
 	ValidateSession(token string) bool
 }
@@ -70,9 +68,9 @@ func IsAuthenticated(c echo.Context) bool {
 	authenticator := GetAuthenticator()
 
 	// Retrieve session token
-	token, ok := session.Values["accessToken"].(string)
+	token, ok := session.Values["handle"].(string)
 	if !ok || token == "" {
-		log.Println("Access token not set in session")
+		log.Println("handle not set in session")
 		return false
 	}
 
@@ -98,5 +96,6 @@ func AuthMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 
 // Factory function to get the correct authenticator
 func GetAuthenticator() Authenticator {
-	return &Auth0Authenticator{}
+	// return &Auth0Authenticator{}
+	return &EthAuthenticator{}
 }

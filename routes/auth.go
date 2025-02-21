@@ -14,4 +14,8 @@ func RegisterAuthRoutes(e *echo.Echo) {
 
 	e.POST("/login", authHandler.Login)
 	e.GET("/logout", authHandler.Logout)
+
+	e.POST("/auth/callback", authHandler.AuthCallback)
+	e.GET("/auth/request", authHandler.AuthRequest)
+	e.GET("/auth/loginMeta", authHandler.LoginForm)
 }
