@@ -16,15 +16,41 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func GetSiteData(c echo.Context) error {
+func GetSiteData(c echo.Context) (*pageengine.SiteData, error) {
 	domain := c.Request().Host
 	if domain == "localhost:8081" {
 		domain = "dreamfriday.com"
 	}
+
 	if cachedData, found := cache.SiteDataStore.Get(domain); found {
-		return c.JSON(http.StatusOK, cachedData)
+		if siteData, ok := cachedData.(*pageengine.SiteData); ok {
+			log.Println("Serving cached site data for domain:", domain)
+			c.Set("siteData", siteData)
+			return siteData, nil
+		}
+		log.Println("Type assertion failed for cached site data")
 	}
-	return c.JSON(http.StatusNotFound, "Site data not found")
+
+	// Fetch site data from the database
+	log.Println("Fetching site data from database for domain:", domain)
+	siteData, err := database.FetchSiteDataForDomain(domain)
+	if err != nil {
+		log.Printf("failed to load site data for domain %s: %v", domain, err)
+		return nil, err
+	}
+
+	// Ensure valid site data
+	if siteData == nil {
+		log.Println("Fetched site data is nil for domain:", domain)
+		return nil, fmt.Errorf("fetched site data is nil for domain: %s", domain)
+	}
+
+	// Cache site data
+	log.Println("Caching site data for domain:", domain)
+	cache.SiteDataStore.Set(domain, siteData)
+
+	return siteData, nil
+
 }
 
 func CreateSite(c echo.Context) error {

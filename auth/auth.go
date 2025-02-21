@@ -70,6 +70,21 @@ func GetHandle(c echo.Context) (string, error) {
 	return handle, nil
 }
 
+func IsPreviewEnabled(c echo.Context) bool {
+	session, err := GetSession(c.Request())
+	if err != nil {
+		log.Println("Failed to retrieve session:", err)
+		return false
+	}
+
+	preview, ok := session.Values["preview"].(bool)
+	if !ok {
+		return false
+	}
+
+	return preview
+}
+
 func IsAuthenticated(c echo.Context) bool {
 
 	session, err := store.Get(c.Request(), "session")

@@ -20,8 +20,20 @@ type PreviewData struct {
 	PreviewMap map[string]*pageengine.PageElement
 }
 
-func GetPreviewData(handle, domain string) (*PreviewData, error) {
+func GetPreviewData(c echo.Context) (*PreviewData, error) {
 	// Try to load PreviewData for this handle
+
+	domain := c.Request().Host
+	if domain == "localhost:8081" {
+		domain = "dreamfriday.com"
+	}
+
+	handle, err := auth.GetHandle(c)
+	if err != nil {
+		log.Println("Failed to get handle:", err)
+		return nil, err
+	}
+
 	if previewDataIface, found := cache.PreviewCache.Get(handle); found {
 		if previewData, ok := previewDataIface.(*PreviewData); ok {
 			log.Println("Serving cached preview data for handle:", handle)
