@@ -75,7 +75,7 @@ func UpdatePreview(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "Domain is required")
 	}
 
-	log.Printf("Updating preview data for Domain: %s for Email: %s", domain, handle)
+	log.Printf("Updating preview data for Domain: %s for handle: %s", domain, handle)
 
 	// Retrieve and validate preview data
 	previewData := strings.TrimSpace(c.FormValue("previewData"))
@@ -159,7 +159,7 @@ func GetPreviewElement(c echo.Context) error {
 	return c.JSON(http.StatusUnauthorized, "Unauthorized")
 }
 
-func TogglePreview(c echo.Context) error {
+func TogglePreviewMode(c echo.Context) error {
 	// Debugging log
 	fmt.Println("TogglePreview")
 

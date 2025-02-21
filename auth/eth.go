@@ -92,6 +92,9 @@ func (a *EthAuthenticator) AuthCallbackHandler(c echo.Context) error {
 		// Store Ethereum address in session
 		session, _ := GetSession(c.Request())
 		session.Values["handle"] = request.Address
+		// set preview mode to true
+		// session.Values["preview"] = true
+		// Save the session
 		session.Save(c.Request(), c.Response())
 
 		return c.JSON(http.StatusOK, map[string]string{"status": "accepted", "address": request.Address})

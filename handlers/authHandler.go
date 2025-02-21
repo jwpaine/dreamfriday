@@ -38,6 +38,8 @@ func (h *AuthHandler) Login(c echo.Context) error {
 		})
 	}
 
+	// toggle preview on
+	// err = TogglePreview(c, true)
 	// Redirect to admin page after login
 	return c.HTML(http.StatusOK, `<script>window.location.href = '/admin';</script>`)
 }
