@@ -26,30 +26,31 @@ func GetSiteData(c echo.Context) error {
 	}
 	return c.JSON(http.StatusNotFound, "Site data not found")
 }
-func GetSitesForOwner(c echo.Context) error {
+func GetSitesForOwner(c echo.Context) (interface{}, error) {
 
 	session, err := auth.GetSession(c.Request())
 	if err != nil {
-		log.Println("Failed to get session:", err)
-		return c.JSON(http.StatusInternalServerError, "Failed to get session")
+		return nil, fmt.Errorf("AT Protocol: failed to get session")
 	}
 	handle, ok := session.Values["handle"].(string)
 	if !ok || handle == "" {
-
+		return nil, fmt.Errorf("AT Protocol: handle not set or invalid in the session")
 	}
-	// Check cache for user data
-	cachedUserData, found := cache.UserDataStore.Get(handle)
-	if found {
-		return c.JSON(http.StatusOK, cachedUserData.(struct {
-			sites pageengine.PageElement
-		}).sites)
+
+	// Check cache for user data under handle -> "sites"
+	if cachedUserData, found := cache.UserDataStore.Get(handle); found {
+		if userDataMap, ok := cachedUserData.(map[string]interface{}); ok {
+			if cachedSites, exists := userDataMap["sites"].(pageengine.PageElement); exists {
+				log.Println("Serving cached user data for handle:", handle)
+				return cachedSites, nil
+			}
+		}
 	}
 
 	// Fetch sites for the owner from the database
 	siteStrings, err := database.GetSitesForOwner(handle)
 	if err != nil {
-		log.Println("Error fetching sites for owner:", err)
-		return c.JSON(http.StatusNotFound, "Failed to fetch sites for owner")
+		return nil, err
 	}
 
 	// Convert site list into PageElement JSON format
@@ -77,14 +78,20 @@ func GetSitesForOwner(c echo.Context) error {
 		}
 	}
 
-	// Cache the user data
-	cache.UserDataStore.Set(handle, struct {
-		sites pageengine.PageElement
-	}{sites: pageElement})
+	// Ensure user data exists in cache
+	userData := make(map[string]interface{})
+	if cachedUserData, found := cache.UserDataStore.Get(handle); found {
+		if existingData, ok := cachedUserData.(map[string]interface{}); ok {
+			userData = existingData
+		}
+	}
 
-	//return pageElement
-	return c.JSON(http.StatusOK, pageElement)
+	// Store sites under "sites" key in user data
+	userData["sites"] = pageElement
+	cache.UserDataStore.Set(handle, userData)
 
+	log.Println("Cached user data for handle:", handle)
+	return pageElement, nil
 }
 func CreateSite(c echo.Context) error {
 	// Retrieve the session
