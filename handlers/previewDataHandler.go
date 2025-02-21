@@ -20,7 +20,14 @@ type PreviewData struct {
 	PreviewMap map[string]*pageengine.PageElement
 }
 
-func GetPreviewData(c echo.Context) (*PreviewData, error) {
+type PreviewHandler struct {
+}
+
+func NewPreviewHandler() *PreviewHandler {
+	return &PreviewHandler{}
+}
+
+func (h *PreviewHandler) GetSiteData(c echo.Context) (*PreviewData, error) {
 	// Try to load PreviewData for this handle
 
 	domain := c.Request().Host
@@ -65,7 +72,11 @@ func GetPreviewData(c echo.Context) (*PreviewData, error) {
 	return newPreviewData, nil
 }
 
-func UpdatePreview(c echo.Context) error {
+// func (h *PreviewHandler) GetPage(c echo.Context) error {
+// 	return nil
+// }
+
+func (h *PreviewHandler) Update(c echo.Context) error {
 	// Retrieve the session
 	session, err := auth.GetSession(c.Request())
 	if err != nil {
@@ -138,7 +149,8 @@ func UpdatePreview(c echo.Context) error {
 	})
 }
 
-func GetPreviewElement(c echo.Context) error {
+// return element found anywhere in previewData based on pid
+func (h *PreviewHandler) GetElement(c echo.Context) error {
 	domain := c.Request().Host
 	if domain == "localhost:8081" {
 		domain = "dreamfriday.com"
@@ -171,7 +183,7 @@ func GetPreviewElement(c echo.Context) error {
 	return c.JSON(http.StatusUnauthorized, "Unauthorized")
 }
 
-func TogglePreviewMode(c echo.Context) error {
+func (h *PreviewHandler) TogglePreviewMode(c echo.Context) error {
 	// Debugging log
 	fmt.Println("TogglePreview")
 
@@ -215,4 +227,56 @@ func TogglePreviewMode(c echo.Context) error {
 		referer = "/"
 	}
 	return c.Redirect(http.StatusFound, referer)
+}
+
+// return /page/:pageName from preview
+func (h *PreviewHandler) GetPage(c echo.Context) error {
+
+	pageName := c.Param("pageName")
+	if pageName == "" {
+		return c.JSON(http.StatusBadRequest, "Page name is required")
+	}
+	previewData, err := h.GetSiteData(c)
+	if err != nil {
+		log.Println("Failed to get preview data:", err)
+		return c.JSON(http.StatusInternalServerError, "Failed to get preview data")
+	}
+	if pageData, ok := previewData.SiteData.Pages[pageName]; ok {
+		return c.JSON(http.StatusOK, pageData)
+	}
+	return c.JSON(http.StatusNotFound, "Page not found")
+}
+
+// return all preview components
+func (h *PreviewHandler) GetComponents(c echo.Context) error {
+
+	previewData, err := h.GetSiteData(c)
+	if err != nil {
+		log.Println("Failed to get preview data:", err)
+		return c.JSON(http.StatusInternalServerError, "Failed to get preview data")
+	}
+	// if previewData.SiteData.Components
+	return c.JSON(http.StatusOK, previewData.SiteData.Components)
+
+}
+
+// return component name from preview
+func (h *PreviewHandler) GetComponent(c echo.Context) error {
+
+	name := c.Param("name")
+	if name == "" {
+		return c.JSON(http.StatusBadRequest, "Component name is required")
+	}
+	previewData, err := h.GetSiteData(c)
+	if err != nil {
+		log.Println("Failed to get preview data:", err)
+		return c.JSON(http.StatusInternalServerError, "Failed to get preview data")
+	}
+	// if previewData.SiteData.Components
+	// return c.JSON(http.StatusOK, previewData.SiteData.Components)
+	if component, ok := previewData.SiteData.Components[name]; ok {
+		return c.JSON(http.StatusOK, component)
+	}
+	return c.JSON(http.StatusNotFound, "Component not found")
+
 }

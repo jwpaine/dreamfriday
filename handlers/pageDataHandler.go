@@ -86,17 +86,3 @@ func RenderPage(c echo.Context) error {
 
 	return nil
 }
-
-func GetPage(c echo.Context) error {
-	domain := c.Request().Host
-	if domain == "localhost:8081" {
-		domain = "dreamfriday.com"
-	}
-	pageName := c.Param("pageName")
-	if cachedData, found := cache.SiteDataStore.Get(domain); found {
-		if _, ok := cachedData.(*pageengine.SiteData).Pages[pageName]; ok {
-			return c.JSON(http.StatusOK, cachedData.(*pageengine.SiteData).Pages[pageName])
-		}
-	}
-	return c.JSON(http.StatusNotFound, "Page not found")
-}

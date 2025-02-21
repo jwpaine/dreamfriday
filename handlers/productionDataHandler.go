@@ -52,7 +52,6 @@ func GetSiteData(c echo.Context) (*pageengine.SiteData, error) {
 	return siteData, nil
 
 }
-
 func CreateSite(c echo.Context) error {
 	// Retrieve the session
 	session, err := auth.GetSession(c.Request())
@@ -172,4 +171,40 @@ func PublishSite(c echo.Context) error {
 		"status":  "published",
 		"message": "Published successfully",
 	})
+}
+func GetPage(c echo.Context) error {
+	domain := c.Request().Host
+	if domain == "localhost:8081" {
+		domain = "dreamfriday.com"
+	}
+	pageName := c.Param("pageName")
+	if cachedData, found := cache.SiteDataStore.Get(domain); found {
+		if _, ok := cachedData.(*pageengine.SiteData).Pages[pageName]; ok {
+			return c.JSON(http.StatusOK, cachedData.(*pageengine.SiteData).Pages[pageName])
+		}
+	}
+	return c.JSON(http.StatusNotFound, "Page not found")
+}
+func GetComponent(c echo.Context) error {
+	domain := c.Request().Host
+	if domain == "localhost:8081" {
+		domain = "dreamfriday.com"
+	}
+	name := c.Param("name")
+	if cachedData, found := cache.SiteDataStore.Get(domain); found {
+		if cachedData.(*pageengine.SiteData).Components[name] != nil {
+			return c.JSON(http.StatusOK, cachedData.(*pageengine.SiteData).Components[name])
+		}
+	}
+	return c.JSON(http.StatusNotFound, "Component not found")
+}
+func GetComponents(c echo.Context) error {
+	domain := c.Request().Host
+	if domain == "localhost:8081" {
+		domain = "dreamfriday.com"
+	}
+	if cachedData, found := cache.SiteDataStore.Get(domain); found {
+		return c.JSON(http.StatusOK, cachedData.(*pageengine.SiteData).Components)
+	}
+	return c.JSON(http.StatusNotFound, "Components not found")
 }

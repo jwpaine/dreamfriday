@@ -22,7 +22,8 @@ func LoadSiteDataMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		// Handle preview mode
 		if auth.IsPreviewEnabled(c) {
 			log.Println("Preview mode enabled")
-			previewData, err := handlers.GetPreviewData(c)
+			previewHandler := handlers.NewPreviewHandler()
+			previewData, err := previewHandler.GetSiteData(c)
 			if err != nil {
 				log.Println("Failed to fetch preview data:", err)
 				return c.String(http.StatusInternalServerError, "Failed to fetch preview data")

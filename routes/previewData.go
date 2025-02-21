@@ -8,16 +8,19 @@ import (
 )
 
 func RegisterPreviewRoutes(e *echo.Echo) {
-	e.GET("/preview", handlers.TogglePreviewMode)                   // get preview data
-	e.POST("/preview", handlers.UpdatePreview, auth.AuthMiddleware) // update preview data
+	previewHandler := handlers.NewPreviewHandler()
+
+	e.GET("/preview", previewHandler.TogglePreviewMode)            // get preview data
+	e.POST("/preview", previewHandler.Update, auth.AuthMiddleware) // update preview data
 
 	e.GET("/preview/json", func(c echo.Context) error {
-		previewData, err := handlers.GetPreviewData(c)
+		previewData, err := previewHandler.GetSiteData(c)
 		if err != nil {
 			return c.JSON(500, err)
 		}
 		return c.JSON(200, previewData)
 	}, auth.AuthMiddleware) // get preview data
-	e.GET("/preview/:pid", handlers.GetPreviewElement, auth.AuthMiddleware) // get preview element
+
+	e.GET("/preview/:pid", previewHandler.GetElement, auth.AuthMiddleware) // get preview element
 
 }
