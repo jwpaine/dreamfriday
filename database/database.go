@@ -107,12 +107,14 @@ func FetchPreviewData(domain string, email string) (*pageengine.SiteData, string
 	return &previewData, status, nil
 }
 
-func GetSitesForOwner(email string) ([]string, error) {
+func GetSitesForOwner(handle string) ([]string, error) {
 	if db == nil {
 		return nil, fmt.Errorf("db is not initialized")
 	}
 
-	rows, err := db.Query("SELECT domain FROM sites WHERE owner = $1", email)
+	log.Printf("Fetching sites for owner: %s\n", handle)
+
+	rows, err := db.Query("SELECT domain FROM sites WHERE owner = $1", handle)
 	if err != nil {
 		return nil, err
 	}

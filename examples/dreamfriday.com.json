@@ -241,12 +241,12 @@
                     },
                     {
                         "type": "style",
-                        "text": "body { margin: 0; * { font-family: 'OpenSans_Bold', sans-serif; }"
+                        "text": "@font-face { font-family: 'OpenSans_Bold'; src: url('/static/font/OpenSans_Bold.ttf') format('truetype'); font-weight: bold; font-style: normal; } body { margin: 0; } * { font-family: 'OpenSans_Bold', sans-serif; }"
                     },
                     {
                         "type": "script",
                         "attributes": {
-                            "src": "/static/htmx.min.js"
+                            "src": "/static/ethlogin.js"
                         }
                     }
                 ]
@@ -272,11 +272,26 @@
                                             "color": "white",
                                             "font-size": "3rem",
                                             "margin-bottom": "1rem",
-                                            "text-align": "center"
+                                            "text-align": "center",
+                                            "display" : "none"
                                         }
                                     },
                                     {
-                                        "import": "LoginForm"
+                                        "type" : "button",
+                                        "attributes": {
+                                            "id": "loginButton",
+                                            "onclick" : "loginWithMetaMask()"
+                                        },
+                                        "text" : "Login using MetaMask",
+                                        "style": {
+                                            "font-size": "1.2em",
+                                            "padding": "10px 20px",
+                                            "cursor": "pointer",
+                                            "background": "rgba(0, 0, 0,0.5)",
+                                            "border": "none",
+                                            "color": "white",
+                                            "border-radius": "12px"
+                                        }
                                     }
                                 ],
                                 "style": {
@@ -439,117 +454,6 @@
                 "justify-content": "space-between",
                 "padding": "1rem",
                 "position": "fixed",
-                "width": "100%"
-            }
-        },
-        "LoginForm": {
-            "type": "form",
-            "attributes": {
-                "hx-post": "/login",
-                "hx-swap": "innerHTML",
-                "hx-target": "#messages"
-            },
-            "elements": [
-                {
-                    "type": "label",
-                    "attributes": {
-                        "for": "handle"
-                    },
-                    "text": "Email",
-                    "style": {
-                        "color": "white",
-                        "display": "block",
-                        "font-size": "1rem",
-                        "margin-bottom": "0.5rem"
-                    }
-                },
-                {
-                    "type": "input",
-                    "attributes": {
-                        "id": "email",
-                        "name": "email",
-                        "placeholder": "Enter your email",
-                        "required": "",
-                        "type": "text"
-                    },
-                    "style": {
-                        "border": "none",
-                        "border-radius": "5px",
-                        "font-size": "1rem",
-                        "margin-bottom": "1rem",
-                        "padding": "0.8rem",
-                        "width": "100%"
-                    }
-                },
-                {
-                    "type": "label",
-                    "attributes": {
-                        "for": "password"
-                    },
-                    "text": "Password",
-                    "style": {
-                        "color": "white",
-                        "display": "block",
-                        "font-size": "1rem",
-                        "margin-bottom": "0.5rem"
-                    }
-                },
-                {
-                    "type": "input",
-                    "attributes": {
-                        "id": "password",
-                        "name": "password",
-                        "placeholder": "Enter your password",
-                        "required": "",
-                        "type": "password"
-                    },
-                    "style": {
-                        "border": "none",
-                        "border-radius": "5px",
-                        "font-size": "1rem",
-                        "margin-bottom": "1rem",
-                        "padding": "0.8rem",
-                        "width": "100%"
-                    }
-                },
-                {
-                    "type": "button",
-                    "attributes": {
-                        "type": "submit"
-                    },
-                    "text": "Login",
-                    "style": {
-                        "background": "#22255d",
-                        "border": "none",
-                        "border-radius": "5px",
-                        "color": "white",
-                        "cursor": "pointer",
-                        "font-size": "1.2rem",
-                        "padding": "0.8rem",
-                        "transition": "0.3s",
-                        "width": "100%"
-                    }
-                },
-                {
-                    "type": "span",
-                    "attributes": {
-                        "id": "messages"
-                    },
-                    "style": {
-                        "color": "white",
-                        "display": "block",
-                        "font-size": "1rem",
-                        "margin-top": "1rem"
-                    }
-                }
-            ],
-            "style": {
-                "background": "rgba(255, 255, 255, 0.1)",
-                "border-radius": "10px",
-                "box-shadow": "0 4px 10px rgba(0, 0, 0, 0.2)",
-                "max-width": "400px",
-                "padding": "2rem",
-                "text-align": "center",
                 "width": "100%"
             }
         }
