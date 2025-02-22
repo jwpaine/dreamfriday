@@ -21,6 +21,7 @@ type PreviewData struct {
 }
 
 type PreviewHandler struct {
+	c echo.Context
 }
 
 func NewPreviewHandler() *PreviewHandler {
@@ -183,50 +184,115 @@ func (h *PreviewHandler) GetElement(c echo.Context) error {
 	return c.JSON(http.StatusUnauthorized, "Unauthorized")
 }
 
+func (h *PreviewHandler) IsPreviewEnabled(c echo.Context) (bool, error) {
+	session, err := auth.GetSession(c.Request())
+	if err != nil {
+		log.Println("Failed to retrieve session:", err)
+		return false, fmt.Errorf("failed to retrieve session: %s - are you logged in?", err.Error())
+	}
+
+	preview, ok := session.Values["preview"].(bool)
+	if !ok {
+		return false, fmt.Errorf("preview not found in session")
+	}
+
+	return preview, nil
+}
+
+func (h *PreviewHandler) SetPreview(c echo.Context, preview bool) error {
+	domain := c.Request().Host
+	if domain == "localhost:8081" {
+		domain = "dreamfriday.com"
+	}
+
+	session, err := auth.GetSession(c.Request())
+	if err != nil {
+		log.Println("Failed to retrieve session:", err)
+		return fmt.Errorf("failed to retrieve session")
+	}
+
+	session.Values["preview"] = preview
+	err = session.Save(c.Request(), c.Response())
+	if err != nil {
+		log.Println("Failed to save session:", err)
+		return err
+	}
+
+	log.Printf("Preview mode for %s set to: %v\n", domain, preview)
+
+	return nil
+}
+
 func (h *PreviewHandler) TogglePreviewMode(c echo.Context) error {
 	// Debugging log
 	fmt.Println("TogglePreview")
 
-	// Retrieve session
-	session, err := auth.GetSession(c.Request())
+	preview, err := h.IsPreviewEnabled(c)
 	if err != nil {
-		log.Println("Failed to get session:", err)
-		return c.String(http.StatusUnauthorized, "You need to be logged in to toggle preview mode")
+		log.Println("Failed to check preview mode:", err)
+		return c.String(http.StatusInternalServerError, err.Error())
 	}
 
-	// Validate session handle
-	handle, ok := session.Values["handle"].(string)
-	if !ok || handle == "" {
-		log.Println("Unauthorized: handle not found in session")
-		return c.String(http.StatusUnauthorized, "You need to be logged in to toggle preview mode")
+	log.Println("Current preview mode:", preview)
+
+	// toggle preview mode
+	err = h.SetPreview(c, !preview)
+	if err != nil {
+		log.Println("Failed to toggle preview mode:", err)
+		return c.String(http.StatusInternalServerError, "Failed to toggle preview mode")
 	}
 
-	previewMode, exists := session.Values["preview"].(bool)
-	if !exists {
-		previewMode = true // Default to true if missing
-	}
-	session.Values["preview"] = !previewMode
-
-	// Delete preview data if disabling preview mode
-	if !session.Values["preview"].(bool) {
-		cache.PreviewCache.Delete(handle)
-		log.Println("Deleted preview data for handle:", handle)
+	preview, err = h.IsPreviewEnabled(c)
+	if err != nil {
+		log.Println("Failed to check preview mode:", err)
+		return c.String(http.StatusInternalServerError, err.Error())
 	}
 
-	// Save session
-	if err := session.Save(c.Request(), c.Response()); err != nil {
-		log.Println("Failed to save session:", err)
-		return c.String(http.StatusInternalServerError, "Failed to save session")
-	}
+	log.Println("updated preview mode:", preview)
 
-	log.Printf("Preview mode for %s set to: %v\n", c.Request().Host, session.Values["preview"])
-
-	// Redirect user back to previous page or home
 	referer := c.Request().Referer()
+	log.Println("Redirecting to referer:", referer)
 	if referer == "" {
 		referer = "/"
 	}
 	return c.Redirect(http.StatusFound, referer)
+
+	// Retrieve session
+	// session, err := auth.GetSession(c.Request())
+	// if err != nil {
+	// 	log.Println("Failed to get session:", err)
+	// 	return c.String(http.StatusUnauthorized, "You need to be logged in to toggle preview mode")
+	// }
+
+	// // Validate session handle
+	// handle, ok := session.Values["handle"].(string)
+	// if !ok || handle == "" {
+	// 	log.Println("Unauthorized: handle not found in session")
+	// 	return c.String(http.StatusUnauthorized, "You need to be logged in to toggle preview mode")
+	// }
+
+	// previewMode, exists := session.Values["preview"].(bool)
+	// if !exists {
+	// 	previewMode = true // Default to true if missing
+	// }
+	// session.Values["preview"] = !previewMode
+
+	// Delete preview data if disabling preview mode
+	// if !session.Values["preview"].(bool) {
+	// 	cache.PreviewCache.Delete(handle)
+	// 	log.Println("Deleted preview data for handle:", handle)
+	// }
+
+	// // Save session
+	// if err := session.Save(c.Request(), c.Response()); err != nil {
+	// 	log.Println("Failed to save session:", err)
+	// 	return c.String(http.StatusInternalServerError, "Failed to save session")
+	// }
+
+	// log.Printf("Preview mode for %s set to: %v\n", c.Request().Host, session.Values["preview"])
+
+	// // Redirect user back to previous page or home
+
 }
 
 // return /page/:pageName from preview

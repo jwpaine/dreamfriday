@@ -89,13 +89,19 @@ func (a *EthAuthenticator) AuthCallbackHandler(c echo.Context) error {
 	if verifySignature(request.Address, request.Challenge, request.Signature) {
 		log.Println("ccepted: Signature is valid")
 
+		err := a.StoreSession(c, "", request.Address)
+		if err != nil {
+			log.Println("Error storing session:", err)
+			return c.JSON(http.StatusUnauthorized, map[string]string{"status": "Error storing session"})
+		}
+
 		// Store Ethereum address in session
-		session, _ := GetSession(c.Request())
-		session.Values["handle"] = request.Address
-		// set preview mode to true
-		// session.Values["preview"] = true
-		// Save the session
-		session.Save(c.Request(), c.Response())
+		// session, _ := GetSession(c.Request())
+		// session.Values["handle"] = request.Address
+		// // set preview mode to true
+		// // session.Values["preview"] = true
+		// // Save the session
+		// session.Save(c.Request(), c.Response())
 
 		return c.JSON(http.StatusOK, map[string]string{"status": "accepted", "address": request.Address})
 	} else {
@@ -156,9 +162,11 @@ func verifySignature(address, challenge, signature string) bool {
 
 // StoreSession stores the authenticated Ethereum address in a session
 func (a *EthAuthenticator) StoreSession(c echo.Context, _, address string) error {
+	log.Printf("Storing session for: %s", address)
 	store := GetSessionStore()
 	session, _ := store.Get(c.Request(), "session")
 	session.Values["handle"] = address
+	session.Values["preview"] = false
 	session.Save(c.Request(), c.Response())
 	return nil
 }

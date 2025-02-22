@@ -194,3 +194,18 @@ func Publish(domain string, email string) error {
 
 	return nil
 }
+func IsOwner(domain, owner string) (bool, error) {
+	if db == nil {
+		return false, fmt.Errorf("db is not initialized")
+	}
+
+	log.Printf("Checking if %s is the owner of %s\n", owner, domain)
+
+	var count int
+	err := db.QueryRow("SELECT COUNT(*) FROM sites WHERE domain = $1 AND owner = $2", domain, owner).Scan(&count)
+	if err != nil {
+		return false, err
+	}
+
+	return count > 0, nil
+}

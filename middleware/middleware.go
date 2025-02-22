@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"dreamfriday/auth"
 	handlers "dreamfriday/handlers"
 	"fmt"
 	"log"
@@ -20,12 +19,15 @@ func LoadSiteDataMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			return next(c)
 		}
 		// Handle preview mode
-		if auth.IsPreviewEnabled(c) {
+		previewHandler := handlers.NewPreviewHandler()
+		preview, err := previewHandler.IsPreviewEnabled(c)
+		if err == nil && preview {
 			log.Println("Preview mode enabled")
 			previewHandler := handlers.NewPreviewHandler()
 			previewData, err := previewHandler.GetSiteData(c)
 			if err != nil {
 				log.Println("Failed to fetch preview data:", err)
+				previewHandler.SetPreview(c, false)
 				return c.String(http.StatusInternalServerError, "Failed to fetch preview data")
 			}
 			c.Set("siteData", previewData.SiteData)

@@ -32,16 +32,8 @@ func InitSessionStore() {
 		log.Fatal("Error: SESSION_HASH_KEY or SESSION_BLOCK_KEY is not set")
 	}
 
-	var domain string
-	if os.Getenv("ENV") == "development" {
-		domain = "localhost"
-	} else {
-		domain = ".dreamfriday.com"
-	}
-
 	store = sessions.NewCookieStore([]byte(hashKey), []byte(blockKey))
 	store.Options = &sessions.Options{
-		Domain:   domain,
 		Path:     "/",
 		MaxAge:   3600 * 3, // 3 hours
 		HttpOnly: true,
@@ -76,21 +68,6 @@ func GetHandle(c echo.Context) (string, error) {
 	}
 
 	return handle, nil
-}
-
-func IsPreviewEnabled(c echo.Context) bool {
-	session, err := GetSession(c.Request())
-	if err != nil {
-		log.Println("Failed to retrieve session:", err)
-		return false
-	}
-
-	preview, ok := session.Values["preview"].(bool)
-	if !ok {
-		return false
-	}
-
-	return preview
 }
 
 func IsAuthenticated(c echo.Context) bool {
