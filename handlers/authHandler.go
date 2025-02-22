@@ -130,3 +130,14 @@ func GetUserData(c echo.Context) (map[string]interface{}, error) {
 
 	return userData, nil
 }
+func DeleteUserCache(c echo.Context) error {
+	handle, err := auth.GetHandle(c)
+	if err != nil {
+		log.Println("Failed to get handle:", err)
+		return err
+	}
+	// Delete user data from cache
+	cache.UserDataStore.Delete(handle)
+	log.Println("Deleted user data for handle:", handle)
+	return nil
+}

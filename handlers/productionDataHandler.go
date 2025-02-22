@@ -109,7 +109,7 @@ func CreateSite(c echo.Context) error {
 	if err != nil {
 		log.Println("Failed to unmarshal JSON:", err)
 		return c.Render(http.StatusOK, "message.html", map[string]interface{}{
-			"message": fmt.Sprintf("failed to unmarshal template: %s", err),
+			"message": "failed to copy. Check url",
 		})
 	}
 
@@ -121,7 +121,7 @@ func CreateSite(c echo.Context) error {
 			"message": "Unable to save site to database",
 		})
 	}
-
+	err = DeleteUserCache(c)
 	// Redirect user to the new site admin panel
 	return c.HTML(http.StatusOK, `<script>window.location.href = '/admin/`+domain+`';</script>`)
 }

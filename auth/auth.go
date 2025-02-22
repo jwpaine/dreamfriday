@@ -32,8 +32,16 @@ func InitSessionStore() {
 		log.Fatal("Error: SESSION_HASH_KEY or SESSION_BLOCK_KEY is not set")
 	}
 
+	var domain string
+	if os.Getenv("ENV") == "development" {
+		domain = "localhost"
+	} else {
+		domain = ".dreamfriday.com"
+	}
+
 	store = sessions.NewCookieStore([]byte(hashKey), []byte(blockKey))
 	store.Options = &sessions.Options{
+		Domain:   domain,
 		Path:     "/",
 		MaxAge:   3600 * 3, // 3 hours
 		HttpOnly: true,
