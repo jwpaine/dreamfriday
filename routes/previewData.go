@@ -18,7 +18,7 @@ func RegisterPreviewRoutes(e *echo.Echo) {
 		if err != nil {
 			return c.JSON(500, err)
 		}
-		return c.JSON(200, previewData)
+		return c.JSON(200, previewData.SiteData)
 	}, auth.AuthMiddleware) // get preview data
 
 	e.GET("/preview/element/:pid", previewHandler.GetElement, auth.AuthMiddleware) // get preview element

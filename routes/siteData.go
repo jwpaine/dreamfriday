@@ -27,5 +27,6 @@ func RegisterProductionRoutes(e *echo.Echo) {
 
 	e.POST("/create", handlers.CreateSite, auth.AuthMiddleware)
 	e.POST("/publish", handlers.PublishSite, auth.AuthMiddleware)
+
 	//e.POST("/delete", handlers.DeleteSite, auth.AuthMiddleware)
 }

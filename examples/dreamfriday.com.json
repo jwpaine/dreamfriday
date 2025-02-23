@@ -35,6 +35,19 @@
                                 "type": "section",
                                 "elements": [
                                     {
+                                        "style": {
+                                            "display": "flex",
+                                            "flex-direction": "column"
+                                        },
+                                        "import": "/myaddress",
+                                        "private": true
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "section",
+                                "elements": [
+                                    {
                                         "type": "h1",
                                         "text": "My sites",
                                         "style": {
@@ -64,6 +77,83 @@
                                             "text-align": "center",
                                             "text-decoration": "none"
                                         }
+                                    }
+                                ],
+                                "style": {
+                                    "background": "rgba(0,0,0,0.1)",
+                                    "display": "flex",
+                                    "flex-direction": "column",
+                                    "padding": "25px"
+                                }
+                            }
+                        ],
+                        "style": {
+                            "align-items": "center",
+                            "background": "linear-gradient(135deg, #6a11cb, #2575fc)",
+                            "color": "white",
+                            "display": "flex",
+                            "flex-direction": "column",
+                            "gap": "1.5rem",
+                            "height": "100vh",
+                            "justify-content": "center",
+                            "margin": "0",
+                            "padding": "2rem",
+                            "text-align": "center"
+                        }
+                    }
+                ]
+            },
+            "redirectForLogout": "/login"
+        },
+        "manage": {
+            "head": {
+                "elements": [
+                    {
+                        "type": "title",
+                        "text": "Dream Friday"
+                    },
+                    {
+                        "type": "meta",
+                        "attributes": {
+                            "content": "width=device-width, initial-scale=1",
+                            "name": "viewport"
+                        }
+                    },
+                    {
+                        "type": "style",
+                        "text": "@font-face { font-family: 'OpenSans_Bold'; src: url('/static/font/OpenSans_Bold.ttf') format('truetype'); font-weight: bold; font-style: normal; } body { margin: 0; } * { font-family: 'OpenSans_Bold', sans-serif; }"
+                    }
+                ]
+            },
+            "body": {
+                "elements": [
+                    {
+                        "import": "Header"
+                    },
+                    {
+                        "type": "main",
+                        "attributes": {
+                            "id": "hero"
+                        },
+                        "elements": [
+                            {
+                                "type": "section",
+                                "elements": [
+                                    {
+                                        "type": "h1",
+                                        "text": "Manage",
+                                        "style": {
+                                            "font-size": "2.5rem",
+                                            "margin": "0"
+                                        }
+                                    },
+                                    {
+                                        "type": "h1",
+                                        "import": "/domain"
+                                    },
+                                    { 
+                                        "type" : "textarea",
+                                        "importText": "/preview/json"
                                     }
                                 ],
                                 "style": {
@@ -201,7 +291,7 @@
                         "elements": [
                             {
                                 "type": "h1",
-                                "text": "Hello, world",
+                                "text": "Hello, world!!!",
                                 "style": {
                                     "font-size": "4.5rem",
                                     "margin": "0"
@@ -270,27 +360,27 @@
                                         "text": "Login",
                                         "style": {
                                             "color": "white",
+                                            "display": "none",
                                             "font-size": "3rem",
                                             "margin-bottom": "1rem",
-                                            "text-align": "center",
-                                            "display" : "none"
+                                            "text-align": "center"
                                         }
                                     },
                                     {
-                                        "type" : "button",
+                                        "type": "button",
                                         "attributes": {
                                             "id": "loginButton",
-                                            "onclick" : "loginWithEth()"
+                                            "onclick": "loginWithEth()"
                                         },
-                                        "text" : "Login Using Ethereum",
+                                        "text": "Login with Ethereum Wallet",
                                         "style": {
-                                            "font-size": "1.2em",
-                                            "padding": "10px 20px",
-                                            "cursor": "pointer",
                                             "background": "rgba(0, 0, 0,0.5)",
                                             "border": "none",
+                                            "border-radius": "12px",
                                             "color": "white",
-                                            "border-radius": "12px"
+                                            "cursor": "pointer",
+                                            "font-size": "1.2em",
+                                            "padding": "10px 20px"
                                         }
                                     }
                                 ],

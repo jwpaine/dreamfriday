@@ -159,6 +159,7 @@ func GetExternalComponent(c echo.Context, uri string, routeInternal func(string,
 	var component PageElement
 	err = json.Unmarshal(body, &component)
 	if err != nil {
+		log.Println("Error decoding JSON:", err)
 		return nil, fmt.Errorf("error decoding JSON from %s: %w", uri, err)
 	}
 
@@ -281,7 +282,6 @@ func (p *PageElement) Render(w io.Writer, components map[string]*PageElement, cl
 
 	fmt.Fprint(w, ">")
 
-	// Print text content if present
 	if p.Text != "" {
 		fmt.Fprint(w, p.Text)
 	}

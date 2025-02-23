@@ -208,3 +208,16 @@ func GetComponents(c echo.Context) error {
 	}
 	return c.JSON(http.StatusNotFound, "Components not found")
 }
+
+// returns current domain as a PageElement
+func GetCurrentDomain(c echo.Context) (pageengine.PageElement, error) {
+	domain := c.Request().Host
+	if domain == "localhost:8081" {
+		domain = "dreamfriday.com"
+	}
+	element := pageengine.PageElement{
+		Type: "h1",
+		Text: domain,
+	}
+	return element, nil
+}

@@ -21,7 +21,6 @@ type PreviewData struct {
 }
 
 type PreviewHandler struct {
-	c echo.Context
 }
 
 func NewPreviewHandler() *PreviewHandler {
