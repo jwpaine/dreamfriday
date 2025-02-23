@@ -169,7 +169,7 @@ func (h *PreviewHandler) GetElement(c echo.Context) error {
 	if ok && handle != "" {
 		// load preview data from previewDataStore by handle -> domain -> previewData:
 		if userPreviewData, found := cache.PreviewCache.Get(handle); found {
-			if previewData, found := userPreviewData.(map[string]*PreviewData)[domain]; found {
+			if previewData, ok := userPreviewData.(*PreviewData); ok {
 				if element, found := previewData.PreviewMap[pid]; found {
 					return c.JSON(http.StatusOK, element)
 				}
@@ -177,7 +177,7 @@ func (h *PreviewHandler) GetElement(c echo.Context) error {
 			}
 			return c.JSON(http.StatusNotFound, "no active preview data")
 		}
-		return c.JSON(http.StatusNotFound, "no active preview data")
+
 	}
 	// must be logged in
 	return c.JSON(http.StatusUnauthorized, "Unauthorized")
