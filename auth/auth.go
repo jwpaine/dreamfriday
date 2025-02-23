@@ -35,7 +35,7 @@ func InitSessionStore() {
 	}
 
 	// if ENV=development, set allowDomain to localhost, otherwise set to utils.BaseDomain
-	allowDomain := "." + utils.BaseDomain
+	allowDomain := utils.BaseDomain
 	if os.Getenv("ENV") == "development" {
 		allowDomain = "localhost"
 	}
