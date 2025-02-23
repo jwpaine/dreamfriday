@@ -5,6 +5,7 @@ import (
 	cache "dreamfriday/cache"
 	database "dreamfriday/database"
 	pageengine "dreamfriday/pageengine"
+	utils "dreamfriday/utils"
 	"fmt"
 	"log"
 	"net/http"
@@ -68,11 +69,11 @@ func (h *AuthHandler) AuthCallback(c echo.Context) error {
 func GetUserData(c echo.Context) (map[string]interface{}, error) {
 	session, err := auth.GetSession(c.Request())
 	if err != nil {
-		return nil, fmt.Errorf("AT Protocol: failed to get session")
+		return nil, fmt.Errorf("failed to get session")
 	}
 	handle, ok := session.Values["handle"].(string)
 	if !ok || handle == "" {
-		return nil, fmt.Errorf("AT Protocol: handle not set or invalid in the session")
+		return nil, fmt.Errorf("user address not set or invalid in the session")
 	}
 
 	// Check cache for user data under handle -> "sites"
@@ -101,7 +102,7 @@ func GetUserData(c echo.Context) (map[string]interface{}, error) {
 		sitesElement.Elements[i] = pageengine.PageElement{
 			Type: "a",
 			Attributes: map[string]string{
-				"href":  "/admin/" + site,
+				"href":  "https://" + utils.SiteDomain(site) + "/manage",
 				"class": "external-link",
 			},
 			Style: map[string]string{

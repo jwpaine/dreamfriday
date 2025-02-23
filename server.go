@@ -1,8 +1,6 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
 	"html/template"
 	"io"
 	"log"
@@ -16,7 +14,6 @@ import (
 
 	auth "dreamfriday/auth"
 	Database "dreamfriday/database"
-	handlers "dreamfriday/handlers"
 	Middleware "dreamfriday/middleware"
 	routes "dreamfriday/routes"
 )
@@ -76,8 +73,6 @@ func main() {
 
 	routes.RegisterRoutes(e)
 
-	e.GET("/admin/:domain", AdminSite) // @TODO: use JSON-based page instead
-
 	e.Static("/static", "static")
 
 	e.GET("/favicon.ico", func(c echo.Context) error {
@@ -123,77 +118,6 @@ func LoginForm(c echo.Context) error {
 
 // /admin/:domain route
 // @TODO: use JSON-based page instead
-func AdminSite(c echo.Context) error {
-	log.Println("AdminSite")
-
-	// Resolve domain
-	domain := c.Param("domain")
-	if domain == "localhost:8081" {
-		domain = "dreamfriday.com"
-	}
-
-	previewHandler := handlers.NewPreviewHandler()
-
-	// Check preview mode
-	isPreviewEnabled, err := previewHandler.IsPreviewEnabled(c)
-	if err != nil {
-		log.Println("Failed to check preview mode:", err)
-		return c.String(http.StatusInternalServerError, "Failed to check preview mode")
-	}
-
-	var (
-		previewDataJSON string
-		status          string
-	)
-
-	if !isPreviewEnabled {
-		log.Println("Preview mode disabled")
-		// Get handle
-		handle, err := auth.GetHandle(c)
-		if err != nil {
-			log.Println("Failed to get handle:", err)
-			return c.String(http.StatusInternalServerError, "Failed to get handle")
-		}
-		// Fetch preview data from the database
-		previewData, s, err := Database.FetchPreviewData(domain, handle)
-		if err != nil {
-			log.Printf("Failed to fetch preview data for domain %s: %v", domain, err)
-			return c.String(http.StatusInternalServerError, fmt.Sprintf("Failed to fetch preview data for domain: %s", domain))
-		}
-		status = s
-
-		data, err := json.MarshalIndent(previewData, "", "    ")
-		if err != nil {
-			log.Println("Failed to format preview data:", err)
-			return c.String(http.StatusInternalServerError, "Failed to format preview data")
-		}
-		previewDataJSON = string(data)
-	} else {
-		log.Println("Preview mode enabled")
-		// Fetch preview data from cache
-		previewData, err := previewHandler.GetSiteData(c)
-		if err != nil {
-			log.Printf("Failed to fetch preview data for domain %s: %v", domain, err)
-			return c.String(http.StatusInternalServerError, fmt.Sprintf("Failed to fetch preview data for domain: %s", domain))
-		}
-
-		data, err := json.MarshalIndent(previewData.SiteData, "", "    ")
-		if err != nil {
-			log.Println("Failed to format preview data:", err)
-			return c.String(http.StatusInternalServerError, "Failed to format preview data")
-		}
-		previewDataJSON = string(data)
-		status = "unpublished"
-	}
-
-	// Render the management page with the JSON preview data
-	return c.Render(http.StatusOK, "manage.html", map[string]interface{}{
-		"domain":      domain,
-		"previewData": previewDataJSON,
-		"status":      status,
-		"message":     "",
-	})
-}
 
 /* place holder password reset for auth0
 

@@ -5,6 +5,7 @@ import (
 	cache "dreamfriday/cache"
 	database "dreamfriday/database"
 	pageengine "dreamfriday/pageengine"
+	utils "dreamfriday/utils"
 	"encoding/json"
 	"strings"
 
@@ -30,10 +31,9 @@ func NewPreviewHandler() *PreviewHandler {
 func (h *PreviewHandler) GetSiteData(c echo.Context) (*PreviewData, error) {
 	// Try to load PreviewData for this handle
 
-	domain := c.Request().Host
-	if domain == "localhost:8081" {
-		domain = "dreamfriday.com"
-	}
+	siteName := utils.GetSubdomain(c.Request().Host)
+
+	log.Println("--> Fetching preview data for site:", siteName)
 
 	handle, err := auth.GetHandle(c)
 	if err != nil {
@@ -49,10 +49,10 @@ func (h *PreviewHandler) GetSiteData(c echo.Context) (*PreviewData, error) {
 		return nil, fmt.Errorf("type assertion failed for previewData")
 	}
 
-	log.Println("Preview data not found in cache, fetching from database for domain:", domain)
+	log.Println("Preview data not found in cache, fetching from database for site:", siteName)
 
 	// Fetch preview data from database
-	previewSiteData, _, err := database.FetchPreviewData(domain, handle)
+	previewSiteData, _, err := database.FetchPreviewData(siteName, handle)
 	if err != nil {
 		log.Println("Failed to fetch preview data:", err)
 		return nil, err
@@ -92,20 +92,16 @@ func (h *PreviewHandler) Update(c echo.Context) error {
 	}
 
 	// get domain from form data:
-	domain := strings.TrimSpace(c.FormValue("domain"))
-	if domain == "" {
-		log.Println("Bad Request: Domain is required")
-		return c.String(http.StatusBadRequest, "Domain is required")
-	}
+	siteName := utils.GetSubdomain(c.Request().Host)
 
-	log.Printf("Updating preview data for Domain: %s for handle: %s", domain, handle)
+	log.Printf("Updating preview data for site: %s for handle: %s", siteName, handle)
 
 	// Retrieve and validate preview data
 	previewData := strings.TrimSpace(c.FormValue("previewData"))
 	if previewData == "" {
 		log.Println("Bad Request: Preview data is empty")
 		return c.Render(http.StatusOK, "manageButtons.html", map[string]interface{}{
-			"domain":  domain,
+			"domain":  siteName,
 			"status":  "",
 			"message": "Preview data is required",
 		})
@@ -115,9 +111,9 @@ func (h *PreviewHandler) Update(c echo.Context) error {
 	var parsedPreviewData pageengine.SiteData
 	err = json.Unmarshal([]byte(previewData), &parsedPreviewData)
 	if err != nil {
-		log.Printf("Failed to unmarshal site data for domain %s: %v", domain, err)
+		log.Printf("Failed to unmarshal site data for domain %s: %v", siteName, err)
 		return c.Render(http.StatusOK, "manageButtons.html", map[string]interface{}{
-			"domain":      domain,
+			"domain":      siteName,
 			"previewData": previewData,
 			"status":      "",
 			"message":     "Invalid JSON structure",
@@ -125,24 +121,24 @@ func (h *PreviewHandler) Update(c echo.Context) error {
 	}
 
 	// Save preview data to the database and mark as "unpublished"
-	err = database.UpdatePreviewData(domain, handle, previewData)
+	err = database.UpdatePreviewData(siteName, handle, previewData)
 	if err != nil {
-		log.Printf("Failed to update preview data for domain %s: %v", domain, err)
+		log.Printf("Failed to update preview data for site %s: %v", siteName, err)
 		return c.Render(http.StatusOK, "manageButtons.html", map[string]interface{}{
-			"domain":  domain,
+			"domain":  siteName,
 			"status":  "",
 			"message": "Failed to save, please try again.",
 		})
 	}
 
-	log.Printf("Successfully updated preview data for Domain: %s (Status: unpublished)", domain)
+	log.Printf("Successfully updated preview data for site: %s (Status: unpublished)", siteName)
 
 	// purge handle -> domain from previewDataStore
 	cache.PreviewCache.Delete(handle)
 
 	// Return success response
 	return c.Render(http.StatusOK, "manageButtons.html", map[string]interface{}{
-		"domain":      domain,
+		"domain":      siteName,
 		"previewData": previewData,
 		"status":      "unpublished",
 		"message":     "Draft saved",
@@ -151,10 +147,10 @@ func (h *PreviewHandler) Update(c echo.Context) error {
 
 // return element found anywhere in previewData based on pid
 func (h *PreviewHandler) GetElement(c echo.Context) error {
-	domain := c.Request().Host
-	if domain == "localhost:8081" {
-		domain = "dreamfriday.com"
-	}
+	// domain := c.Request().Host
+	// if domain == "localhost:8081" {
+	// 	domain = "dreamfriday.com"
+	// }
 	pid := c.Param("pid")
 	if pid == "" {
 		return c.JSON(http.StatusBadRequest, "Element ID is required")
@@ -185,10 +181,10 @@ func (h *PreviewHandler) GetElement(c echo.Context) error {
 
 // UpdateElement by pid via /preview/element/:pid
 func (h *PreviewHandler) UpdateElement(c echo.Context) error {
-	domain := c.Request().Host
-	if domain == "localhost:8081" {
-		domain = "dreamfriday.com"
-	}
+	// domain := c.Request().Host
+	// if domain == "localhost:8081" {
+	// 	domain = "dreamfriday.com"
+	// }
 
 	pid := c.Param("pid")
 	if pid == "" {
@@ -261,10 +257,7 @@ func (h *PreviewHandler) IsPreviewEnabled(c echo.Context) (bool, error) {
 }
 
 func (h *PreviewHandler) SetPreview(c echo.Context, preview bool) error {
-	domain := c.Request().Host
-	if domain == "localhost:8081" {
-		domain = "dreamfriday.com"
-	}
+	siteName := utils.GetSubdomain(c.Request().Host)
 
 	session, err := auth.GetSession(c.Request())
 	if err != nil {
@@ -279,7 +272,7 @@ func (h *PreviewHandler) SetPreview(c echo.Context, preview bool) error {
 		return err
 	}
 
-	log.Printf("Preview mode for %s set to: %v\n", domain, preview)
+	log.Printf("Preview mode for %s set to: %v\n", siteName, preview)
 
 	return nil
 }

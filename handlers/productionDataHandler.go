@@ -5,26 +5,26 @@ import (
 	cache "dreamfriday/cache"
 	database "dreamfriday/database"
 	pageengine "dreamfriday/pageengine"
+	utils "dreamfriday/utils"
+
 	"encoding/json"
 	"fmt"
 	"io"
-	"strings"
-
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 )
 
 func GetSiteData(c echo.Context) (*pageengine.SiteData, error) {
-	domain := c.Request().Host
-	if domain == "localhost:8081" {
-		domain = "dreamfriday.com"
-	}
+	siteName := utils.GetSubdomain(c.Request().Host)
 
-	if cachedData, found := cache.SiteDataStore.Get(domain); found {
+	log.Println("--> Fetching preview data for site:", siteName)
+
+	if cachedData, found := cache.SiteDataStore.Get(siteName); found {
 		if siteData, ok := cachedData.(*pageengine.SiteData); ok {
-			log.Println("Serving cached site data for domain:", domain)
+			log.Println("Serving cached site data for site:", siteName)
 			c.Set("siteData", siteData)
 			return siteData, nil
 		}
@@ -32,22 +32,22 @@ func GetSiteData(c echo.Context) (*pageengine.SiteData, error) {
 	}
 
 	// Fetch site data from the database
-	log.Println("Fetching site data from database for domain:", domain)
-	siteData, err := database.FetchSiteDataForDomain(domain)
+	log.Println("Fetching site data from database for site:", siteName)
+	siteData, err := database.FetchSiteDataForDomain(siteName)
 	if err != nil {
-		log.Printf("failed to load site data for domain %s: %v", domain, err)
+		log.Printf("failed to load site data for site %s: %v", siteName, err)
 		return nil, err
 	}
 
 	// Ensure valid site data
 	if siteData == nil {
-		log.Println("Fetched site data is nil for domain:", domain)
-		return nil, fmt.Errorf("fetched site data is nil for domain: %s", domain)
+		log.Println("Fetched site data is nil for site:", siteName)
+		return nil, fmt.Errorf("fetched site data is nil for site: %s", siteName)
 	}
 
 	// Cache site data
-	log.Println("Caching site data for domain:", domain)
-	cache.SiteDataStore.Set(domain, siteData)
+	log.Println("Caching site data for site:", siteName)
+	cache.SiteDataStore.Set(siteName, siteData)
 
 	return siteData, nil
 
@@ -70,11 +70,11 @@ func CreateSite(c echo.Context) error {
 	// print handle
 
 	// Retrieve form values
-	domain := strings.TrimSpace(c.FormValue("domain"))
+	siteName := strings.TrimSpace(c.FormValue("domain"))
 	template := strings.TrimSpace(c.FormValue("template"))
 
 	// Validate inputs
-	if domain == "" || template == "" {
+	if siteName == "" || template == "" {
 		log.Println("Domain or template missing")
 		return c.Render(http.StatusOK, "message.html", map[string]interface{}{
 			"message": "Domain and template are required",
@@ -82,7 +82,7 @@ func CreateSite(c echo.Context) error {
 	}
 
 	// Log the creation request with the identifier (handle or Email)
-	log.Printf("Creating new site - Domain: %s for Identifier: %s", domain, handle)
+	log.Printf("Creating new site - Domain: %s for Identifier: %s", siteName, handle)
 
 	// fetch site data from the template url:
 
@@ -114,16 +114,16 @@ func CreateSite(c echo.Context) error {
 	}
 
 	// Create site in the database, pass identifier
-	err = database.CreateSite(domain, handle, string(templateJSON))
+	err = database.CreateSite(siteName, handle, string(templateJSON))
 	if err != nil {
-		log.Printf("Failed to create site: %s for Identifier: %s - Error: %v", domain, handle, err)
+		log.Printf("Failed to create site: %s for Identifier: %s - Error: %v", siteName, handle, err)
 		return c.Render(http.StatusOK, "message.html", map[string]interface{}{
 			"message": "Unable to save site to database",
 		})
 	}
 	err = DeleteUserCache(c)
 	// Redirect user to the new site admin panel
-	return c.HTML(http.StatusOK, `<script>window.location.href = '/admin/`+domain+`';</script>`)
+	return c.HTML(http.StatusOK, `<script>window.location.href = '/admin/`+siteName+`';</script>`)
 }
 func PublishSite(c echo.Context) error {
 	// Retrieve the session
@@ -173,12 +173,9 @@ func PublishSite(c echo.Context) error {
 	})
 }
 func GetPage(c echo.Context) error {
-	domain := c.Request().Host
-	if domain == "localhost:8081" {
-		domain = "dreamfriday.com"
-	}
+	siteName := utils.GetSubdomain(c.Request().Host)
 	pageName := c.Param("pageName")
-	if cachedData, found := cache.SiteDataStore.Get(domain); found {
+	if cachedData, found := cache.SiteDataStore.Get(siteName); found {
 		if _, ok := cachedData.(*pageengine.SiteData).Pages[pageName]; ok {
 			return c.JSON(http.StatusOK, cachedData.(*pageengine.SiteData).Pages[pageName])
 		}
@@ -186,12 +183,9 @@ func GetPage(c echo.Context) error {
 	return c.JSON(http.StatusNotFound, "Page not found")
 }
 func GetComponent(c echo.Context) error {
-	domain := c.Request().Host
-	if domain == "localhost:8081" {
-		domain = "dreamfriday.com"
-	}
+	siteName := utils.GetSubdomain(c.Request().Host)
 	name := c.Param("name")
-	if cachedData, found := cache.SiteDataStore.Get(domain); found {
+	if cachedData, found := cache.SiteDataStore.Get(siteName); found {
 		if cachedData.(*pageengine.SiteData).Components[name] != nil {
 			return c.JSON(http.StatusOK, cachedData.(*pageengine.SiteData).Components[name])
 		}
@@ -199,11 +193,10 @@ func GetComponent(c echo.Context) error {
 	return c.JSON(http.StatusNotFound, "Component not found")
 }
 func GetComponents(c echo.Context) error {
-	domain := c.Request().Host
-	if domain == "localhost:8081" {
-		domain = "dreamfriday.com"
-	}
-	if cachedData, found := cache.SiteDataStore.Get(domain); found {
+	siteName := utils.GetSubdomain(c.Request().Host)
+
+	log.Println("--> Fetching preview data for site:", siteName)
+	if cachedData, found := cache.SiteDataStore.Get(siteName); found {
 		return c.JSON(http.StatusOK, cachedData.(*pageengine.SiteData).Components)
 	}
 	return c.JSON(http.StatusNotFound, "Components not found")

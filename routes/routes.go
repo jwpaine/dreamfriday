@@ -8,4 +8,5 @@ func RegisterRoutes(e *echo.Echo) {
 	RegisterProductionRoutes(e) // Data route
 	RegisterPageRoutes(e)       // Page route
 	RegisterComponentRoutes(e)  // Component route
+	RegisterManageRoutes(e)     // Manage route
 }

@@ -194,6 +194,7 @@ func Publish(domain string, email string) error {
 
 	return nil
 }
+
 func IsOwner(domain, owner string) (bool, error) {
 	if db == nil {
 		return false, fmt.Errorf("db is not initialized")
