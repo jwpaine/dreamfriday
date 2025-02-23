@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"html/template"
 	"io"
 	"log"
@@ -15,6 +16,7 @@ import (
 
 	auth "dreamfriday/auth"
 	Database "dreamfriday/database"
+	handlers "dreamfriday/handlers"
 	Middleware "dreamfriday/middleware"
 	routes "dreamfriday/routes"
 )
@@ -122,45 +124,72 @@ func LoginForm(c echo.Context) error {
 // /admin/:domain route
 // @TODO: use JSON-based page instead
 func AdminSite(c echo.Context) error {
-	// Retrieve the session
 	log.Println("AdminSite")
-	session, err := auth.GetSession(c.Request())
-	if err != nil {
-		log.Println("Failed to get session:", err)
-		return c.String(http.StatusInternalServerError, "Failed to retrieve session")
-	}
 
-	identifier, ok := session.Values["handle"].(string)
-	if !ok || identifier == "" {
-		log.Println("Unauthorized: Identifier (email or handle) not found in session")
-		return c.String(http.StatusUnauthorized, "Unauthorized: No valid identifier found")
-	}
-
-	// Retrieve domain from /admin/:domain route
+	// Resolve domain
 	domain := c.Param("domain")
-	log.Println("Pulling preview data for Domain:", domain)
-
-	// Fetch preview data from the database using the identifier
-	previewData, status, err := Database.FetchPreviewData(domain, identifier)
-	if err != nil {
-		log.Println("Failed to fetch preview data for domain:", domain, "Error:", err)
-		return c.String(http.StatusInternalServerError, "Failed to fetch preview data for domain: "+domain)
+	if domain == "localhost:8081" {
+		domain = "dreamfriday.com"
 	}
 
-	// Convert previewData (*Models.SiteData) to a formatted JSON string
-	previewDataBytes, err := json.MarshalIndent(previewData, "", "    ")
+	previewHandler := handlers.NewPreviewHandler()
+
+	// Check preview mode
+	isPreviewEnabled, err := previewHandler.IsPreviewEnabled(c)
 	if err != nil {
-		log.Println("Failed to format preview data:", err)
-		return c.String(http.StatusInternalServerError, "Failed to format preview data")
+		log.Println("Failed to check preview mode:", err)
+		return c.String(http.StatusInternalServerError, "Failed to check preview mode")
 	}
 
-	// Convert JSON byte array to string
-	previewDataString := string(previewDataBytes)
+	var (
+		previewDataJSON string
+		status          string
+	)
 
-	// Pass the formatted JSON string to the view
+	if !isPreviewEnabled {
+		log.Println("Preview mode disabled")
+		// Get handle
+		handle, err := auth.GetHandle(c)
+		if err != nil {
+			log.Println("Failed to get handle:", err)
+			return c.String(http.StatusInternalServerError, "Failed to get handle")
+		}
+		// Fetch preview data from the database
+		previewData, s, err := Database.FetchPreviewData(domain, handle)
+		if err != nil {
+			log.Printf("Failed to fetch preview data for domain %s: %v", domain, err)
+			return c.String(http.StatusInternalServerError, fmt.Sprintf("Failed to fetch preview data for domain: %s", domain))
+		}
+		status = s
+
+		data, err := json.MarshalIndent(previewData, "", "    ")
+		if err != nil {
+			log.Println("Failed to format preview data:", err)
+			return c.String(http.StatusInternalServerError, "Failed to format preview data")
+		}
+		previewDataJSON = string(data)
+	} else {
+		log.Println("Preview mode enabled")
+		// Fetch preview data from cache
+		previewData, err := previewHandler.GetSiteData(c)
+		if err != nil {
+			log.Printf("Failed to fetch preview data for domain %s: %v", domain, err)
+			return c.String(http.StatusInternalServerError, fmt.Sprintf("Failed to fetch preview data for domain: %s", domain))
+		}
+
+		data, err := json.MarshalIndent(previewData.SiteData, "", "    ")
+		if err != nil {
+			log.Println("Failed to format preview data:", err)
+			return c.String(http.StatusInternalServerError, "Failed to format preview data")
+		}
+		previewDataJSON = string(data)
+		status = "unpublished"
+	}
+
+	// Render the management page with the JSON preview data
 	return c.Render(http.StatusOK, "manage.html", map[string]interface{}{
 		"domain":      domain,
-		"previewData": previewDataString,
+		"previewData": previewDataJSON,
 		"status":      status,
 		"message":     "",
 	})

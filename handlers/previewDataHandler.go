@@ -183,6 +183,68 @@ func (h *PreviewHandler) GetElement(c echo.Context) error {
 	return c.JSON(http.StatusUnauthorized, "Unauthorized")
 }
 
+// UpdateElement by pid via /preview/element/:pid
+func (h *PreviewHandler) UpdateElement(c echo.Context) error {
+	domain := c.Request().Host
+	if domain == "localhost:8081" {
+		domain = "dreamfriday.com"
+	}
+
+	pid := c.Param("pid")
+	if pid == "" {
+		return c.JSON(http.StatusBadRequest, "Element ID is required")
+	}
+
+	log.Println("Updating preview element:", pid)
+
+	// Retrieve session
+	session, err := auth.GetSession(c.Request())
+	if err != nil {
+		log.Println("Failed to get session:", err)
+		return c.String(http.StatusInternalServerError, "Failed to retrieve session")
+	}
+
+	handle, ok := session.Values["handle"].(string)
+	if !ok || handle == "" {
+		return c.JSON(http.StatusUnauthorized, "Unauthorized")
+	}
+
+	// Retrieve user's preview data from cache
+	userPreviewData, found := cache.PreviewCache.Get(handle)
+	if !found {
+		return c.JSON(http.StatusUnauthorized, "Unauthorized")
+	}
+
+	previewData, ok := userPreviewData.(*PreviewData)
+	if !ok {
+		return c.JSON(http.StatusNotFound, "no active preview data")
+	}
+
+	// Check if the element exists in the PreviewMap
+	existingElement, exists := previewData.PreviewMap[pid]
+	if !exists || existingElement == nil {
+		return c.JSON(http.StatusNotFound, "Element not found")
+	}
+
+	log.Println("Element found in preview data:", pid)
+
+	// Unmarshal the posted JSON into a PageElement instance.
+	var updatedElement pageengine.PageElement
+	if err := json.NewDecoder(c.Request().Body).Decode(&updatedElement); err != nil {
+		return c.JSON(http.StatusBadRequest, "Invalid JSON")
+	}
+
+	// Update the fields of the existing element rather than replacing its pointer.
+	*existingElement = updatedElement
+
+	log.Println("Updating element:", *existingElement)
+
+	// Optionally, if your cache requires an explicit Set to persist the changes:
+	cache.PreviewCache.Set(handle, previewData)
+
+	return c.JSON(http.StatusOK, existingElement)
+}
+
 func (h *PreviewHandler) IsPreviewEnabled(c echo.Context) (bool, error) {
 	session, err := auth.GetSession(c.Request())
 	if err != nil {

@@ -38,9 +38,10 @@ Rendered:
 
 Factory:
 
-- **POST /create** accepts **domain** and **template** (another domain to cppy).
+- **POST /create** accepts **domain** and **template** (another domain to copy).
 - **POST /admin/domain"** accepts **previewData** (JSON). Update's preview data for specified **domain**
 - **POST /publish/domain** copies **preview** data to **production**
+- **POST /preview/element/:pid** Updates element pid in the preview cache
 - **GET /logout** destroys current session
 - **GET /preview** toggle's preview mode for current session. Page routes will render preview data instead of production
 
@@ -155,4 +156,32 @@ Components are named Page Elements. They are publically discoverable via the **/
   "component2" : {}
 }
 ```
+
+## Creating a site
+
+Navigating to /create will render the site creation page if one exists for your domain.
+
+Supply domain name (eg: myawsomesite.dreamfriday.com)
+Supply template. This should a url that returns SiteData JSON. 
+Example: https://dreamfriday.com/json
+
+## Preview Mode
+
+Hitting the /preview route will toggle preview mode.
+When in preview mode, there is a red border around the entire page you're viewing.
+
+You can now nnativate the site and load various pages, all of which came from the preview column in the database. This preview data was catched, and now you may edit the preview cache before publishing your changes to the production column.
+
+## Live editing
+
+When preview mode is active, every element you see on the screen is assigned a preview identifier. You can see these when inspecting the site. The /preview/element/:pid route will return the JSON structure of this PageElement from cache, and posting PageElement structured JSON to the route, will update the element in the preview cache.
+
+While in preview mode, clicking on an element will launch an element editor. Links are disabled while in preview moode to allow live editing.
+
+![preview editor](./static/img/previeweditor.png)
+
+Once you've made updates, navigate to /admin/domain to review changes, update the preview column, and publish changes to production.
+
+
+
 

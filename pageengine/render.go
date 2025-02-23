@@ -305,6 +305,8 @@ func RenderPage(pageData Page, components map[string]*PageElement, w io.Writer, 
 	fmt.Fprint(w, "<!DOCTYPE html><html><head>")
 
 	if previewElementMap != nil {
+		// add a javascript link to /static/editor.js
+		fmt.Fprint(w, `<script src="/static/editor.js"></script>`)
 		fmt.Fprint(w, "<style>body { border: 2px solid red; }</style>")
 	}
 
