@@ -123,7 +123,7 @@ func CreateSite(c echo.Context) error {
 	}
 	err = DeleteUserCache(c)
 	// Redirect user to the new site admin panel
-	return c.HTML(http.StatusOK, `<script>window.location.href = '/admin/`+siteName+`';</script>`)
+	return c.HTML(http.StatusOK, `<script>window.location.href = 'https://`+utils.SiteDomain(siteName)+`/manage</script>`)
 }
 func PublishSite(c echo.Context) error {
 	// Retrieve the session
