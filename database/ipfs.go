@@ -14,7 +14,7 @@ Process
 5) if users updates data for siteName, new CID is stored on IPFS
 and mapping is updated on chain. Peer handling IPFS write unpin old CID.
 
-6) peers subscribe to chain events and update cache when mappings change
+6)  peers subscribe to chain events and update cache when mappings change
 
 
 */
