@@ -20,13 +20,15 @@ Serialized
 - **GET /components**: returns all non-private components (PageElements)
 - **GET /component/:name** retuns a single non-private component (PageElement)
 - **GET /page/:name** returns a page's structure
+- **GET /pages** returns all pages
 - **GET /preview/json**: returns a site's complete preview structure for owner
 - **GET /preview/components**: returns all preview components (PageElements) for owner
 - **GET /preview/component/:name** retuns a single preview component (PageElement) for owner
-- **GET /preview/page/:name** returns a page's preview structure for owner
+- **GET /preview/page/:name** returns a page's preview structure
+- **GET /preview/pages** returns all pages from preview
 - **GET /preview/element/:pid** returns an element from anywhere in preview site structure by it's pid
 - **GET /mysites** returns a PageElement containing the list of sites for the logged in user
-- **GET /myaddress** returns a PageElement containing the user's address
+- **GET /myaddress** returns a PageElement containing the authenticated user's address
 
 Rendered:
 - **GET /** renders page **'home'** (ie: URL/pages/home)

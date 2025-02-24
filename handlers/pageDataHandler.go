@@ -40,13 +40,18 @@ func RenderPage(c echo.Context) error {
 	log.Printf("Rendering page: %s (Logged in: %v)\n", pageName, loggedIn)
 
 	// Handle redirects
-	if pageData.RedirectForLogin != "" && loggedIn {
-		log.Println("Already logged in, redirecting to:", pageData.RedirectForLogin)
-		return c.Redirect(http.StatusFound, pageData.RedirectForLogin)
-	}
-	if pageData.RedirectForLogout != "" && !loggedIn {
-		log.Println("Logged out, redirecting to:", pageData.RedirectForLogout)
-		return c.Redirect(http.StatusFound, pageData.RedirectForLogout)
+	previewHandler := NewPreviewHandler()
+	previewEnabled, _ := previewHandler.IsPreviewEnabled(c)
+
+	if !previewEnabled {
+		if pageData.RedirectForLogin != "" && loggedIn {
+			log.Println("Already logged in, redirecting to:", pageData.RedirectForLogin)
+			return c.Redirect(http.StatusFound, pageData.RedirectForLogin)
+		}
+		if pageData.RedirectForLogout != "" && !loggedIn {
+			log.Println("Logged out, redirecting to:", pageData.RedirectForLogout)
+			return c.Redirect(http.StatusFound, pageData.RedirectForLogout)
+		}
 	}
 
 	components := siteData.Components
@@ -56,9 +61,8 @@ func RenderPage(c echo.Context) error {
 
 	// Check if preview mode is enabled
 	handle, ok := session.Values["handle"].(string)
-	previewMode, previewExists := session.Values["preview"].(bool)
 
-	if ok && previewExists && previewMode {
+	if previewEnabled {
 		// Retrieve PreviewData from previewDataStore
 		if previewDataIface, found := cache.PreviewCache.Get(handle); found {
 			if previewData, ok := previewDataIface.(*PreviewData); ok {

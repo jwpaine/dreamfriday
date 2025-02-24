@@ -14,8 +14,10 @@ func RegisterPageRoutes(e *echo.Echo) {
 
 	// production only
 	e.GET("/page/:pageName", handlers.GetPage) // json page data
+	e.GET("/pages", handlers.GetPages)         // json all page data
 
 	// preview only
 	previewHandler := handlers.NewPreviewHandler()
 	e.GET("/preview/page/:pageName", previewHandler.GetPage) // json page data
+	e.GET("/preview/pages", previewHandler.GetPages)         // json all page data
 }
