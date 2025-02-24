@@ -182,6 +182,15 @@ func GetPage(c echo.Context) error {
 	}
 	return c.JSON(http.StatusNotFound, "Page not found")
 }
+func GetPages(c echo.Context) error {
+	siteName := utils.GetSubdomain(c.Request().Host)
+	if cachedData, found := cache.SiteDataStore.Get(siteName); found {
+		if pages := cachedData.(*pageengine.SiteData).Pages; pages != nil {
+			return c.JSON(http.StatusOK, pages)
+		}
+	}
+	return c.JSON(http.StatusNotFound, "Page not found")
+}
 func GetComponent(c echo.Context) error {
 	siteName := utils.GetSubdomain(c.Request().Host)
 	name := c.Param("name")

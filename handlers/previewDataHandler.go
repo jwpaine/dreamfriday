@@ -367,6 +367,19 @@ func (h *PreviewHandler) GetPage(c echo.Context) error {
 	return c.JSON(http.StatusNotFound, "Page not found")
 }
 
+func (h *PreviewHandler) GetPages(c echo.Context) error {
+
+	previewData, err := h.GetSiteData(c)
+	if err != nil {
+		log.Println("Failed to get preview data:", err)
+		return c.JSON(http.StatusInternalServerError, "Failed to get preview data")
+	}
+	if pageData := previewData.SiteData.Pages; pageData != nil {
+		return c.JSON(http.StatusOK, pageData)
+	}
+	return c.JSON(http.StatusNotFound, "Page not found")
+}
+
 // return all preview components
 func (h *PreviewHandler) GetComponents(c echo.Context) error {
 
