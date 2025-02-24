@@ -35,7 +35,7 @@ Rendered:
 - **GET /page_name** renderes a page by name
 - **GET /login** renders [dreamfriday.com/page/login](https://dreamfriday.com/page/login)
 - **GET /admin** renders [dreamfriday.com/page/admin](https://dreamfriday.com/page/admin)
-- **GET /admin/domain** renders site details and JSON editor for specified domain for logged in owner
+- **GET /manage** renders site details and JSON editor if user has ownership
 - **GET /create** renders [dreamfriday.com/page/create](https://dreamfriday.com/page/create)
 
 Factory:
