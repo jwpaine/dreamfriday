@@ -44,6 +44,11 @@ func init() {
 	log.Println("API Key:", IPFS_API_KEY)
 
 	ipfs.GetVersion()
+	// hash, err := ipfs.PutData("this is my test")
+	// if err != nil {
+	// 	log.Fatalf("Failed to put data: %v", err)
+	// }
+	// log.Println("IPFS hash:", hash)
 
 }
 

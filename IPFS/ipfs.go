@@ -1,18 +1,17 @@
 package ipfs
 
 import (
-	"context"
 	"fmt"
+	"io"
 	"log"
-
-	shell "github.com/ipfs/go-ipfs-api"
+	"net/http"
 )
 
 // IPFSManager manages connections to the IPFS API.
 type IPFSManager struct {
 	IPFS_URL     string
 	IPFS_API_KEY string
-	Shell        *shell.Shell
+	Client       *http.Client
 }
 
 // Manager is a globally accessible instance of IPFSManager.
@@ -23,11 +22,10 @@ func NewIPFSManager(ipfsURL, apiKey string) (*IPFSManager, error) {
 	if ipfsURL == "" || apiKey == "" {
 		return nil, fmt.Errorf("IPFS URL and API key must be provided")
 	}
-	sh := shell.NewShell(ipfsURL)
 	return &IPFSManager{
 		IPFS_URL:     ipfsURL,
 		IPFS_API_KEY: apiKey,
-		Shell:        sh,
+		Client:       &http.Client{},
 	}, nil
 }
 
@@ -41,25 +39,32 @@ func InitManager(ipfsURL, apiKey string) error {
 	return nil
 }
 
-// GetVersion uses the go-ipfs-api client to fetch and print the IPFS node version.
-// Instead of calling Manager.Shell.Version(), we build a request so we can inject the API key header.
 func GetVersion() {
 	if Manager == nil {
 		log.Fatal("IPFS Manager is not initialized")
 	}
-	// Build a request for the "version" endpoint.
-	req := Manager.Shell.Request("version")
-	// Inject the API key header.
-	req.Header("X-API-KEY", Manager.IPFS_API_KEY)
-
-	// Prepare a structure to hold the response.
-	var res struct {
-		Version string `json:"Version"`
-	}
-	// Execute the request.
-	err := req.Exec(context.Background(), &res)
+	url := Manager.IPFS_URL + "/version"
+	req, err := http.NewRequest("POST", url, nil)
 	if err != nil {
-		log.Fatalf("Error getting version: %v", err)
+		log.Fatalf("Error creating request: %v", err)
 	}
-	fmt.Println("IPFS Node Version:", res.Version)
+
+	req.Header.Set("X-API-KEY", Manager.IPFS_API_KEY)
+
+	// ********** EXECUTE REQUEST ************
+	res, err := Manager.Client.Do(req)
+	if err != nil {
+		log.Fatalf("Error making request: %v", err)
+	}
+
+	defer res.Body.Close()
+
+	// ********** READ and RESPONSE BODY ************
+	body, err := io.ReadAll(res.Body)
+
+	if err != nil {
+		log.Fatalf("Error reading response body: %v", err)
+	}
+
+	fmt.Println(string(body))
 }
