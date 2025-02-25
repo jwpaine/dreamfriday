@@ -35,20 +35,12 @@ func init() {
 	}
 
 	// Initialize IPFS
-	IPFS_URI := os.Getenv("IPFS_API_URI")
-	IPFS_API_KEY := os.Getenv("IPFS_API_KEY")
-	if err := ipfs.InitManager(IPFS_URI, IPFS_API_KEY); err != nil {
-		log.Fatalf("Failed to initialize IPFS Manager: %v", err)
+
+	if err := ipfs.InitManager(); err != nil {
+		log.Fatalf("Failed to initialize IPFS manager: %v", err)
 	}
 
-	log.Println("API Key:", IPFS_API_KEY)
-
 	ipfs.GetVersion()
-	// hash, err := ipfs.PutData("this is my test")
-	// if err != nil {
-	// 	log.Fatalf("Failed to put data: %v", err)
-	// }
-	// log.Println("IPFS hash:", hash)
 
 }
 
