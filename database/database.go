@@ -44,25 +44,26 @@ func Connect() (*sql.DB, error) {
 func FetchSiteDataForDomain(domain string) (*pageengine.SiteData, error) {
 	fmt.Printf("Fetching site data from the database for domain: %s\n", domain)
 
-	var siteDataJSON string
+	var ipfsCID string
 	var siteData pageengine.SiteData
 
-	// Ensure that db is not nil before attempting to query
-	if db == nil {
-		log.Println("db is nil")
-		return nil, fmt.Errorf("database connection is not initialized")
-	}
-
-	// Using $1 to safely inject the domain parameter into the query
-	err := db.QueryRow("SELECT data FROM sites WHERE domain = $1", domain).Scan(&siteDataJSON)
+	// obtain ipfs hash from table
+	// @TODO: retrieve hash from blockchain in the future
+	err := db.QueryRow("SELECT data_cid FROM sites WHERE domain = $1", domain).Scan(&ipfsCID)
 	if err == sql.ErrNoRows {
-		log.Printf("No site data found for domain: %s", domain)
+		log.Printf("No hash found for domain: %s", domain)
 		return nil, fmt.Errorf("No site data found for domain: %s", domain)
 	}
+
+	log.Printf("IPFS CID for domain %s: %s\n", domain, ipfsCID)
+
+	siteDataJSON, err := ipfs.GetFile(ipfsCID)
 	if err != nil {
-		log.Printf("Failed to fetch site data for domain %s: %v", domain, err)
+		log.Printf("failed to get site data for %s (cid: %s) %v", domain, ipfsCID, err)
 		return nil, err
 	}
+
+	log.Println("Site data retrieved successfully from IPFS")
 
 	// Unmarshal the JSON data into the siteData struct
 	err = json.Unmarshal([]byte(siteDataJSON), &siteData)
@@ -72,6 +73,7 @@ func FetchSiteDataForDomain(domain string) (*pageengine.SiteData, error) {
 	}
 
 	return &siteData, nil
+
 }
 
 func FetchPreviewData(domain string, email string) (string, string, error) {
