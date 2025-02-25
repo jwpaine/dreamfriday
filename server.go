@@ -41,6 +41,12 @@ func init() {
 	}
 
 	ipfs.GetVersion()
+	hash, err := ipfs.PutFile("This is John Paine's Data!!!")
+
+	if err != nil {
+		log.Println("failed to get hash", err)
+	}
+	log.Println("Hash:", hash)
 
 }
 
