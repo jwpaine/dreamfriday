@@ -121,9 +121,9 @@ func CreateSite(c echo.Context) error {
 			"message": "Unable to save site to database",
 		})
 	}
-	err = DeleteUserCache(c)
+	DeleteUserCache(c)
 	// Redirect user to the new site admin panel
-	return c.HTML(http.StatusOK, `<script>window.location.href = 'https://`+utils.SiteDomain(siteName)+`/manage</script>`)
+	return c.HTML(http.StatusOK, `<script>window.location.href = 'https://`+utils.SiteDomain(siteName)+`/manage'</script>`)
 }
 func PublishSite(c echo.Context) error {
 	// Retrieve the session

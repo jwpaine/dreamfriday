@@ -152,7 +152,7 @@ func UpdatePreviewData(domain string, email string, previewData string) error {
 }
 
 func CreateSite(domain string, owner string, template string) error {
-	fmt.Printf("Creating new site: domain: %s from template: %s for owner: %s\n", domain, template, owner)
+	fmt.Printf("Creating new site: domain: %s for owner: %s\n", domain, owner)
 
 	// Ensure that db is not nil before attempting to query
 	if db == nil {
@@ -160,13 +160,19 @@ func CreateSite(domain string, owner string, template string) error {
 		return fmt.Errorf("database connection is not initialized")
 	}
 
+	hash, err := ipfs.PutFile(template)
+	if err != nil {
+		log.Printf("Failed to add site data for domain %s: %v", domain, err)
+		return err
+	}
+	log.Printf("Saved site %s on ipfs: %s", domain, hash)
+
 	// Execute the update query
-	_, err := db.Exec("INSERT INTO sites (domain, owner, preview, data, status) VALUES ($1, $2, $3, $3, 'published')", domain, owner, template)
+	_, err = db.Exec("INSERT INTO sites (domain, owner, preview, data, data_cid, status) VALUES ($1, $2, $3, $3, $4, 'published')", domain, owner, template, hash)
 	if err != nil {
 		log.Printf("Failed to create site for domain: %s, error: %v", domain, err)
 		return err
 	}
-
 	return nil
 }
 
