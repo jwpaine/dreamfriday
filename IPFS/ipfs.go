@@ -1,30 +1,65 @@
 package ipfs
 
-/*
-
-Process
-
-1) user creates siteName on domainA
-2) domainA stores and pins site data on IPFS with CID
-2) user stores siteName -> CID mapping on chain
-
-3) users visit siteName.domainA or siteName.domainB
-4) both servers fetch IPFS CID from chain, pull IPFS data, cache, and render site.
-
-5) if users updates data for siteName, new CID is stored on IPFS
-and mapping is updated on chain. Peer handling IPFS write unpin old CID.
-
-6)  peers subscribe to chain events and update cache when mappings change
-
-
-*/
-
 import (
-	"hash/fnv"
+	"context"
+	"fmt"
+	"log"
+
+	shell "github.com/ipfs/go-ipfs-api"
 )
 
-func hashSiteName(s string) uint32 {
-	h := fnv.New32a()
-	h.Write([]byte(s))
-	return h.Sum32()
+// IPFSManager manages connections to the IPFS API.
+type IPFSManager struct {
+	IPFS_URL     string
+	IPFS_API_KEY string
+	Shell        *shell.Shell
+}
+
+// Manager is a globally accessible instance of IPFSManager.
+var Manager *IPFSManager
+
+// NewIPFSManager creates a new IPFSManager instance.
+func NewIPFSManager(ipfsURL, apiKey string) (*IPFSManager, error) {
+	if ipfsURL == "" || apiKey == "" {
+		return nil, fmt.Errorf("IPFS URL and API key must be provided")
+	}
+	sh := shell.NewShell(ipfsURL)
+	return &IPFSManager{
+		IPFS_URL:     ipfsURL,
+		IPFS_API_KEY: apiKey,
+		Shell:        sh,
+	}, nil
+}
+
+// InitManager initializes the global Manager instance.
+func InitManager(ipfsURL, apiKey string) error {
+	m, err := NewIPFSManager(ipfsURL, apiKey)
+	if err != nil {
+		return err
+	}
+	Manager = m
+	return nil
+}
+
+// GetVersion uses the go-ipfs-api client to fetch and print the IPFS node version.
+// Instead of calling Manager.Shell.Version(), we build a request so we can inject the API key header.
+func GetVersion() {
+	if Manager == nil {
+		log.Fatal("IPFS Manager is not initialized")
+	}
+	// Build a request for the "version" endpoint.
+	req := Manager.Shell.Request("version")
+	// Inject the API key header.
+	req.Header("X-API-KEY", Manager.IPFS_API_KEY)
+
+	// Prepare a structure to hold the response.
+	var res struct {
+		Version string `json:"Version"`
+	}
+	// Execute the request.
+	err := req.Exec(context.Background(), &res)
+	if err != nil {
+		log.Fatalf("Error getting version: %v", err)
+	}
+	fmt.Println("IPFS Node Version:", res.Version)
 }

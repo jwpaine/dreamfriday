@@ -12,6 +12,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 
+	ipfs "dreamfriday/IPFS"
 	auth "dreamfriday/auth"
 	Database "dreamfriday/database"
 	Middleware "dreamfriday/middleware"
@@ -32,6 +33,17 @@ func init() {
 	if Database.ConnStr == "" {
 		log.Fatal("DATABASE_CONNECTION_STRING environment variable not set")
 	}
+
+	// Initialize IPFS
+	IPFS_URI := os.Getenv("IPFS_API_URI")
+	IPFS_API_KEY := os.Getenv("IPFS_API_KEY")
+	if err := ipfs.InitManager(IPFS_URI, IPFS_API_KEY); err != nil {
+		log.Fatalf("Failed to initialize IPFS Manager: %v", err)
+	}
+
+	log.Println("API Key:", IPFS_API_KEY)
+
+	ipfs.GetVersion()
 
 }
 
