@@ -8,6 +8,7 @@ import (
 
 	_ "github.com/lib/pq"
 
+	ipfs "dreamfriday/IPFS"
 	pageengine "dreamfriday/pageengine"
 )
 
@@ -73,38 +74,30 @@ func FetchSiteDataForDomain(domain string) (*pageengine.SiteData, error) {
 	return &siteData, nil
 }
 
-func FetchPreviewData(domain string, email string) (*pageengine.SiteData, string, error) {
+func FetchPreviewData(domain string, email string) (string, string, error) {
 	fmt.Printf("Fetching preview data from the database for domain: %s\n", domain)
 
 	var previewDataJSON string
-	var previewData pageengine.SiteData
 	var status string
 
 	// Ensure that db is not nil before attempting to query
 	if db == nil {
 		log.Println("db is nil")
-		return nil, "", fmt.Errorf("database connection is not initialized")
+		return "", "", fmt.Errorf("database connection is not initialized")
 	}
 
 	// Query for both preview (as JSON) and status fields
 	err := db.QueryRow("SELECT preview, status FROM sites WHERE domain = $1 AND owner = $2", domain, email).Scan(&previewDataJSON, &status)
 	if err == sql.ErrNoRows {
 		log.Printf("No preview data found for domain: %s", domain)
-		return nil, "", fmt.Errorf("No preview data found for domain: %s", domain)
+		return "", "", fmt.Errorf("No preview data found for domain: %s", domain)
 	}
 	if err != nil {
 		log.Printf("Failed to fetch preview data for domain %s: %v", domain, err)
-		return nil, "", err
+		return "", "", err
 	}
 
-	// Unmarshal the JSON data into the previewData struct
-	err = json.Unmarshal([]byte(previewDataJSON), &previewData)
-	if err != nil {
-		log.Printf("Failed to unmarshal preview data for domain --> %s: %v", domain, err)
-		return nil, "", fmt.Errorf("Failed to unmarshal preview data: %v", err)
-	}
-
-	return &previewData, status, nil
+	return previewDataJSON, status, nil
 }
 
 func GetSitesForOwner(handle string) ([]string, error) {
@@ -177,15 +170,25 @@ func CreateSite(domain string, owner string, template string) error {
 
 func Publish(domain string, email string) error {
 	fmt.Printf("publishing domain: %s\n", domain)
+	siteData, _, err := FetchPreviewData(domain, email)
+	if err != nil {
+		log.Printf("Failed to fetch preview data for domain %s: %v", domain, err)
+		return err
+	}
+	hash, err := ipfs.PutFile(siteData)
+	if err != nil {
+		log.Printf("Failed to publish site data for domain %s: %v", domain, err)
+		return err
+	}
+	log.Printf("Saved site %s on ipfs: %s", domain, hash)
 
-	// Ensure that db is not nil before attempting to query
+	// @TODO: deprecate data column in the future (data stored on ipfs and cid stored on chain)
 	if db == nil {
 		log.Println("db is nil")
 		return fmt.Errorf("database connection is not initialized")
 	}
-
 	// Execute the update query
-	_, err := db.Exec("UPDATE sites SET data = preview, status = 'published' WHERE domain = $1 AND owner = $2", domain, email)
+	_, err = db.Exec("UPDATE sites SET data = preview, status = 'published', data_cid = $1 WHERE domain = $2 AND owner = $3", hash, domain, email)
 
 	if err != nil {
 		log.Printf("Failed to publish domain: %s, error: %v", domain, err)

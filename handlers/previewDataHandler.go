@@ -52,15 +52,24 @@ func (h *PreviewHandler) GetSiteData(c echo.Context) (*PreviewData, error) {
 	log.Println("Preview data not found in cache, fetching from database for site:", siteName)
 
 	// Fetch preview data from database
-	previewSiteData, _, err := database.FetchPreviewData(siteName, handle)
+	previewDataString, _, err := database.FetchPreviewData(siteName, handle)
 	if err != nil {
 		log.Println("Failed to fetch preview data:", err)
 		return nil, err
 	}
 
+	var previewSiteData pageengine.SiteData
+
+	// Unmarshal the JSON data into the previewData struct
+	err = json.Unmarshal([]byte(previewDataString), &previewSiteData)
+	if err != nil {
+		log.Printf("Failed to unmarshal preview data for site --> %s: %v", siteName, err)
+		return nil, err
+	}
+
 	// Create new PreviewData entry
 	newPreviewData := &PreviewData{
-		SiteData:   previewSiteData,
+		SiteData:   &previewSiteData,
 		PreviewMap: make(map[string]*pageengine.PageElement),
 	}
 
