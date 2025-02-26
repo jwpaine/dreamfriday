@@ -4,7 +4,7 @@ services:
   dreamfriday:
     build: .
     container_name: dreamfriday
-    ports:
-      - "8081:8081"
+    network_mode: "host"  # Allows direct access to host's network
     volumes:
-      - /home/tsunami/dreamfriday:/app/data  # Persist bolt.db
+      - /var/containers/dreamfriday/data:/app/data  # Persist bolt.db
+
