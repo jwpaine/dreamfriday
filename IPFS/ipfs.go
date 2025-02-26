@@ -20,7 +20,7 @@ var Manager *IPFSManager
 // InitManager initializes the global Manager instance.
 func InitManager() error {
 
-	Manager = &IPFSManager{Shell: shell.NewShell("192.168.1.110:5001")}
+	Manager = &IPFSManager{Shell: shell.NewShell("127.0.0.1:5001")}
 	return nil
 }
 
