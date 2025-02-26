@@ -20,19 +20,17 @@ import (
 func GetSiteData(c echo.Context) (*pageengine.SiteData, error) {
 	siteName := utils.GetSubdomain(c.Request().Host)
 
-	log.Println("--> Fetching preview data for site:", siteName)
-
 	if cachedData, found := cache.SiteDataStore.Get(siteName); found {
 		if siteData, ok := cachedData.(*pageengine.SiteData); ok {
 			log.Println("Serving cached site data for site:", siteName)
 			c.Set("siteData", siteData)
 			return siteData, nil
 		}
-		log.Println("Type assertion failed for cached site data")
+		log.Println("No cached data found for site:", siteName)
 	}
 
 	// Fetch site data from the database
-	log.Println("Fetching site data from database for site:", siteName)
+	log.Println("Fetching site data:", siteName)
 	siteDataJSON, err := models.GetSiteData(siteName)
 	if err != nil {
 		log.Printf("failed to load site data for site %s: %v", siteName, err)
