@@ -5,9 +5,11 @@ go 1.23.5
 require (
 	github.com/ethereum/go-ethereum v1.15.2
 	github.com/gorilla/sessions v1.4.0
+	github.com/ipfs/go-ipfs-api v0.7.0
 	github.com/joho/godotenv v1.5.1
 	github.com/labstack/echo/v4 v4.13.3
 	github.com/lib/pq v1.10.9
+	go.etcd.io/bbolt v1.4.0
 )
 
 require (
@@ -19,7 +21,6 @@ require (
 	github.com/holiman/uint256 v1.3.2 // indirect
 	github.com/ipfs/boxo v0.12.0 // indirect
 	github.com/ipfs/go-cid v0.4.1 // indirect
-	github.com/ipfs/go-ipfs-api v0.7.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.3 // indirect
 	github.com/labstack/gommon v0.4.2 // indirect
 	github.com/libp2p/go-buffer-pool v0.1.0 // indirect

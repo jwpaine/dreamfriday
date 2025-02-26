@@ -3,7 +3,7 @@ package handlers
 import (
 	auth "dreamfriday/auth"
 	cache "dreamfriday/cache"
-	database "dreamfriday/database"
+	models "dreamfriday/models"
 	pageengine "dreamfriday/pageengine"
 	utils "dreamfriday/utils"
 
@@ -33,23 +33,25 @@ func GetSiteData(c echo.Context) (*pageengine.SiteData, error) {
 
 	// Fetch site data from the database
 	log.Println("Fetching site data from database for site:", siteName)
-	siteData, err := database.FetchSiteDataForDomain(siteName)
+	siteDataJSON, err := models.GetSiteData(siteName)
 	if err != nil {
 		log.Printf("failed to load site data for site %s: %v", siteName, err)
 		return nil, err
 	}
 
 	// Ensure valid site data
-	if siteData == nil {
-		log.Println("Fetched site data is nil for site:", siteName)
-		return nil, fmt.Errorf("fetched site data is nil for site: %s", siteName)
+	var siteData pageengine.SiteData
+	err = json.Unmarshal([]byte(siteDataJSON), &siteData)
+	if err != nil {
+		log.Printf("failed to unmarshal site data for site %s: %v", siteName, err)
+		return nil, err
 	}
 
 	// Cache site data
 	log.Println("Caching site data for site:", siteName)
 	cache.SiteDataStore.Set(siteName, siteData)
 
-	return siteData, nil
+	return &siteData, nil
 
 }
 func CreateSite(c echo.Context) error {
@@ -114,13 +116,29 @@ func CreateSite(c echo.Context) error {
 	}
 
 	// Create site in the database, pass identifier
-	err = database.CreateSite(siteName, handle, string(templateJSON))
+	// err = database.CreateSite(siteName, handle, string(templateJSON))
+	// if err != nil {
+	// 	log.Printf("Failed to create site: %s for Identifier: %s - Error: %v", siteName, handle, err)
+	// 	return c.Render(http.StatusOK, "message.html", map[string]interface{}{
+	// 		"message": "Unable to save site to database",
+	// 	})
+	// }
+	_, err = models.CreateSite(siteName, handle, string(templateJSON))
 	if err != nil {
 		log.Printf("Failed to create site: %s for Identifier: %s - Error: %v", siteName, handle, err)
 		return c.Render(http.StatusOK, "message.html", map[string]interface{}{
 			"message": "Unable to save site to database",
 		})
 	}
+
+	err = models.AddSiteToUser(handle, siteName)
+	if err != nil {
+		log.Printf("Failed to add site %s to user %s: %v", siteName, handle, err)
+		return c.Render(http.StatusOK, "message.html", map[string]interface{}{
+			"message": "Unable to add site to user",
+		})
+	}
+
 	DeleteUserCache(c)
 	// Redirect user to the new site admin panel
 	return c.HTML(http.StatusOK, `<script>window.location.href = 'https://`+utils.SiteDomain(siteName)+`/manage'</script>`)
@@ -149,7 +167,18 @@ func PublishSite(c echo.Context) error {
 
 	log.Printf("Publishing Domain: %s for Email: %s", domain, handle)
 	// Attempt to publish the site
-	err = database.Publish(domain, handle)
+	site, err := models.GetSite(domain)
+	if err != nil {
+		log.Printf("Failed to get site %s: %v", domain, err)
+		return c.String(http.StatusBadRequest, "Failed to get site")
+	}
+
+	// confirm ownership
+	if site.Owner != handle {
+		log.Printf("Unauthorized: %s is not the owner of %s", handle, domain)
+		return c.String(http.StatusUnauthorized, "Unauthorized")
+	}
+	err = models.PublishSite(site)
 	if err != nil {
 		log.Printf("Failed to publish domain %s for email %s: %v", domain, handle, err)
 		return c.Render(http.StatusOK, "manageButtons.html", map[string]interface{}{

@@ -3,7 +3,7 @@ package handlers
 import (
 	"dreamfriday/auth"
 	cache "dreamfriday/cache"
-	database "dreamfriday/database"
+	models "dreamfriday/models"
 	pageengine "dreamfriday/pageengine"
 	utils "dreamfriday/utils"
 	"fmt"
@@ -67,6 +67,7 @@ func (h *AuthHandler) AuthCallback(c echo.Context) error {
 }
 
 func GetUserData(c echo.Context) (map[string]interface{}, error) {
+	log.Println("Getting user data")
 	session, err := auth.GetSession(c.Request())
 	if err != nil {
 		return nil, fmt.Errorf("failed to get session")
@@ -76,6 +77,8 @@ func GetUserData(c echo.Context) (map[string]interface{}, error) {
 		return nil, fmt.Errorf("user address not set or invalid in the session")
 	}
 
+	log.Println("got handle:", handle)
+
 	// Check cache for user data under handle -> "sites"
 	if cachedUserData, found := cache.UserDataStore.Get(handle); found {
 		if existingData, ok := cachedUserData.(map[string]interface{}); ok {
@@ -83,11 +86,14 @@ func GetUserData(c echo.Context) (map[string]interface{}, error) {
 		}
 	}
 
+	log.Println("User data not found in cache for handle:", handle)
+
 	// Fetch sites for the owner from the database
-	siteStrings, err := database.GetSitesForOwner(handle)
+	user, err := models.GetUser(handle)
 	if err != nil {
 		return nil, err
 	}
+	log.Println("Fetched user data for handle:", handle)
 
 	// Create a PageElement containing list of sites for owner
 	sitesElement := pageengine.PageElement{
@@ -95,10 +101,10 @@ func GetUserData(c echo.Context) (map[string]interface{}, error) {
 		Attributes: map[string]string{
 			"class": "site-links-container",
 		},
-		Elements: make([]pageengine.PageElement, len(siteStrings)),
+		Elements: make([]pageengine.PageElement, len(user.Sites)),
 	}
 
-	for i, site := range siteStrings {
+	for i, site := range user.Sites {
 		sitesElement.Elements[i] = pageengine.PageElement{
 			Type: "a",
 			Attributes: map[string]string{

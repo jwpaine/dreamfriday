@@ -3,7 +3,7 @@ package handlers
 import (
 	auth "dreamfriday/auth"
 	cache "dreamfriday/cache"
-	database "dreamfriday/database"
+	models "dreamfriday/models"
 	pageengine "dreamfriday/pageengine"
 	utils "dreamfriday/utils"
 	"encoding/json"
@@ -52,16 +52,16 @@ func (h *PreviewHandler) GetSiteData(c echo.Context) (*PreviewData, error) {
 	log.Println("Preview data not found in cache, fetching from database for site:", siteName)
 
 	// Fetch preview data from database
-	previewDataString, _, err := database.FetchPreviewData(siteName, handle)
+	site, err := models.GetSite(siteName)
 	if err != nil {
-		log.Println("Failed to fetch preview data:", err)
+		log.Printf("Failed to get site %s: %v", siteName, err)
 		return nil, err
 	}
 
 	var previewSiteData pageengine.SiteData
 
 	// Unmarshal the JSON data into the previewData struct
-	err = json.Unmarshal([]byte(previewDataString), &previewSiteData)
+	err = json.Unmarshal([]byte(site.PreviewData), &previewSiteData)
 	if err != nil {
 		log.Printf("Failed to unmarshal preview data for site --> %s: %v", siteName, err)
 		return nil, err
@@ -130,7 +130,22 @@ func (h *PreviewHandler) Update(c echo.Context) error {
 	}
 
 	// Save preview data to the database and mark as "unpublished"
-	err = database.UpdatePreviewData(siteName, handle, previewData)
+	site, err := models.GetSite(siteName)
+	if err != nil {
+		log.Printf("Failed to get site %s: %v", siteName, err)
+		return c.String(http.StatusInternalServerError, "Failed to get site")
+	}
+	if site == nil {
+		log.Printf("Site %s not found", siteName)
+		return c.String(http.StatusNotFound, "Site not found")
+	}
+	// check ownership
+	if site.Owner != handle {
+		log.Printf("Unauthorized: %s is not the owner of site %s", handle, siteName)
+		return c.String(http.StatusUnauthorized, "Unauthorized: You are not the owner of this site")
+	}
+	site.PreviewData = previewData
+	err = models.UpdateSite(siteName, site)
 	if err != nil {
 		log.Printf("Failed to update preview data for site %s: %v", siteName, err)
 		return c.Render(http.StatusOK, "manageButtons.html", map[string]interface{}{

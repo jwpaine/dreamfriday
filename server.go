@@ -1,12 +1,14 @@
 package main
 
 import (
+	"encoding/json"
 	"html/template"
 	"io"
 	"log"
 	"net"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
@@ -14,8 +16,10 @@ import (
 
 	ipfs "dreamfriday/IPFS"
 	auth "dreamfriday/auth"
-	Database "dreamfriday/database"
+	"dreamfriday/database"
 	Middleware "dreamfriday/middleware"
+	"dreamfriday/models"
+	"dreamfriday/pageengine"
 	routes "dreamfriday/routes"
 )
 
@@ -29,10 +33,10 @@ func init() {
 		}
 	}
 	// Use the strings directly as raw keys
-	Database.ConnStr = os.Getenv("DATABASE_CONNECTION_STRING")
-	if Database.ConnStr == "" {
-		log.Fatal("DATABASE_CONNECTION_STRING environment variable not set")
-	}
+	// Database.ConnStr = os.Getenv("DATABASE_CONNECTION_STRING")
+	// if Database.ConnStr == "" {
+	// 	log.Fatal("DATABASE_CONNECTION_STRING environment variable not set")
+	// }
 
 	// Initialize IPFS
 
@@ -41,12 +45,6 @@ func init() {
 	}
 
 	ipfs.GetVersion()
-	hash, err := ipfs.PutFile("This is John Paine's Data!!!")
-
-	if err != nil {
-		log.Println("failed to get hash", err)
-	}
-	log.Println("Hash:", hash)
 
 }
 
@@ -59,15 +57,57 @@ func (t *TemplateRegistry) Render(w io.Writer, name string, data interface{}, c 
 	return t.templates.ExecuteTemplate(w, name, data)
 }
 
+func BootStrapSite() {
+	siteName := "dreamfriday.com"
+	handle := strings.ToLower("0x61884f20AB95407d66Bc4eCb0f1e2d7ED35A08f9")
+	template := "https://dreamfriday.com/json"
+
+	req, err := http.Get(template)
+	if err != nil {
+		log.Println("Failed to create request:", err)
+
+	}
+	defer req.Body.Close()
+
+	templateJSON, err := io.ReadAll(req.Body)
+	if err != nil {
+		log.Println("Failed to read response body:", err)
+
+	}
+	// Unmarshal the JSON data into a SiteData struct
+	var siteData pageengine.SiteData
+	err = json.Unmarshal(templateJSON, &siteData)
+	if err != nil {
+		log.Println("Failed to unmarshal JSON:", err)
+
+	}
+	_, err = models.CreateSite(siteName, handle, string(templateJSON))
+	if err != nil {
+		log.Printf("Failed to create site: %s for Identifier: %s - Error: %v", siteName, handle, err)
+
+	}
+	err = models.AddSiteToUser(handle, siteName)
+	if err != nil {
+		log.Printf("Failed to add site %s to user %s: %v", siteName, handle, err)
+
+	}
+}
+
 func main() {
 
 	// Initialize the database connection
-	db, err := Database.Connect()
+	// db, err := Database.Connect()
 
+	// if err != nil {
+	// 	log.Fatalf("Failed to connect to the database: %v", err)
+	// }
+	// defer db.Close()
+
+	err := database.BoltInit("bolt.db")
 	if err != nil {
-		log.Fatalf("Failed to connect to the database: %v", err)
+		log.Fatalf("Failed to initialize BoltDB: %v", err)
 	}
-	defer db.Close()
+	defer database.Close()
 
 	e := echo.New()
 
