@@ -40,7 +40,11 @@ func init() {
 
 	// Initialize IPFS
 
-	if err := ipfs.InitManager(); err != nil {
+	IPFS_URL := os.Getenv("IPFS_URL")
+	if IPFS_URL == "" {
+		IPFS_URL = "http://localhost:5001"
+	}
+	if err := ipfs.InitManager(IPFS_URL); err != nil {
 		log.Fatalf("Failed to initialize IPFS manager: %v", err)
 	}
 
@@ -60,19 +64,10 @@ func (t *TemplateRegistry) Render(w io.Writer, name string, data interface{}, c 
 func BootStrapSite() {
 	siteName := "dreamfriday.com"
 	handle := strings.ToLower("0x61884f20AB95407d66Bc4eCb0f1e2d7ED35A08f9")
-	template := "https://dreamfriday.com/json"
 
-	req, err := http.Get(template)
+	templateJSON, err := os.ReadFile("examples/dreamfriday.com.json")
 	if err != nil {
-		log.Println("Failed to create request:", err)
-
-	}
-	defer req.Body.Close()
-
-	templateJSON, err := io.ReadAll(req.Body)
-	if err != nil {
-		log.Println("Failed to read response body:", err)
-
+		log.Fatal("Failed to read file:", err)
 	}
 	// Unmarshal the JSON data into a SiteData struct
 	var siteData pageengine.SiteData
@@ -95,15 +90,12 @@ func BootStrapSite() {
 
 func main() {
 
-	// Initialize the database connection
-	// db, err := Database.Connect()
-
-	// if err != nil {
-	// 	log.Fatalf("Failed to connect to the database: %v", err)
-	// }
-	// defer db.Close()
-
-	err := database.BoltInit("/app/data/bolt.db")
+	// init BBOLT DB
+	BBOLT_DB_PATH := os.Getenv("BBOLT_DB_PATH")
+	if BBOLT_DB_PATH == "" {
+		BBOLT_DB_PATH = "/app/data/bolt.db"
+	}
+	err := database.BoltInit(BBOLT_DB_PATH)
 	if err != nil {
 		log.Fatalf("Failed to initialize BoltDB: %v", err)
 	}

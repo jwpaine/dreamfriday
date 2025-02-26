@@ -18,9 +18,9 @@ type IPFSManager struct {
 var Manager *IPFSManager
 
 // InitManager initializes the global Manager instance.
-func InitManager() error {
+func InitManager(url string) error {
 
-	Manager = &IPFSManager{Shell: shell.NewShell("127.0.0.1:5001")}
+	Manager = &IPFSManager{Shell: shell.NewShell(url)}
 	return nil
 }
 
