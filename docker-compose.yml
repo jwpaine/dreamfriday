@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  dreamfriday:
+    build: .
+    container_name: dreamfriday
+    ports:
+      - "8081:8081"
+    volumes:
+      - /home/tsunami/dreamfriday:/app/data  # Persist bolt.db

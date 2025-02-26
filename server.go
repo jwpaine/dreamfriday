@@ -103,7 +103,7 @@ func main() {
 	// }
 	// defer db.Close()
 
-	err := database.BoltInit("bolt.db")
+	err := database.BoltInit("/app/data/bolt.db")
 	if err != nil {
 		log.Fatalf("Failed to initialize BoltDB: %v", err)
 	}

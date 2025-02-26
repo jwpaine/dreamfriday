@@ -30,6 +30,11 @@ COPY --from=builder /app/static ./static
 
 COPY --from=builder /app/views/*.html ./views/
 
+# Copy .env file
+COPY --from=builder /app/.env ./
+
+RUN mkdir -p /app/data
+
 # Expose the port the app will run on
 EXPOSE 8081
 
