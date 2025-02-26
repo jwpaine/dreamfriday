@@ -90,6 +90,6 @@ func GetSiteData(name string) (string, error) {
 		log.Printf("Failed to get site data for %s: %v", name, err)
 		return "", err
 	}
-	log.Println("Retrieved site data for:", name)
+	log.Printf("Retrieved site data for %s (%s)", name, ipfsHash)
 	return data, nil
 }
