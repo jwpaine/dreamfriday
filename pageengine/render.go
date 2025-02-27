@@ -1,6 +1,8 @@
 package pageengine
 
 import (
+	cryptoRand "crypto/rand"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -168,7 +170,7 @@ func GetExternalComponent(c echo.Context, uri string, routeInternal func(string,
 }
 
 // Stream HTML directly using pre-assigned class names
-func (p *PageElement) Render(w io.Writer, components map[string]*PageElement, classMap map[*PageElement]string, visited map[string]bool, previewElementMap map[string]*PageElement) {
+func (p *PageElement) Render(w io.Writer, components map[string]*PageElement, classMap map[*PageElement]string, visited map[string]bool, previewElementMap map[string]*PageElement, nonce string) {
 	if p == nil {
 		return
 	}
@@ -209,7 +211,7 @@ func (p *PageElement) Render(w io.Writer, components map[string]*PageElement, cl
 			}
 
 			// Render cloned component
-			clonedComponent.Render(w, components, classMap, visited, previewElementMap)
+			clonedComponent.Render(w, components, classMap, visited, previewElementMap, nonce)
 
 			delete(visited, p.Import) // Allow reuse in different parts of the page
 			// delete the import from components now if it contains the private flag
@@ -229,7 +231,11 @@ func (p *PageElement) Render(w io.Writer, components map[string]*PageElement, cl
 	className, hasClass := classMap[p]
 
 	// Open HTML tag
-	fmt.Fprintf(w, "<%s", p.Type)
+	if p.Type == "style" || p.Type == "script" {
+		fmt.Fprintf(w, `<%s nonce="%s"`, p.Type, nonce)
+	} else {
+		fmt.Fprintf(w, "<%s", p.Type)
+	}
 
 	if previewElementMap != nil {
 
@@ -288,11 +294,20 @@ func (p *PageElement) Render(w io.Writer, components map[string]*PageElement, cl
 
 	// Recursively render child elements
 	for i := range p.Elements {
-		p.Elements[i].Render(w, components, classMap, visited, previewElementMap)
+		p.Elements[i].Render(w, components, classMap, visited, previewElementMap, nonce)
 	}
 
 	// Close HTML tag
 	fmt.Fprintf(w, "</%s>", p.Type)
+}
+
+func generateNonce() string {
+	b := make([]byte, 16)
+	_, err := cryptoRand.Read(b)
+	if err != nil {
+		return ""
+	}
+	return base64.StdEncoding.EncodeToString(b)
 }
 
 // routeInternal is a function
@@ -301,22 +316,27 @@ func RenderPage(pageData Page, components map[string]*PageElement, w io.Writer, 
 
 	fmt.Println("rendering page. previewElementMap enabled:", previewElementMap != nil)
 
+	nonce := generateNonce()
+	// if rw, ok := w.(http.ResponseWriter); ok {
+	// 	//rw.Header().Set("Content-Security-Policy", fmt.Sprintf("default-src 'self'; style-src 'self' 'nonce-%s';", nonce))
+	// 	rw.Header().Set("Content-Security-Policy", fmt.Sprintf("default-src 'self'; style-src 'self' 'nonce-%s'; script-src 'self' 'nonce-%s';", nonce, nonce))
+	// }
 	// Start streaming HTML immediately
 	fmt.Fprint(w, "<!DOCTYPE html><html><head>")
 
 	if previewElementMap != nil {
 		// add a javascript link to /static/editor.js
-		fmt.Fprint(w, `<script src="/static/editor.js"></script>`)
-		fmt.Fprint(w, "<style>body { border: 2px solid red; }</style>")
+		fmt.Fprintf(w, `<script nonce="%s" src="/static/editor.js"></script>`, nonce)
+		fmt.Fprintf(w, `<style nonce="%s">body { border: 2px solid red; }</style>`, nonce)
 	}
 
 	// Render `<head>` elements
 	for i := range pageData.Head.Elements {
-		pageData.Head.Elements[i].Render(w, components, nil, nil, previewElementMap)
+		pageData.Head.Elements[i].Render(w, components, nil, nil, previewElementMap, nonce)
 	}
 
 	// Collect and stream CSS
-	fmt.Fprint(w, "<style>")
+	fmt.Fprintf(w, `<style nonce="%s">`, nonce)
 	classMap := make(map[*PageElement]string) // Map to track generated class names
 	visited := make(map[string]bool)          // Track visited imports to avoid circular dependencies
 
@@ -328,7 +348,7 @@ func RenderPage(pageData Page, components map[string]*PageElement, w io.Writer, 
 	visited = make(map[string]bool) // Reset before rendering HTML
 	// Render and stream HTML
 	for i := range pageData.Body.Elements {
-		pageData.Body.Elements[i].Render(w, components, classMap, visited, previewElementMap)
+		pageData.Body.Elements[i].Render(w, components, classMap, visited, previewElementMap, nonce)
 	}
 
 	fmt.Fprint(w, "</body></html>")

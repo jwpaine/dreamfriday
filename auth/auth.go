@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"os"
 
+	_ "dreamfriday/utils"
+
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo/v4"
 )

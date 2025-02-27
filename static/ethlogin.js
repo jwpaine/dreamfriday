@@ -1,5 +1,6 @@
 const BASE_URL = window.location.origin; // Gets the current base URL
 
+
 async function loginWithEth() {
     if (!window.ethereum) {
         alert("Ethereum provider not detected. Please install MetaMask.");
