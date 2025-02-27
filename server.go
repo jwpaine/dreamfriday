@@ -105,7 +105,7 @@ func main() {
 
 	// allow CORS for https://static.cloudflareinsights.com and https://dreamfriday.com:
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: []string{"https://static.cloudflareinsights.com", "https://dreamfriday.com"},
+		AllowOrigins: []string{"https://dreamfriday.com"},
 		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
 		AllowMethods: []string{echo.GET, echo.POST},
 	}))
