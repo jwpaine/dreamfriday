@@ -21,10 +21,10 @@ func GetSiteData(c echo.Context) (*pageengine.SiteData, error) {
 	siteName := utils.GetSubdomain(c.Request().Host)
 
 	if cachedData, found := cache.SiteDataStore.Get(siteName); found {
-		if siteData, ok := cachedData.(*pageengine.SiteData); ok {
+		if siteData, ok := cachedData.(pageengine.SiteData); ok {
 			log.Println("Serving cached site data for site:", siteName)
 			c.Set("siteData", siteData)
-			return siteData, nil
+			return &siteData, nil
 		}
 		log.Println("No cached data found for site:", siteName)
 	}
