@@ -163,11 +163,30 @@ func verifySignature(address, challenge, signature string) bool {
 // StoreSession stores the authenticated Ethereum address in a session
 func (a *EthAuthenticator) StoreSession(c echo.Context, _, address string) error {
 	log.Printf("Storing session for: %s", address)
+
 	store := GetSessionStore()
-	session, _ := store.Get(c.Request(), "session")
+	session, err := store.Get(c.Request(), "session")
+	if err != nil {
+		log.Printf("Error getting session: %v", err)
+		return err
+	}
+
 	session.Values["handle"] = address
 	session.Values["preview"] = false
-	session.Save(c.Request(), c.Response())
+
+	// Save session and check for errors
+	if err := session.Save(c.Request(), c.Response()); err != nil {
+		log.Printf("Error saving session: %v", err)
+		return err
+	}
+
+	// Log cookies after session is stored
+	for _, cookie := range c.Cookies() {
+		log.Printf("Cookie Set: Name=%s, Value=%s, Domain=%s, Path=%s, Secure=%t, HttpOnly=%t, SameSite=%v\n",
+			cookie.Name, cookie.Value, cookie.Domain, cookie.Path, cookie.Secure, cookie.HttpOnly, cookie.SameSite)
+	}
+
+	log.Println("Session stored successfully.")
 	return nil
 }
 
