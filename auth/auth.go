@@ -6,8 +6,6 @@ import (
 	"net/http"
 	"os"
 
-	utils "dreamfriday/utils"
-
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo/v4"
 )
@@ -34,15 +32,15 @@ func InitSessionStore() {
 		log.Fatal("Error: SESSION_HASH_KEY or SESSION_BLOCK_KEY is not set")
 	}
 
-	// if ENV=development, set allowDomain to localhost, otherwise set to utils.BaseDomain
-	allowDomain := utils.BaseDomain
-	if os.Getenv("ENV") == "development" {
-		allowDomain = "localhost"
-	}
+	// // if ENV=development, set allowDomain to localhost, otherwise set to utils.BaseDomain
+	// allowDomain := utils.BaseDomain
+	// if os.Getenv("ENV") == "development" {
+	// 	allowDomain = "localhost"
+	// }
 
 	store = sessions.NewCookieStore([]byte(hashKey), []byte(blockKey))
 	store.Options = &sessions.Options{
-		Domain:   allowDomain,
+		//Domain:   allowDomain,
 		Path:     "/",
 		MaxAge:   3600 * 3, // 3 hours
 		HttpOnly: true,
