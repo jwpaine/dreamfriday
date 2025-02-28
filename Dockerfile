@@ -28,6 +28,8 @@ COPY --from=builder /app/server .
 # Copy the static directory
 COPY --from=builder /app/static ./static
 
+COPY --from=builder /app/examples ./examples
+
 COPY --from=builder /app/views/*.html ./views/
 
 # Copy .env file

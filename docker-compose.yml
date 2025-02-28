@@ -1,10 +1,7 @@
-version: '3.8'
-
 services:
   dreamfriday:
     build: .
     container_name: dreamfriday
     network_mode: "host"  # Allows direct access to host's network
     volumes:
-      - /var/containers/dreamfriday/data:/app/data  # Persist bolt.db
-
+      - /var/containers/data:/app/data  # Persist bolt.db
