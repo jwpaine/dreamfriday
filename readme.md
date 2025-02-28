@@ -2,10 +2,10 @@
 
 A tiny, decentralized, multi-tenant, JSON-based CMS for creating and sharing what matters.
 
-[InterPlanetary File System](https://ipfs.tech) for storing production data
-[Boolt](https://github.com/etcd-io/bbolt) key-value store for preview data
-Block chain for authentication
-Go for glue
+- **[InterPlanetary File System](https://ipfs.tech)** for storing production data
+- **[Boolt](https://github.com/etcd-io/bbolt)** key-value store for preview data
+- **Blockchain** for authentication
+- **Go** for glue
 
 The platform's page rendering engine dynamically constructs a component tree by interpreting JSON data stored on the  based on the sub-domain requested. This JSON data defines the site's complete topology including pages, elements, attributes, styling, and nested structures, and a page rendering engine recursively builds and streams the rendered HTML. Styles are aggregated and injected into the document head, with class names generated on the fly.
 
