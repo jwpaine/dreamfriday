@@ -203,8 +203,8 @@ func GetPage(c echo.Context) error {
 	siteName := utils.GetSubdomain(c.Request().Host)
 	pageName := c.Param("pageName")
 	if cachedData, found := cache.SiteDataStore.Get(siteName); found {
-		if _, ok := cachedData.(*pageengine.SiteData).Pages[pageName]; ok {
-			return c.JSON(http.StatusOK, cachedData.(*pageengine.SiteData).Pages[pageName])
+		if _, ok := cachedData.(pageengine.SiteData).Pages[pageName]; ok {
+			return c.JSON(http.StatusOK, cachedData.(pageengine.SiteData).Pages[pageName])
 		}
 	}
 	return c.JSON(http.StatusNotFound, "Page not found")
@@ -212,7 +212,7 @@ func GetPage(c echo.Context) error {
 func GetPages(c echo.Context) error {
 	siteName := utils.GetSubdomain(c.Request().Host)
 	if cachedData, found := cache.SiteDataStore.Get(siteName); found {
-		if pages := cachedData.(*pageengine.SiteData).Pages; pages != nil {
+		if pages := cachedData.(pageengine.SiteData).Pages; pages != nil {
 			return c.JSON(http.StatusOK, pages)
 		}
 	}
@@ -222,8 +222,8 @@ func GetComponent(c echo.Context) error {
 	siteName := utils.GetSubdomain(c.Request().Host)
 	name := c.Param("name")
 	if cachedData, found := cache.SiteDataStore.Get(siteName); found {
-		if cachedData.(*pageengine.SiteData).Components[name] != nil {
-			return c.JSON(http.StatusOK, cachedData.(*pageengine.SiteData).Components[name])
+		if cachedData.(pageengine.SiteData).Components[name] != nil {
+			return c.JSON(http.StatusOK, cachedData.(pageengine.SiteData).Components[name])
 		}
 	}
 	return c.JSON(http.StatusNotFound, "Component not found")
@@ -233,7 +233,7 @@ func GetComponents(c echo.Context) error {
 
 	log.Println("--> Fetching preview data for site:", siteName)
 	if cachedData, found := cache.SiteDataStore.Get(siteName); found {
-		return c.JSON(http.StatusOK, cachedData.(*pageengine.SiteData).Components)
+		return c.JSON(http.StatusOK, cachedData.(pageengine.SiteData).Components)
 	}
 	return c.JSON(http.StatusNotFound, "Components not found")
 }

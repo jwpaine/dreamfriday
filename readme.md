@@ -191,6 +191,10 @@ While in preview mode, clicking on an element will launch an element editor. Lin
 
 Once you've made updates, navigate to /manage to review changes, save preview data to bbolt database, and publish changes onto IPFS
 
+## TODO:
 
+- Store IPFS cid (pointer to site data) on blockchain instead of on each peer's bbolt.db
+
+- Peers subscribe to events on blockchain and update their cache
 
 
