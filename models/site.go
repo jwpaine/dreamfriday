@@ -32,6 +32,7 @@ func CreateSite(name, owner, siteData string) (*Site, error) {
 		PreviewData: siteData,
 		Owner:       owner,
 		Status:      "published",
+		Name:        name,
 	}
 	err = database.Put("Sites", name, site)
 	if err != nil {
@@ -68,6 +69,7 @@ func PublishSite(site *Site) error {
 	log.Printf("Saved site %s on ipfs: %s", siteName, hash)
 	site.IPFSHash = hash
 	site.Status = "published"
+
 	err = UpdateSite(siteName, site)
 	if err != nil {
 		log.Printf("Failed to update site %s: %v", siteName, err)

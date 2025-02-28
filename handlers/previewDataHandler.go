@@ -145,6 +145,7 @@ func (h *PreviewHandler) Update(c echo.Context) error {
 		return c.String(http.StatusUnauthorized, "Unauthorized: You are not the owner of this site")
 	}
 	site.PreviewData = previewData
+
 	err = models.UpdateSite(siteName, site)
 	if err != nil {
 		log.Printf("Failed to update preview data for site %s: %v", siteName, err)

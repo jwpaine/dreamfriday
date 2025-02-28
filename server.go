@@ -101,6 +101,8 @@ func main() {
 	}
 	defer database.Close()
 
+	// BootStrapSite()
+
 	e := echo.New()
 
 	// allow CORS for https://static.cloudflareinsights.com and https://dreamfriday.com:
