@@ -1,8 +1,13 @@
 ## [dreamfriday.com](https://dreamfriday.com)
 
-A tiny, multi-tenant, JSON-based CMS for creating and sharing composable UI.
+A tiny, decentralized, multi-tenant, JSON-based CMS for creating and sharing what matters.
 
-The platform's page rendering engine dynamically constructs a component tree by interpreting JSON data stored in PostgreSQL, keyed by domain. On request, it retrieves the site's complete topology including pages, elements, attributes, styling, and nested structures, then recursively builds and streams the rendered HTML. Styles are aggregated and injected into the document head, with class names generated on the fly to link elements efficiently.
+[InterPlanetary File System](https://ipfs.tech) for storing production data
+[Boolt](https://github.com/etcd-io/bbolt) key-value store for preview data
+Block chain for authentication
+Go for glue
+
+The platform's page rendering engine dynamically constructs a component tree by interpreting JSON data stored on the  based on the sub-domain requested. This JSON data defines the site's complete topology including pages, elements, attributes, styling, and nested structures, and a page rendering engine recursively builds and streams the rendered HTML. Styles are aggregated and injected into the document head, with class names generated on the fly.
 
 ![ALT TEXT](./static/component_chain.png)
 
@@ -41,8 +46,8 @@ Rendered:
 Factory:
 
 - **POST /create** accepts **domain** and **template** (another domain to copy).
-- **POST /admin/domain"** accepts **previewData** (JSON). Update's preview data for specified **domain**
-- **POST /publish/domain** copies **preview** data to **production**
+- **POST /preview"** accepts **previewData** (JSON). Update's preview data for specified **domain**
+- **POST /publish** copies **preview** data to **production** (IPFS)
 - **POST /preview/element/:pid** Updates element pid in the preview cache
 - **GET /logout** destroys current session
 - **GET /preview** toggle's preview mode for current session. Page routes will render preview data instead of production
@@ -163,7 +168,7 @@ Components are named Page Elements. They are publically discoverable via the **/
 
 Navigating to /create will render the site creation page if one exists for your domain.
 
-Supply domain name (eg: myawsomesite.dreamfriday.com)
+Supply site name (eg: myawsomesite)
 Supply template. This should a url that returns SiteData JSON. 
 Example: https://dreamfriday.com/json
 
@@ -182,7 +187,7 @@ While in preview mode, clicking on an element will launch an element editor. Lin
 
 ![preview editor](./static/img/previeweditor.png)
 
-Once you've made updates, navigate to /admin/domain to review changes, update the preview column, and publish changes to production.
+Once you've made updates, navigate to /manage to review changes, save preview data to bbolt database, and publish changes onto IPFS
 
 
 
