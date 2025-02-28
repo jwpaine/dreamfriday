@@ -13,6 +13,7 @@ import (
 )
 
 var store *sessions.CookieStore
+var restrict_to_address string
 
 // Authenticator interface for multiple authentication providers
 type Authenticator interface {
@@ -24,11 +25,18 @@ type Authenticator interface {
 	ValidateSession(token string) bool
 }
 
+func GetRestrictAddress() string {
+	return restrict_to_address
+}
+
 // InitSessionStore initializes the session store
 func InitSessionStore() {
 	hashKey := os.Getenv("SESSION_HASH_KEY")
 	blockKey := os.Getenv("SESSION_BLOCK_KEY")
 	useHTTPS := os.Getenv("USE_HTTPS") == "true"
+	restrict_to_address = os.Getenv("RESTRICT_LOGIN_TO_ADDRESS")
+
+	log.Println("setting restrict_to_address", restrict_to_address)
 
 	if hashKey == "" || blockKey == "" {
 		log.Fatal("Error: SESSION_HASH_KEY or SESSION_BLOCK_KEY is not set")
@@ -49,6 +57,7 @@ func InitSessionStore() {
 		Secure:   useHTTPS,
 		SameSite: http.SameSiteNoneMode,
 	}
+
 }
 
 // GetSession retrieves the user's session

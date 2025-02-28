@@ -10,6 +10,8 @@ import (
 	"io"
 	"log"
 	"net/http"
+
+	//	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -38,12 +40,6 @@ var challengeSigningKey []byte
 
 const challengeExpiry = 5 * time.Minute
 
-func init() {
-	// Generate a random key for signing challenges
-	challengeSigningKey = make([]byte, 32)
-	rand.Read(challengeSigningKey)
-}
-
 // Generate a random nonce (challenge) for authentication
 func generateChallenge() string {
 	nonce := make([]byte, 32)
@@ -71,6 +67,15 @@ func signChallenge(data string) string {
 func (a *EthAuthenticator) Login(c echo.Context, address, _ string) error {
 	if address == "" {
 		return fmt.Errorf("ethereum address is required")
+	}
+	log.Printf("Login request for Ethereum address: %s", address)
+	log.Println("restrict_to_address", restrict_to_address)
+
+	restrict_to_address := GetRestrictAddress()
+
+	if restrict_to_address != "" && address != restrict_to_address {
+		log.Printf("Login using address: %s does not match restricted address", address)
+		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Unauthorized"})
 	}
 
 	// Generate challenge
