@@ -7,7 +7,9 @@ A tiny, decentralized, multi-tenant, JSON-based CMS for creating and sharing wha
 - **Blockchain** for authentication
 - **Go** for glue
 
-The platform's page rendering engine dynamically constructs a component tree by interpreting JSON data stored on the  based on the sub-domain requested. This JSON data defines the site's complete topology including pages, elements, attributes, styling, and nested structures, and a page rendering engine recursively builds and streams the rendered HTML. Styles are aggregated and injected into the document head, with class names generated on the fly.
+The platform's page rendering engine dynamically constructs a component tree by interpreting JSON data stored on IPFS,based on the sub-domain requested. This 
+
+JSON data defines the site's complete topology including pages, elements, attributes, styling, and nested structures, and a page rendering engine recursively builds and streams the rendered HTML. Styles are aggregated and injected into the document head, with class names generated on the fly.
 
 ![ALT TEXT](./static/component_chain.png)
 
