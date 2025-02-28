@@ -3,7 +3,7 @@
 A tiny, decentralized, multi-tenant, JSON-based CMS for creating and sharing what matters.
 
 - **[InterPlanetary File System](https://ipfs.tech)** for storing production data
-- **[Boolt](https://github.com/etcd-io/bbolt)** key-value store for preview data
+- **[Bbolt](https://github.com/etcd-io/bbolt)** key-value store for preview data
 - **Blockchain** for authentication
 - **Go** for glue
 
