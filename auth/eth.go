@@ -1,14 +1,18 @@
 package auth
 
 import (
+	"crypto/hmac"
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -30,17 +34,43 @@ type ChallengeResponse struct {
 	Challenge string `json:"challenge"`
 }
 
+var challengeSigningKey []byte
+
+const challengeExpiry = 5 * time.Minute
+
+func init() {
+	// Generate a random key for signing challenges
+	challengeSigningKey = make([]byte, 32)
+	rand.Read(challengeSigningKey)
+}
+
 // Generate a random nonce (challenge) for authentication
 func generateChallenge() string {
 	nonce := make([]byte, 32)
 	rand.Read(nonce)
-	return base64.StdEncoding.EncodeToString(nonce)
+
+	expiry := time.Now().UTC().Add(challengeExpiry).Unix()
+
+	// create nonce:expiry challenge
+	challenge := fmt.Sprintf("%s:%d", base64.StdEncoding.EncodeToString(nonce), expiry)
+
+	// sign
+	sig := signChallenge(challenge)
+
+	// return nonce:spiry:sig
+	return fmt.Sprintf("%s:%s", challenge, sig)
+}
+
+func signChallenge(data string) string {
+	h := hmac.New(sha256.New, challengeSigningKey)
+	h.Write([]byte(data))
+	return base64.StdEncoding.EncodeToString(h.Sum(nil))
 }
 
 // Login method for Ethereum authentication (to match interface)
 func (a *EthAuthenticator) Login(c echo.Context, address, _ string) error {
 	if address == "" {
-		return fmt.Errorf("Ethereum address is required")
+		return fmt.Errorf("ethereum address is required")
 	}
 
 	// Generate challenge
@@ -67,7 +97,47 @@ func (a *EthAuthenticator) AuthRequestHandler(c echo.Context) error {
 	return a.Login(c, address, "")
 }
 
-// AuthCallbackHandler verifies the signed challenge
+func VerifyChallenge(challenge string) error {
+
+	log.Println("Verifying challenge", challenge)
+
+	parts := strings.Split(challenge, ":")
+	if len(parts) != 3 {
+		log.Println("Invalid challenge format")
+		return fmt.Errorf("invalid challenge format")
+	}
+
+	nonce := parts[0]
+	expirationStr := parts[1]
+	providedSignature := parts[2]
+
+	// Recreate the original challenge data
+	challengeData := fmt.Sprintf("%s:%s", nonce, expirationStr)
+
+	// Validate the challenge's signature
+	expectedSignature := signChallenge(challengeData)
+	if !hmac.Equal([]byte(expectedSignature), []byte(providedSignature)) {
+		log.Println("Rejected: Challenge signature mismatch (possible tampering)")
+		return fmt.Errorf("challenge signature mismatch")
+	}
+
+	// Check if challenge is expired
+	expiration, err := strconv.ParseInt(expirationStr, 10, 64)
+	if err != nil {
+		log.Println("Invalid expiration timestamp in challenge")
+		return fmt.Errorf("invalid expiration timestamp")
+	}
+
+	if time.Now().UTC().Unix() > expiration {
+		log.Println("Rejected: Challenge expired")
+		return fmt.Errorf("challenge expired")
+	}
+
+	// I was beginning to sweat. We're all good!
+	return nil
+
+}
+
 func (a *EthAuthenticator) AuthCallbackHandler(c echo.Context) error {
 
 	log.Println("Handling MetaMask DID Callback")
@@ -84,10 +154,14 @@ func (a *EthAuthenticator) AuthCallbackHandler(c echo.Context) error {
 		return c.String(http.StatusBadRequest, "Invalid JSON")
 	}
 
+	if err := VerifyChallenge(request.Challenge); err != nil {
+		return c.JSON(http.StatusUnauthorized, map[string]string{"error": err.Error()})
+	}
+
 	log.Printf("Received MetaMask login from %s", request.Address)
 
 	if verifySignature(request.Address, request.Challenge, request.Signature) {
-		log.Println("ccepted: Signature is valid")
+		log.Println("Accepted: Signature is valid")
 
 		err := a.StoreSession(c, "", request.Address)
 		if err != nil {
