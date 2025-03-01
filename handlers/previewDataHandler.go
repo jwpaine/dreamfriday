@@ -336,42 +336,6 @@ func (h *PreviewHandler) TogglePreviewMode(c echo.Context) error {
 	}
 	return c.Redirect(http.StatusFound, referer)
 
-	// Retrieve session
-	// session, err := auth.GetSession(c.Request())
-	// if err != nil {
-	// 	log.Println("Failed to get session:", err)
-	// 	return c.String(http.StatusUnauthorized, "You need to be logged in to toggle preview mode")
-	// }
-
-	// // Validate session handle
-	// handle, ok := session.Values["handle"].(string)
-	// if !ok || handle == "" {
-	// 	log.Println("Unauthorized: handle not found in session")
-	// 	return c.String(http.StatusUnauthorized, "You need to be logged in to toggle preview mode")
-	// }
-
-	// previewMode, exists := session.Values["preview"].(bool)
-	// if !exists {
-	// 	previewMode = true // Default to true if missing
-	// }
-	// session.Values["preview"] = !previewMode
-
-	// Delete preview data if disabling preview mode
-	// if !session.Values["preview"].(bool) {
-	// 	cache.PreviewCache.Delete(handle)
-	// 	log.Println("Deleted preview data for handle:", handle)
-	// }
-
-	// // Save session
-	// if err := session.Save(c.Request(), c.Response()); err != nil {
-	// 	log.Println("Failed to save session:", err)
-	// 	return c.String(http.StatusInternalServerError, "Failed to save session")
-	// }
-
-	// log.Printf("Preview mode for %s set to: %v\n", c.Request().Host, session.Values["preview"])
-
-	// // Redirect user back to previous page or home
-
 }
 
 // return /page/:pageName from preview
@@ -437,4 +401,16 @@ func (h *PreviewHandler) GetComponent(c echo.Context) error {
 	}
 	return c.JSON(http.StatusNotFound, "Component not found")
 
+}
+
+func (h *PreviewHandler) DeletePreviewCache(c echo.Context) error {
+	handle, err := auth.GetHandle(c)
+	if err != nil {
+		log.Println("Failed to get handle:", err)
+		return err
+	}
+	// Delete user data from cache
+	cache.PreviewCache.Delete(handle)
+	log.Println("Deleted preview cache for handle:", handle)
+	return nil
 }

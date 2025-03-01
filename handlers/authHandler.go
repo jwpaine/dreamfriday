@@ -8,7 +8,6 @@ import (
 	utils "dreamfriday/utils"
 	"fmt"
 	"log"
-	"net/http"
 
 	"github.com/labstack/echo/v4"
 )
@@ -25,26 +24,6 @@ func NewAuthHandler(authenticator auth.Authenticator) *AuthHandler {
 	}
 }
 
-// Login handler (calls `Authenticator.Login`)
-func (h *AuthHandler) Login(c echo.Context) error {
-	log.Println("Handling login")
-	email := c.FormValue("email")
-	password := c.FormValue("password")
-
-	err := h.Authenticator.Login(c, email, password)
-	if err != nil {
-		log.Println("Login failed:", err)
-		return c.Render(http.StatusOK, "message.html", map[string]interface{}{
-			"message": "Login failed: " + err.Error(),
-		})
-	}
-
-	// toggle preview on
-	// err = TogglePreview(c, true)
-	// Redirect to admin page after login
-	return c.HTML(http.StatusOK, `<script>window.location.href = '/admin';</script>`)
-}
-
 // get user handle (eth address)
 func (h *AuthHandler) GetHandle(c echo.Context) (string, error) {
 	return auth.GetHandle(c)
@@ -53,6 +32,9 @@ func (h *AuthHandler) GetHandle(c echo.Context) (string, error) {
 // Logout handler (calls `Authenticator.Logout`)
 func (h *AuthHandler) Logout(c echo.Context) error {
 	log.Println("Handling logout")
+	handle, _ := h.GetHandle(c)
+	cache.PreviewCache.Delete(handle)
+	cache.UserDataStore.Delete(handle)
 	return h.Authenticator.Logout(c)
 }
 
@@ -63,6 +45,10 @@ func (h *AuthHandler) AuthRequest(c echo.Context) error {
 
 // AuthCallback handler (calls `EthAuthenticator.AuthCallbackHandler`)
 func (h *AuthHandler) AuthCallback(c echo.Context) error {
+	// delete user and preview cache if they switch sites on same peer
+	handle, _ := h.GetHandle(c)
+	cache.PreviewCache.Delete(handle)
+	cache.UserDataStore.Delete(handle)
 	return h.Authenticator.(*auth.EthAuthenticator).AuthCallbackHandler(c)
 }
 
