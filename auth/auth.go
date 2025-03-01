@@ -43,14 +43,9 @@ func InitSessionStore() {
 	}
 
 	// // if ENV=development, set allowDomain to localhost, otherwise set to utils.BaseDomain
-	allowDomain := ".dreamfriday.com"
-	if os.Getenv("ENV") == "development" {
-		allowDomain = "localhost"
-	}
 
 	store = sessions.NewCookieStore([]byte(hashKey), []byte(blockKey))
 	store.Options = &sessions.Options{
-		Domain:   allowDomain,
 		Path:     "/",
 		MaxAge:   3600 * 3, // 3 hours
 		HttpOnly: true,
