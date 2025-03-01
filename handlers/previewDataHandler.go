@@ -180,6 +180,7 @@ func (h *PreviewHandler) GetElement(c echo.Context) error {
 	if pid == "" {
 		return c.JSON(http.StatusBadRequest, "Element ID is required")
 	}
+	log.Println("Getting preview element:", pid)
 	// get handle from session
 	session, err := auth.GetSession(c.Request())
 	if err != nil {
@@ -192,10 +193,13 @@ func (h *PreviewHandler) GetElement(c echo.Context) error {
 		if userPreviewData, found := cache.PreviewCache.Get(handle); found {
 			if previewData, ok := userPreviewData.(*PreviewData); ok {
 				if element, found := previewData.PreviewMap[pid]; found {
+					log.Println("Element found in preview data:", pid)
 					return c.JSON(http.StatusOK, element)
 				}
+				log.Println("Element not found in preview data for handle:", handle)
 				return c.JSON(http.StatusNotFound, "Element not found")
 			}
+			log.Println("Preview data not found for handle:", handle)
 			return c.JSON(http.StatusNotFound, "no active preview data")
 		}
 
@@ -236,7 +240,7 @@ func (h *PreviewHandler) UpdateElement(c echo.Context) error {
 		return c.JSON(http.StatusUnauthorized, "Unauthorized")
 	}
 
-	previewData, ok := userPreviewData.(PreviewData)
+	previewData, ok := userPreviewData.(*PreviewData)
 	if !ok {
 		return c.JSON(http.StatusNotFound, "no active preview data")
 	}
