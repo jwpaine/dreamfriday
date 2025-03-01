@@ -236,7 +236,7 @@ func (h *PreviewHandler) UpdateElement(c echo.Context) error {
 		return c.JSON(http.StatusUnauthorized, "Unauthorized")
 	}
 
-	previewData, ok := userPreviewData.(*PreviewData)
+	previewData, ok := userPreviewData.(PreviewData)
 	if !ok {
 		return c.JSON(http.StatusNotFound, "no active preview data")
 	}
