@@ -23,6 +23,7 @@ We recommend using the MetaMask browser extension, which will allow you to creat
 ### Routes:
 
 Serialized
+- **GET /cid**: returns a site's IPFS content address id
 - **GET /json**: returns a site's complete structure [Example](https://github.com/jwpaine/dreamfriday.com/blob/main/examples/dreamfriday.com.json)
 - **GET /components**: returns all non-private components (PageElements)
 - **GET /component/:name** retuns a single non-private component (PageElement)
