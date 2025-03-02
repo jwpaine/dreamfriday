@@ -3,6 +3,7 @@ package pageengine
 type SiteData struct {
 	Pages      map[string]Page         `json:"pages"` // Flexible page names
 	Components map[string]*PageElement `json:"components"`
+	IPFSHash   string                  `json:"ipfsHash"`
 }
 
 type Page struct {

@@ -3,6 +3,9 @@ package models
 import (
 	ipfs "dreamfriday/IPFS"
 	database "dreamfriday/database"
+	"dreamfriday/pageengine"
+	"encoding/json"
+	"fmt"
 	"log"
 )
 
@@ -81,17 +84,30 @@ func PublishSite(site *Site) error {
 }
 
 func GetSiteData(name string) (string, error) {
-	log.Println("Getting site data for:", name)
+	log.Println("Fetching site data for:", name)
+
 	site, err := GetSite(name)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to retrieve site info for %s: %w", name, err)
 	}
-	ipfsHash := site.IPFSHash
-	data, err := ipfs.GetFile(ipfsHash)
+
+	data, err := ipfs.GetFile(site.IPFSHash)
 	if err != nil {
-		log.Printf("Failed to get site data for %s: %v", name, err)
-		return "", err
+		return "", fmt.Errorf("failed to retrieve IPFS file for %s (%s): %w", name, site.IPFSHash, err)
 	}
-	log.Printf("Retrieved site data for %s (%s)", name, ipfsHash)
-	return data, nil
+
+	var siteData pageengine.SiteData
+	if err := json.Unmarshal([]byte(data), &siteData); err != nil {
+		return "", fmt.Errorf("failed to unmarshal site data for %s (%s): %w", name, site.IPFSHash, err)
+	}
+
+	siteData.IPFSHash = site.IPFSHash
+
+	siteDataJSON, err := json.Marshal(siteData)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal site data for %s (%s): %w", name, site.IPFSHash, err)
+	}
+
+	log.Printf("Successfully retrieved and processed site data for %s (%s)", name, site.IPFSHash)
+	return string(siteDataJSON), nil
 }

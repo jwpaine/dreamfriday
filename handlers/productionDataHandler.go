@@ -261,3 +261,15 @@ func GetCurrentDomain(c echo.Context) (pageengine.PageElement, error) {
 	}
 	return element, nil
 }
+
+func GetIPFSCID(c echo.Context) error {
+	siteData, err := GetSiteData(c)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+	element := pageengine.PageElement{
+		Type: "span",
+		Text: siteData.IPFSHash,
+	}
+	return c.JSON(http.StatusOK, element)
+}
