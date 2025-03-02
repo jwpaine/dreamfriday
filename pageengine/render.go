@@ -40,10 +40,11 @@ func CollectCSS(p *PageElement, styleWriter io.Writer, classMap map[*PageElement
 
 	// If this element is an imported component, retrieve and process it
 	if p.Import != "" {
-		if visited[p.Import] {
-			return // Prevent circular dependencies
+		visitKey := fmt.Sprintf("%p-%s", p, p.Import) // Unique per instance
+		if visited[visitKey] {
+			return
 		}
-		visited[p.Import] = true // Mark component as visited
+		visited[visitKey] = true
 
 		// if external import, fetch the component and add it to the local components map
 		// target both http/s:// and / internal routes
@@ -56,6 +57,10 @@ func CollectCSS(p *PageElement, styleWriter io.Writer, classMap map[*PageElement
 			}
 			// add external component to the components map:
 			components[p.Import] = externalComponent
+
+			if p.Text != "" {
+				p.Text = externalComponent.Text
+			}
 		}
 
 		// now we treat internal and external imports the same way
@@ -178,10 +183,11 @@ func (p *PageElement) Render(w io.Writer, components map[string]*PageElement, cl
 	// Handle imported components
 	if p.Import != "" {
 		// Prevent circular dependencies
-		if visited[p.Import] {
+		visitKey := fmt.Sprintf("%p-%s", p, p.Import) // Unique per instance
+		if visited[visitKey] {
 			return
 		}
-		visited[p.Import] = true
+		visited[visitKey] = true
 
 		// handle internal imports
 		if importedComponent, exists := components[p.Import]; exists {
@@ -215,9 +221,6 @@ func (p *PageElement) Render(w io.Writer, components map[string]*PageElement, cl
 
 			delete(visited, p.Import) // Allow reuse in different parts of the page
 			// delete the import from components now if it contains the private flag
-
-			// print imported component for debugging:
-			// print p.Private
 			if p.Private {
 				fmt.Println("Private component found, deleting from components")
 				delete(components, p.Import)

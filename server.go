@@ -101,7 +101,7 @@ func main() {
 	}
 	defer database.Close()
 
-	// BootStrapSite()
+	BootStrapSite()
 
 	e := echo.New()
 

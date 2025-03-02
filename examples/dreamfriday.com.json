@@ -1,5 +1,224 @@
 {
     "pages": {
+        "about": {
+            "head": {
+                "elements": [
+                    {
+                        "type": "title",
+                        "text": "Login - Dream Friday",
+                        "pid": "DFGrtP"
+                    },
+                    {
+                        "type": "meta",
+                        "attributes": {
+                            "content": "width=device-width, initial-scale=1",
+                            "name": "viewport"
+                        },
+                        "pid": "ZSihIl"
+                    },
+                    {
+                        "type": "style",
+                        "text": "@font-face { font-family: 'OpenSans_Bold'; src: url('/static/font/OpenSans_Bold.ttf') format('truetype'); font-weight: bold; font-style: normal; } body { margin: 0; } * { font-family: 'OpenSans_Bold', sans-serif; }",
+                        "pid": "zJhYfG"
+                    },
+                    {
+                        "type": "script",
+                        "attributes": {
+                            "src": "/static/ethlogin.js"
+                        },
+                        "pid": "ayyecC"
+                    }
+                ]
+            },
+            "body": {
+                "elements": [
+                    {
+                        "import": "Header"
+                    },
+                    {
+                        "type": "main",
+                        "attributes": {
+                            "id": "login"
+                        },
+                        "elements": [
+                            {
+                                "type": "section",
+                                "elements": [
+                                    {
+                                        "type": "p",
+                                        "import": "/component/P",
+                                        "text": "99% of the websites you visit today operate on a centralized model. They let you post data in exchange for something. That data remains within their walled garden. You make a post on social media, only to wake up and find your account gone. People spend years building their online presence, only to be de-platformed over something they said. If this hasn’t happened to you yet, it likely will at some point."
+                                    },
+                                    {
+                                        "type": "p",
+                                        "import": "/component/P",
+                                        "text": "Decentralizing your data is a far better approach.",
+                                        "style": {
+                                            "font-weight": "bold"
+                                        }
+                                    },
+                                    {
+                                        "type": "p",
+                                        "import": "/component/P",
+                                        "text": "With decentralization, no single entity has control over your data. Instead of being confined to a central server, your content is distributed across multiple peers. This makes it significantly more resilient, whether against government or corporate censorship, natural disasters, or an unexpected server room fire."
+                                    },
+                                    {
+                                        "type": "p",
+                                        "import": "/component/P",
+                                        "text": "You also benefit from **locality of reference**. Retrieving data from the closest source is always faster. If your data is replicated across geographically distributed peers, the nearest ones will serve your request first. And even if they do not have it initially, they will on the next go."
+                                    },
+                                    {
+                                        "type": "p",
+                                        "import": "/component/P",
+                                        "text": "Dreamfriday is a tool to create, store, share, and render content on an open, connected, censorship-resistant and tamper-proof network."
+                                    },
+                                    {
+                                        "type": "p",
+                                        "import": "/component/P",
+                                        "text": "Under the hood, it takes a stream of data describing the page you requested, and it returns beautified HTML+CSS on the fly. "
+                                    },
+                                    {
+                                        "type": "p",
+                                        "import": "/component/P",
+                                        "text": "JSON is used to describe page elements. It has minimal syntax. It's language-agnostic, key-value structures are intuitive, and it's typically what APIs return."
+                                    },
+                                    {
+                                        "type": "p",
+                                        "import": "/component/P",
+                                        "text": "Here's a bare-bones button:"
+                                    },
+                                    {
+                                        "type": "textarea",
+                                        "text": "{ 'type' : 'button', 'text' : 'click me', 'style' : { 'color' : 'lightblue' } }"
+                                    },
+                                    {
+                                        "type": "button",
+                                        "text": "click me",
+                                        "style": {
+                                            "color": "lightblue"
+                                        }
+                                    },
+                                    {
+                                        "type": "p",
+                                        "import": "/component/P",
+                                        "text": "We will not win a design award with this one."
+                                    },
+                                    {
+                                        "type": "p",
+                                        "import": "/component/P",
+                                        "text": "When you describe how a page should look and function, you can borrow from other sites, and the rendering engine will splice things together server-side, and present your page as if it were statically generated."
+                                    },
+                                    {
+                                        "type": "p",
+                                        "import": "/component/P",
+                                        "text": "Fortunately, another site already has a button component. Since it was added to their components collection, it's automatically exported via that site's /component/:name route. Let's add an import to our button:"
+                                    },
+                                    {
+                                        "type": "textarea",
+                                        "text": "{ 'type': 'button', 'text': 'click me', 'style': { 'color' : 'lightblue' }, 'import' : 'https://components.dreamfriday.com/component/Button' }"
+                                    },
+                                    {
+                                        "type": "button",
+                                        "text": "click me",
+                                        "style": {
+                                            "color": "lightblue"
+                                        },
+                                        "import": "https://components.dreamfriday.com/component/Button"
+                                    },
+                                    {
+                                        "type": "p",
+                                        "import": "/component/P",
+                                        "text": "Vincent Vangogh himself would be proud of this button. When an element imports another, it inherits the properties of that element, while allowing you to define (and override) properties locally. Checkout the JSON for the button element we pulled in."
+                                    },
+                                    {
+                                        "type": "p",
+                                        "import": "/component/P",
+                                        "text": "When you import a component from outside of your own site, your modified version is published unless 'private' : 'true' is set under that element."
+                                    },
+                                    {
+                                        "type": "p",
+                                        "import": "/component/P",
+                                        "text": "Here are all of the components that are exported from this site: <a href='/components'>/components</a>"
+                                    },
+                                    {
+                                        "type": "p",
+                                        "import": "/component/P",
+                                        "text" : "Pages are a composite of these elements. "
+                                    },
+                                    {
+                                        "type": "p",
+                                        "import": "/component/P",
+                                        "text" : "/json will return a web site's complete structure <br> /page/:page_name returns a specific page in that structure. <br>/:page_page will return the rendered version"
+                                    },
+                                    {
+                                        "type": "p",
+                                        "import": "/component/P",
+                                        "text" : "<a href='/page/about'>/page/about</a> returns the structure for this page, and what you're viewing now is the rendered form."
+                                    },
+                                    {
+                                        "type": "p",
+                                        "import": "/component/P",
+                                        "text" : "Easy."
+                                    },
+                                    {
+                                        "type": "p",
+                                        "import": "/component/P",
+                                        "text" : "Once logged in, you can hit the /create page to create a new site. The login page itself is described in JSON, so you're running your own peer you are free to modify it as you please."
+                                    },  
+                                    {
+                                        "type": "p",
+                                        "import": "/component/P",
+                                        "text" : "You will create a sub-domain off of the domain you logged into, and you will be the sole owner of this named site across all peers on the network. Your site can be modified to serve any purpose or no purpose at all; hover, It cannot be renamed or deleted. "
+                                    },
+                                    {
+                                        "type": "p",
+                                        "import": "/component/P",
+                                        "text" : "When creating your site, you'll need to provide a link to another site's complete JSON to use as a starting template. "
+                                    },
+                                    {
+                                        "type": "p",
+                                        "import": "/component/P",
+                                        "text" : "You might go with the site name coffeelover "
+                                    },
+                                    {
+                                        "type": "p",
+                                        "import": "/component/P",
+                                        "text" : "When connecting through dreamfriday.com, coffeelover.dreamfriday.com is yours."
+                                    },
+                                    {
+                                        "type": "p",
+                                        "import": "/component/P",
+                                        "text" : "If another peer uses the DreamFriday network, you can still access your site via coffeelover.their_domain.com, or you can spin up your own peer and use the domain coffeelover.com"
+                                    },
+                                    {
+                                        "type": "p",
+                                        "import": "/component/P",
+                                        "text" : "No one else gets your name, and only you can modify it. "
+                                    }
+                                ],
+                                "style": {
+                                    "align-items": "center",
+                                    "display": "flex",
+                                    "flex-direction": "column",
+                                    "justify-content": "center",
+                                    "width": "100%"
+                                },
+                                "pid": "dzuNHK"
+                            }
+                        ],
+                        "style": {
+                            "align-items": "center",
+                            "background": "linear-gradient(135deg, #6a11cb, #2575fc)",
+                            "color": "white",
+                            "display": "flex",
+                            "height": "100vh",
+                            "justify-content": "center"
+                        },
+                        "pid": "kqEsox"
+                    }
+                ]
+            }
+        },
         "admin": {
             "head": {
                 "elements": [
@@ -105,106 +324,33 @@
             },
             "redirectForLogout": "/login"
         },
-        "manage": {
-            "head": {
-                "elements": [
-                    {
-                        "type": "title",
-                        "text": "Dream Friday"
-                    },
-                    {
-                        "type": "meta",
-                        "attributes": {
-                            "content": "width=device-width, initial-scale=1",
-                            "name": "viewport"
-                        }
-                    },
-                    {
-                        "type": "style",
-                        "text": "@font-face { font-family: 'OpenSans_Bold'; src: url('/static/font/OpenSans_Bold.ttf') format('truetype'); font-weight: bold; font-style: normal; } body { margin: 0; } * { font-family: 'OpenSans_Bold', sans-serif; }"
-                    }
-                ]
-            },
-            "body": {
-                "elements": [
-                    {
-                        "import": "Header"
-                    },
-                    {
-                        "type": "main",
-                        "attributes": {
-                            "id": "hero"
-                        },
-                        "elements": [
-                            {
-                                "type": "section",
-                                "elements": [
-                                    {
-                                        "type": "h1",
-                                        "text": "Manage",
-                                        "style": {
-                                            "font-size": "2.5rem",
-                                            "margin": "0"
-                                        }
-                                    },
-                                    {
-                                        "type": "h1",
-                                        "import": "/domain"
-                                    },
-                                    { 
-                                        "type" : "textarea",
-                                        "importText": "/preview/json"
-                                    }
-                                ],
-                                "style": {
-                                    "background": "rgba(0,0,0,0.1)",
-                                    "display": "flex",
-                                    "flex-direction": "column",
-                                    "padding": "25px"
-                                }
-                            }
-                        ],
-                        "style": {
-                            "align-items": "center",
-                            "background": "linear-gradient(135deg, #6a11cb, #2575fc)",
-                            "color": "white",
-                            "display": "flex",
-                            "flex-direction": "column",
-                            "gap": "1.5rem",
-                            "height": "100vh",
-                            "justify-content": "center",
-                            "margin": "0",
-                            "padding": "2rem",
-                            "text-align": "center"
-                        }
-                    }
-                ]
-            },
-            "redirectForLogout": "/login"
-        },
         "create": {
             "head": {
                 "elements": [
                     {
                         "type": "title",
-                        "text": "Login - Dream Friday"
+                        "text": "Login - Dream Friday",
+                        "pid": "pEOXmu"
                     },
                     {
                         "type": "meta",
                         "attributes": {
                             "content": "width=device-width, initial-scale=1",
                             "name": "viewport"
-                        }
+                        },
+                        "pid": "acYBzs"
                     },
                     {
                         "type": "style",
-                        "text": "body { margin: 0; * { font-family: 'OpenSans_Bold', sans-serif; }"
+                        "text": "body { margin: 0; * { font-family: 'OpenSans_Bold', sans-serif; }",
+                        "pid": "ZsSDSW"
                     },
                     {
                         "type": "script",
                         "attributes": {
                             "src": "/static/htmx.min.js"
-                        }
+                        },
+                        "pid": "wKZosV"
                     }
                 ]
             },
@@ -230,7 +376,8 @@
                                             "font-size": "3rem",
                                             "margin-bottom": "1rem",
                                             "text-align": "center"
-                                        }
+                                        },
+                                        "pid": "dMQBko"
                                     },
                                     {
                                         "import": "CreateForm"
@@ -242,7 +389,8 @@
                                     "flex-direction": "column",
                                     "justify-content": "center",
                                     "width": "100%"
-                                }
+                                },
+                                "pid": "kIFbut"
                             }
                         ],
                         "style": {
@@ -252,7 +400,8 @@
                             "display": "flex",
                             "height": "100vh",
                             "justify-content": "center"
-                        }
+                        },
+                        "pid": "AHSAIh"
                     }
                 ]
             },
@@ -263,18 +412,21 @@
                 "elements": [
                     {
                         "type": "title",
-                        "text": "Dream Friday"
+                        "text": "Dream Friday",
+                        "pid": "JjdMHL"
                     },
                     {
                         "type": "meta",
                         "attributes": {
                             "content": "width=device-width, initial-scale=1",
                             "name": "viewport"
-                        }
+                        },
+                        "pid": "HWsdpZ"
                     },
                     {
                         "type": "style",
-                        "text": "@font-face { font-family: 'OpenSans_Bold'; src: url('/static/font/OpenSans_Bold.ttf') format('truetype'); font-weight: bold; font-style: normal; } body { margin: 0; } * { font-family: 'OpenSans_Bold', sans-serif; }"
+                        "text": "@font-face { font-family: 'OpenSans_Bold'; src: url('/static/font/OpenSans_Bold.ttf') format('truetype'); font-weight: bold; font-style: normal; } body { margin: 0; } * { font-family: 'OpenSans_Bold', sans-serif; }",
+                        "pid": "GAORyP"
                     }
                 ]
             },
@@ -291,11 +443,12 @@
                         "elements": [
                             {
                                 "type": "h1",
-                                "text": "Hello, world!!!",
+                                "text": "Hello, world",
                                 "style": {
                                     "font-size": "4.5rem",
                                     "margin": "0"
-                                }
+                                },
+                                "pid": "NWDmeJ"
                             }
                         ],
                         "style": {
@@ -310,7 +463,8 @@
                             "margin": "0",
                             "padding": "2rem",
                             "text-align": "center"
-                        }
+                        },
+                        "pid": "lQQeEm"
                     }
                 ]
             }
@@ -405,12 +559,90 @@
                 ]
             },
             "redirectForLogin": "/admin"
+        },
+        "manage": {
+            "head": {
+                "elements": [
+                    {
+                        "type": "title",
+                        "text": "Dream Friday"
+                    },
+                    {
+                        "type": "meta",
+                        "attributes": {
+                            "content": "width=device-width, initial-scale=1",
+                            "name": "viewport"
+                        }
+                    },
+                    {
+                        "type": "style",
+                        "text": "@font-face { font-family: 'OpenSans_Bold'; src: url('/static/font/OpenSans_Bold.ttf') format('truetype'); font-weight: bold; font-style: normal; } body { margin: 0; } * { font-family: 'OpenSans_Bold', sans-serif; }"
+                    }
+                ]
+            },
+            "body": {
+                "elements": [
+                    {
+                        "import": "Header"
+                    },
+                    {
+                        "type": "main",
+                        "attributes": {
+                            "id": "hero"
+                        },
+                        "elements": [
+                            {
+                                "type": "section",
+                                "elements": [
+                                    {
+                                        "type": "h1",
+                                        "text": "Manage",
+                                        "style": {
+                                            "font-size": "2.5rem",
+                                            "margin": "0"
+                                        }
+                                    },
+                                    {
+                                        "type": "h1",
+                                        "import": "/domain"
+                                    },
+                                    {
+                                        "type": "textarea",
+                                        "importText": "/preview/json"
+                                    }
+                                ],
+                                "style": {
+                                    "background": "rgba(0,0,0,0.1)",
+                                    "display": "flex",
+                                    "flex-direction": "column",
+                                    "padding": "25px"
+                                }
+                            }
+                        ],
+                        "style": {
+                            "align-items": "center",
+                            "background": "linear-gradient(135deg, #6a11cb, #2575fc)",
+                            "color": "white",
+                            "display": "flex",
+                            "flex-direction": "column",
+                            "gap": "1.5rem",
+                            "height": "100vh",
+                            "justify-content": "center",
+                            "margin": "0",
+                            "padding": "2rem",
+                            "text-align": "center"
+                        }
+                    }
+                ]
+            },
+            "redirectForLogout": "/login"
         }
     },
     "components": {
         "CreateForm": {
             "type": "form",
             "attributes": {
+                "class": "form_VyJTBv",
                 "hx-post": "/create",
                 "hx-swap": "innerHTML",
                 "hx-target": "#messages"
@@ -421,20 +653,21 @@
                     "attributes": {
                         "for": "domain"
                     },
-                    "text": "Domain",
+                    "text": "Site Name",
                     "style": {
                         "color": "white",
                         "display": "block",
                         "font-size": "1rem",
                         "margin-bottom": "0.5rem"
-                    }
+                    },
+                    "pid": "pMQxTk"
                 },
                 {
                     "type": "input",
                     "attributes": {
                         "id": "domain",
                         "name": "domain",
-                        "placeholder": "mysite.dreamfriday.com",
+                        "placeholder": "myawesomesite",
                         "required": "",
                         "type": "text"
                     },
@@ -445,7 +678,8 @@
                         "margin-bottom": "1rem",
                         "padding": "0.8rem",
                         "width": "100%"
-                    }
+                    },
+                    "pid": "mPSXZz"
                 },
                 {
                     "type": "label",
@@ -458,7 +692,8 @@
                         "display": "block",
                         "font-size": "1rem",
                         "margin-bottom": "0.5rem"
-                    }
+                    },
+                    "pid": "hArumh"
                 },
                 {
                     "type": "input",
@@ -476,7 +711,8 @@
                         "margin-bottom": "1rem",
                         "padding": "0.8rem",
                         "width": "100%"
-                    }
+                    },
+                    "pid": "vgSnBz"
                 },
                 {
                     "type": "button",
@@ -494,7 +730,8 @@
                         "padding": "0.8rem",
                         "transition": "0.3s",
                         "width": "100%"
-                    }
+                    },
+                    "pid": "VnGETA"
                 },
                 {
                     "type": "span",
@@ -506,7 +743,8 @@
                         "display": "block",
                         "font-size": "1rem",
                         "margin-top": "1rem"
-                    }
+                    },
+                    "pid": "TDwPGu"
                 }
             ],
             "style": {
@@ -522,6 +760,7 @@
         "Header": {
             "type": "header",
             "attributes": {
+                "class": "header_JlxdRW",
                 "id": "header"
             },
             "elements": [
@@ -535,7 +774,8 @@
                         "color": "white",
                         "font-size": "1.2rem",
                         "text-decoration": "none"
-                    }
+                    },
+                    "pid": "xBAhxQ"
                 }
             ],
             "style": {
@@ -545,6 +785,24 @@
                 "padding": "1rem",
                 "position": "fixed",
                 "width": "100%"
+            }
+        },
+        "P": {
+            "type": "p",
+            "style": {
+                "color": "white",
+                "font-size": "1.5em"
+            }
+        },
+        "https://components.dreamfriday.com/component/Button": {
+            "type": "span",
+            "style": {
+                "background": "rgba(0, 0, 0, 0.5)",
+                "border": "none",
+                "border-radius": "12px",
+                "color": "blue",
+                "font-size": "1.2em",
+                "padding": "10px 20px"
             }
         }
     }
