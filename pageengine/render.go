@@ -182,6 +182,17 @@ func (p *PageElement) Render(w io.Writer, components map[string]*PageElement, cl
 		return
 	}
 
+	if previewElementMap != nil {
+		if p.Pid == "" {
+			fmt.Println("Generating new pid for", p.Type)
+			p.Pid = generateRandomClassName(6)
+		}
+		// Ensustore the original element reference, not the rendered/imported one
+		if _, exists := previewElementMap[p.Pid]; !exists {
+			previewElementMap[p.Pid] = p // Keep reference to the calling element
+		}
+	}
+
 	// Handle imported components
 	if p.Import != "" {
 		// Prevent circular dependencies
@@ -242,22 +253,26 @@ func (p *PageElement) Render(w io.Writer, components map[string]*PageElement, cl
 		fmt.Fprintf(w, "<%s", p.Type)
 	}
 
+	// if previewElementMap != nil {
+
+	// 	// Generate a new pid and add it to the preview element map
+
+	// 	if p.Pid == "" {
+	// 		fmt.Println("Generating new pid for", p.Type)
+	// 		pid := generateRandomClassName(6)
+	// 		p.Pid = pid
+	// 		fmt.Fprintf(w, ` pid="%s"`, pid)
+	// 		previewElementMap[p.Pid] = p
+	// 	} else {
+	// 		fmt.Printf("Found existing pid for %s : %s\n", p.Type, p.Pid)
+	// 		fmt.Fprintf(w, ` pid="%s"`, p.Pid)
+	// 		previewElementMap[p.Pid] = p
+	// 	}
+
+	// }
+
 	if previewElementMap != nil {
-
-		// Generate a new pid and add it to the preview element map
-
-		if p.Pid == "" {
-			fmt.Println("Generating new pid for", p.Type)
-			pid := generateRandomClassName(6)
-			p.Pid = pid
-			fmt.Fprintf(w, ` pid="%s"`, pid)
-			previewElementMap[p.Pid] = p
-		} else {
-			fmt.Printf("Found existing pid for %s : %s\n", p.Type, p.Pid)
-			fmt.Fprintf(w, ` pid="%s"`, p.Pid)
-			previewElementMap[p.Pid] = p
-		}
-
+		fmt.Fprintf(w, ` pid="%s"`, p.Pid)
 	}
 
 	// Process attributes
