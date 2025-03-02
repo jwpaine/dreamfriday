@@ -33,7 +33,7 @@ func generateRandomClassName(n int) string {
 }
 
 // Recursive function that collects CSS first and assigns class names
-func CollectCSS(p *PageElement, styleWriter io.Writer, classMap map[*PageElement]string, components map[string]*PageElement, visited map[string]bool, c echo.Context, routeInternal func(string, echo.Context) (interface{}, error)) {
+func CollectCSS(p *PageElement, styleWriter io.Writer, classMap map[*PageElement]string, components map[string]*PageElement, visited map[string]bool, c echo.Context, routeInternal func(string, echo.Context) (*PageElement, error)) {
 	if p == nil {
 		return
 	}
@@ -116,19 +116,18 @@ func GenerateCSS(className string, css map[string]string, styleWriter io.Writer)
 	fmt.Fprint(styleWriter, " }") // Close the CSS rule
 }
 
-func GetExternalComponent(c echo.Context, uri string, routeInternal func(string, echo.Context) (interface{}, error)) (*PageElement, error) {
-	log.Println("External component needed:", uri)
+func GetExternalComponent(c echo.Context, uri string, routeInternal func(string, echo.Context) (*PageElement, error)) (*PageElement, error) {
+	log.Println("External resource needed:", uri)
 
 	// Check if the URI is an internal route
 	if strings.HasPrefix(uri, "/") {
 		log.Println("Attempting to fetch component internally:", uri)
 		pageElement, err := routeInternal(uri, c)
 		if err == nil {
-			if component, ok := pageElement.(PageElement); ok {
-				return &component, nil
-			}
-			return nil, fmt.Errorf("invalid response type from internal route")
+			return pageElement, nil
 		}
+		log.Println("Error fetching component internally:", err)
+		return nil, fmt.Errorf("error fetching component internally: %w", err)
 	}
 
 	log.Println("Attempting to fetch component externally:", uri)
@@ -317,7 +316,7 @@ func generateNonce() string {
 }
 
 // routeInternal is a function
-func RenderPage(pageData Page, components map[string]*PageElement, w io.Writer, c echo.Context, routeInternal func(string, echo.Context) (interface{}, error), previewElementMap map[string]*PageElement) error {
+func RenderPage(pageData Page, components map[string]*PageElement, w io.Writer, c echo.Context, routeInternal func(string, echo.Context) (*PageElement, error), previewElementMap map[string]*PageElement) error {
 	// map a pid value to a page element so we can target them in the preview
 
 	fmt.Println("rendering page. previewElementMap enabled:", previewElementMap != nil)

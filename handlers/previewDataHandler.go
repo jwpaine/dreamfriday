@@ -387,23 +387,30 @@ func (h *PreviewHandler) GetComponents(c echo.Context) error {
 }
 
 // return component name from preview
-func (h *PreviewHandler) GetComponent(c echo.Context) error {
+func (h *PreviewHandler) GetComponent(c echo.Context, componentName string) (*pageengine.PageElement, error) {
 
 	name := c.Param("name")
 	if name == "" {
-		return c.JSON(http.StatusBadRequest, "Component name is required")
+		if componentName == "" {
+			return nil, fmt.Errorf("component name is required")
+		}
+		name = componentName
 	}
+
+	log.Println("Looking for component:", name)
+
 	previewData, err := h.GetSiteData(c)
 	if err != nil {
 		log.Println("Failed to get preview data:", err)
-		return c.JSON(http.StatusInternalServerError, "Failed to get preview data")
+		return nil, fmt.Errorf("Failed to get preview data")
 	}
 	// if previewData.SiteData.Components
 	// return c.JSON(http.StatusOK, previewData.SiteData.Components)
 	if component, ok := previewData.SiteData.Components[name]; ok {
-		return c.JSON(http.StatusOK, component)
+		log.Println("--> Got component:", component)
+		return component, nil
 	}
-	return c.JSON(http.StatusNotFound, "Component not found")
+	return nil, fmt.Errorf("Component not found")
 
 }
 

@@ -4,12 +4,52 @@ import (
 	pageengine "dreamfriday/pageengine"
 	"encoding/json"
 	"fmt"
+	"log"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 )
 
+func fetchComponent(c echo.Context, path string) (interface{}, error) {
+	previewHandler := NewPreviewHandler()
+	previewEnabled, _ := previewHandler.IsPreviewEnabled(c)
+
+	// split /component/name to get the name
+	component := strings.Split(path, "/")[2]
+	if component == "" {
+		return nil, fmt.Errorf("component name not found")
+	}
+
+	if previewEnabled {
+		fmt.Println("Looking for preview component:", component)
+		return previewHandler.GetComponent(c, component) // Pass path
+	}
+
+	fmt.Println("Looking for production component:", component)
+	componentData, err := GetComponent(c, component) // Pass path
+	if err != nil {
+		log.Println("Failed to get component:", err)
+		return nil, err
+	}
+	log.Println("Got component:", component)
+	return componentData, nil
+}
+
 // handles routing for both internal pageengine and external http requests
-func RouteInternal(path string, c echo.Context) (interface{}, error) {
+func RouteInternal(path string, c echo.Context) (*pageengine.PageElement, error) {
+
+	if strings.HasPrefix(path, "/component/") {
+		componentData, err := fetchComponent(c, path)
+		if err != nil {
+			return nil, err
+		}
+		pageElement, ok := componentData.(*pageengine.PageElement)
+		if !ok {
+			return nil, fmt.Errorf("invalid component data type")
+		}
+		return pageElement, nil
+	}
+
 	switch path {
 	case "/mysites":
 		// get user data from func GetUserData(c echo.Context) (interface{}, error):
@@ -19,7 +59,7 @@ func RouteInternal(path string, c echo.Context) (interface{}, error) {
 		}
 		// Return only the "sites" element from userDataMap
 		if cachedSitesElement, exists := userData["sites"].(pageengine.PageElement); exists {
-			return cachedSitesElement, nil
+			return &cachedSitesElement, nil
 		}
 		return nil, fmt.Errorf("sites not found in user data")
 
@@ -30,7 +70,7 @@ func RouteInternal(path string, c echo.Context) (interface{}, error) {
 		}
 		// Return only the "handle" element from userDataMap
 		if cachedHandleElement, exists := userData["handle"].(pageengine.PageElement); exists {
-			return cachedHandleElement, nil
+			return &cachedHandleElement, nil
 		}
 		return nil, fmt.Errorf("address not found in user data")
 	case "/domain":
@@ -38,7 +78,7 @@ func RouteInternal(path string, c echo.Context) (interface{}, error) {
 		if err != nil {
 			return nil, err
 		}
-		return domain, nil
+		return &domain, nil
 	case "/preview/json":
 		previewHandler := NewPreviewHandler()
 		previewData, err := previewHandler.GetSiteData(c)
@@ -54,7 +94,7 @@ func RouteInternal(path string, c echo.Context) (interface{}, error) {
 		if err != nil {
 			return nil, err
 		}
-		return pageengine.PageElement{
+		return &pageengine.PageElement{
 			Type: "textarea",
 			Text: string(siteData),
 		}, nil

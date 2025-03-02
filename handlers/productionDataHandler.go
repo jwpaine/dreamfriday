@@ -218,15 +218,26 @@ func GetPages(c echo.Context) error {
 	}
 	return c.JSON(http.StatusNotFound, "Page not found")
 }
-func GetComponent(c echo.Context) error {
+func GetComponent(c echo.Context, componentName string) (*pageengine.PageElement, error) {
 	siteName := utils.GetSubdomain(c.Request().Host)
 	name := c.Param("name")
+
+	if name == "" {
+		if componentName == "" {
+			return nil, fmt.Errorf("component name is required")
+		}
+		name = componentName
+	}
+
+	log.Println("Looking for component:", name) // Debugging log
+
 	if cachedData, found := cache.SiteDataStore.Get(siteName); found {
 		if cachedData.(pageengine.SiteData).Components[name] != nil {
-			return c.JSON(http.StatusOK, cachedData.(pageengine.SiteData).Components[name])
+			log.Println("Found component:", cachedData.(pageengine.SiteData).Components[name]) // Debugging log
+			return cachedData.(pageengine.SiteData).Components[name], nil
 		}
 	}
-	return c.JSON(http.StatusNotFound, "Component not found")
+	return nil, fmt.Errorf("Component not found")
 }
 func GetComponents(c echo.Context) error {
 	siteName := utils.GetSubdomain(c.Request().Host)
