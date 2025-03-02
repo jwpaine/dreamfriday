@@ -49,6 +49,9 @@ func CollectCSS(p *PageElement, styleWriter io.Writer, classMap map[*PageElement
 		// if external import, fetch the component and add it to the local components map
 		// target both http/s:// and / internal routes
 		fmt.Println("Import found:", p.Import)
+
+		fmt.Println(p)
+
 		if strings.Contains(p.Import, "/") {
 			externalComponent, err := GetExternalComponent(c, p.Import, routeInternal)
 			if err != nil {
@@ -58,7 +61,7 @@ func CollectCSS(p *PageElement, styleWriter io.Writer, classMap map[*PageElement
 			// add external component to the components map:
 			components[p.Import] = externalComponent
 
-			if p.Text != "" {
+			if p.Text == "" {
 				p.Text = externalComponent.Text
 			}
 		}
