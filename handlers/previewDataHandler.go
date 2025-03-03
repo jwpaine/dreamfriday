@@ -171,104 +171,6 @@ func (h *PreviewHandler) Update(c echo.Context) error {
 }
 
 // return element found anywhere in previewData based on pid
-func (h *PreviewHandler) GetElement(c echo.Context) error {
-	// domain := c.Request().Host
-	// if domain == "localhost:8081" {
-	// 	domain = "dreamfriday.com"
-	// }
-	pid := c.Param("pid")
-	if pid == "" {
-		return c.JSON(http.StatusBadRequest, "Element ID is required")
-	}
-	log.Println("Getting preview element:", pid)
-	// get handle from session
-	session, err := auth.GetSession(c.Request())
-	if err != nil {
-		log.Println("Failed to get session:", err)
-		return c.String(http.StatusInternalServerError, "Failed to retrieve session")
-	}
-	handle, ok := session.Values["handle"].(string)
-	if ok && handle != "" {
-		// load preview data from previewDataStore by handle -> domain -> previewData:
-		if userPreviewData, found := cache.PreviewCache.Get(handle); found {
-			if previewData, ok := userPreviewData.(*PreviewData); ok {
-				if element, found := previewData.PreviewMap[pid]; found {
-					log.Println("Element found in preview data:", pid)
-					return c.JSON(http.StatusOK, element)
-				}
-				log.Println("Element not found in preview data for handle:", handle)
-				return c.JSON(http.StatusNotFound, "Element not found")
-			}
-			log.Println("Preview data not found for handle:", handle)
-			return c.JSON(http.StatusNotFound, "no active preview data")
-		}
-
-	}
-	// must be logged in
-	return c.JSON(http.StatusUnauthorized, "Unauthorized")
-}
-
-// UpdateElement by pid via /preview/element/:pid
-func (h *PreviewHandler) UpdateElement(c echo.Context) error {
-	// domain := c.Request().Host
-	// if domain == "localhost:8081" {
-	// 	domain = "dreamfriday.com"
-	// }
-
-	pid := c.Param("pid")
-	if pid == "" {
-		return c.JSON(http.StatusBadRequest, "Element ID is required")
-	}
-
-	log.Println("Updating preview element:", pid)
-
-	// Retrieve session
-	session, err := auth.GetSession(c.Request())
-	if err != nil {
-		log.Println("Failed to get session:", err)
-		return c.String(http.StatusInternalServerError, "Failed to retrieve session")
-	}
-
-	handle, ok := session.Values["handle"].(string)
-	if !ok || handle == "" {
-		return c.JSON(http.StatusUnauthorized, "Unauthorized")
-	}
-
-	// Retrieve user's preview data from cache
-	userPreviewData, found := cache.PreviewCache.Get(handle)
-	if !found {
-		return c.JSON(http.StatusUnauthorized, "Unauthorized")
-	}
-
-	previewData, ok := userPreviewData.(*PreviewData)
-	if !ok {
-		return c.JSON(http.StatusNotFound, "no active preview data")
-	}
-
-	// Check if the element exists in the PreviewMap
-	existingElement, exists := previewData.PreviewMap[pid]
-	if !exists || existingElement == nil {
-		return c.JSON(http.StatusNotFound, "Element not found")
-	}
-
-	log.Println("Element found in preview data:", pid)
-
-	// Unmarshal the posted JSON into a PageElement instance.
-	var updatedElement pageengine.PageElement
-	if err := json.NewDecoder(c.Request().Body).Decode(&updatedElement); err != nil {
-		return c.JSON(http.StatusBadRequest, "Invalid JSON")
-	}
-
-	// Update the fields of the existing element rather than replacing its pointer.
-	*existingElement = updatedElement
-
-	log.Println("Updating element:", *existingElement)
-
-	// Optionally, if your cache requires an explicit Set to persist the changes:
-	cache.PreviewCache.Set(handle, previewData)
-
-	return c.JSON(http.StatusOK, existingElement)
-}
 
 func (h *PreviewHandler) IsPreviewEnabled(c echo.Context) (bool, error) {
 	session, err := auth.GetSession(c.Request())
@@ -435,4 +337,141 @@ func (h *PreviewHandler) DeletePreviewCache(c echo.Context) error {
 	cache.PreviewCache.Delete(handle)
 	log.Println("Deleted preview cache for handle:", handle)
 	return nil
+}
+
+// these support the page editor.
+func (h *PreviewHandler) GetElement(c echo.Context) error {
+	// domain := c.Request().Host
+	// if domain == "localhost:8081" {
+	// 	domain = "dreamfriday.com"
+	// }
+	pid := c.Param("pid")
+	if pid == "" {
+		return c.JSON(http.StatusBadRequest, "Element ID is required")
+	}
+	log.Println("Getting preview element:", pid)
+	// get handle from session
+	session, err := auth.GetSession(c.Request())
+	if err != nil {
+		log.Println("Failed to get session:", err)
+		return c.String(http.StatusInternalServerError, "Failed to retrieve session")
+	}
+	handle, ok := session.Values["handle"].(string)
+	if ok && handle != "" {
+		// load preview data from previewDataStore by handle -> domain -> previewData:
+		if userPreviewData, found := cache.PreviewCache.Get(handle); found {
+			if previewData, ok := userPreviewData.(*PreviewData); ok {
+				if element, found := previewData.PreviewMap[pid]; found {
+					log.Println("Element found in preview data:", pid)
+					return c.JSON(http.StatusOK, element)
+				}
+				log.Println("Element not found in preview data for handle:", handle)
+				return c.JSON(http.StatusNotFound, "Element not found")
+			}
+			log.Println("Preview data not found for handle:", handle)
+			return c.JSON(http.StatusNotFound, "no active preview data")
+		}
+
+	}
+	// must be logged in
+	return c.JSON(http.StatusUnauthorized, "Unauthorized")
+}
+
+// UpdateElement by pid via /preview/element/:pid
+func (h *PreviewHandler) UpdateElement(c echo.Context) error {
+	// domain := c.Request().Host
+	// if domain == "localhost:8081" {
+	// 	domain = "dreamfriday.com"
+	// }
+
+	pid := c.Param("pid")
+	if pid == "" {
+		return c.JSON(http.StatusBadRequest, "Element ID is required")
+	}
+
+	log.Println("Updating preview element:", pid)
+
+	// Retrieve session
+	session, err := auth.GetSession(c.Request())
+	if err != nil {
+		log.Println("Failed to get session:", err)
+		return c.String(http.StatusInternalServerError, "Failed to retrieve session")
+	}
+
+	handle, ok := session.Values["handle"].(string)
+	if !ok || handle == "" {
+		return c.JSON(http.StatusUnauthorized, "Unauthorized")
+	}
+
+	// Retrieve user's preview data from cache
+	userPreviewData, found := cache.PreviewCache.Get(handle)
+	if !found {
+		return c.JSON(http.StatusUnauthorized, "Unauthorized")
+	}
+
+	previewData, ok := userPreviewData.(*PreviewData)
+	if !ok {
+		return c.JSON(http.StatusNotFound, "no active preview data")
+	}
+
+	// Check if the element exists in the PreviewMap
+	existingElement, exists := previewData.PreviewMap[pid]
+	if !exists || existingElement == nil {
+		return c.JSON(http.StatusNotFound, "Element not found")
+	}
+
+	log.Println("Element found in preview data:", pid)
+
+	// Unmarshal the posted JSON into a PageElement instance.
+	var updatedElement pageengine.PageElement
+	if err := json.NewDecoder(c.Request().Body).Decode(&updatedElement); err != nil {
+		return c.JSON(http.StatusBadRequest, "Invalid JSON")
+	}
+
+	// Update the fields of the existing element rather than replacing its pointer.
+	*existingElement = updatedElement
+
+	log.Println("Updating element:", *existingElement)
+
+	// Optionally, if your cache requires an explicit Set to persist the changes:
+	cache.PreviewCache.Set(handle, previewData)
+
+	return c.JSON(http.StatusOK, existingElement)
+}
+func (h *PreviewHandler) UpdatePage(c echo.Context) error {
+	pageName := c.Param("pageName")
+	log.Println("Updating page:", pageName)
+	if pageName == "" {
+		return c.JSON(http.StatusBadRequest, "Page name is required")
+	}
+	previewData, err := h.GetSiteData(c)
+	if err != nil {
+		log.Println("Failed to get preview data:", err)
+		return c.JSON(http.StatusInternalServerError, "Failed to get preview data")
+	}
+
+	handle, err := auth.GetHandle(c)
+	if err != nil {
+		log.Println("Failed to get handle:", err)
+		return c.JSON(http.StatusInternalServerError, "Failed to get handle")
+	}
+
+	// check if page exists
+	_, ok := previewData.SiteData.Pages[pageName]
+
+	if !ok {
+		return c.JSON(http.StatusNotFound, "Page not found")
+	}
+
+	// Unmarshal the posted JSON into a Page instance.
+	var updatedPage pageengine.Page
+	if err := json.NewDecoder(c.Request().Body).Decode(&updatedPage); err != nil {
+		return c.JSON(http.StatusBadRequest, "Invalid JSON")
+	}
+
+	previewData.SiteData.Pages[pageName] = updatedPage
+
+	cache.PreviewCache.Set(handle, previewData)
+
+	return c.JSON(http.StatusOK, previewData)
 }

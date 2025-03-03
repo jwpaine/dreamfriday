@@ -1,6 +1,7 @@
 package routes
 
 import (
+	auth "dreamfriday/auth"
 	handlers "dreamfriday/handlers"
 
 	"github.com/labstack/echo/v4"
@@ -28,5 +29,6 @@ func RegisterPageRoutes(e *echo.Echo) {
 		return c.JSON(200, pages)
 	})
 
-	// json all page data
+	e.POST("/preview/page/:pageName", previewHandler.UpdatePage, auth.AuthMiddleware) // update preview element
+
 }

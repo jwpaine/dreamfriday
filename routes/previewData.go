@@ -23,5 +23,4 @@ func RegisterPreviewRoutes(e *echo.Echo) {
 
 	e.GET("/preview/element/:pid", previewHandler.GetElement, auth.AuthMiddleware)     // get preview element
 	e.POST("/preview/element/:pid", previewHandler.UpdateElement, auth.AuthMiddleware) // update preview element
-
 }
