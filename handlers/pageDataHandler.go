@@ -3,6 +3,7 @@ package handlers
 import (
 	auth "dreamfriday/auth"
 	cache "dreamfriday/cache"
+	PageEngine "dreamfriday/pageengine"
 	pageengine "dreamfriday/pageengine"
 	"log"
 	"net/http"
@@ -57,12 +58,9 @@ func RenderPage(c echo.Context) error {
 	components := siteData.Components
 
 	// Retrieve session
-	session, _ := auth.GetSession(c.Request())
+	handle, err := auth.GetHandle(c)
 
-	// Check if preview mode is enabled
-	handle, ok := session.Values["handle"].(string)
-
-	if previewEnabled {
+	if previewEnabled && err == nil {
 		// Retrieve PreviewData from previewDataStore
 		if previewDataIface, found := cache.PreviewCache.Get(handle); found {
 			if previewData, ok := previewDataIface.(*PreviewData); ok {
@@ -70,7 +68,8 @@ func RenderPage(c echo.Context) error {
 
 				// Render with preview map
 				c.Response().Header().Set("Content-Type", "text/html; charset=utf-8")
-				if err := pageengine.RenderPage(pageData, components, c.Response().Writer, c, RouteInternal, previewData.PreviewMap); err != nil {
+				pageengine := PageEngine.NewPageEngine(c, components)
+				if err := pageengine.RenderPage(pageData, RouteInternal, previewData.PreviewMap); err != nil {
 					log.Println("Unable to render page with preview data:", err)
 					return c.String(http.StatusInternalServerError, err.Error())
 				}
@@ -83,7 +82,10 @@ func RenderPage(c echo.Context) error {
 
 	// Render without preview map
 	c.Response().Header().Set("Content-Type", "text/html; charset=utf-8")
-	if err := pageengine.RenderPage(pageData, components, c.Response().Writer, c, RouteInternal, nil); err != nil {
+
+	pageengine := PageEngine.NewPageEngine(c, components)
+
+	if err := pageengine.RenderPage(pageData, RouteInternal, nil); err != nil {
 		log.Println("Unable to render page:", err)
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
