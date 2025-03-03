@@ -51,6 +51,12 @@ func RouteInternal(path string, c echo.Context) (*pageengine.PageElement, error)
 	}
 
 	switch path {
+	case "/cid":
+		cidData, err := GetIPFSCID(c)
+		if err != nil {
+			return nil, err
+		}
+		return cidData, nil
 	case "/mysites":
 		// get user data from func GetUserData(c echo.Context) (interface{}, error):
 		userData, err := GetUserData(c)
