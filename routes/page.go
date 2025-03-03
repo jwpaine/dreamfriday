@@ -19,5 +19,14 @@ func RegisterPageRoutes(e *echo.Echo) {
 	// preview only
 	previewHandler := handlers.NewPreviewHandler()
 	e.GET("/preview/page/:pageName", previewHandler.GetPage) // json page data
-	e.GET("/preview/pages", previewHandler.GetPages)         // json all page data
+
+	e.GET("/preview/pages", func(c echo.Context) error {
+		pages, err := previewHandler.GetPages(c)
+		if err != nil {
+			return c.JSON(500, err.Error())
+		}
+		return c.JSON(200, pages)
+	})
+
+	// json all page data
 }

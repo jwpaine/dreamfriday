@@ -485,6 +485,12 @@
                                     {
                                         "type": "span",
                                         "import": "/cid"
+                                    },
+                                    {
+                                        "type": "span",
+                                        "attroibutes": {
+                                            "id": "messages"
+                                        }
                                     }
                                 ],
                                 "style": {

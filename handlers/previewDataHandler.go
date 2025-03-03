@@ -38,7 +38,7 @@ func (h *PreviewHandler) GetSiteData(c echo.Context) (*PreviewData, error) {
 	handle, err := auth.GetHandle(c)
 	if err != nil {
 		log.Println("Failed to get handle:", err)
-		return nil, err
+		return nil, fmt.Errorf("failed to get handle")
 	}
 
 	if previewDataIface, found := cache.PreviewCache.Get(handle); found {
@@ -360,17 +360,28 @@ func (h *PreviewHandler) GetPage(c echo.Context) error {
 	return c.JSON(http.StatusNotFound, "Page not found")
 }
 
-func (h *PreviewHandler) GetPages(c echo.Context) error {
-
+func (h *PreviewHandler) GetPages(c echo.Context) (*pageengine.PageElement, error) {
 	previewData, err := h.GetSiteData(c)
+
 	if err != nil {
-		log.Println("Failed to get preview data:", err)
-		return c.JSON(http.StatusInternalServerError, "Failed to get preview data")
+		log.Println("failed to get preview data:", err)
+		return nil, fmt.Errorf("failed to get preview data")
 	}
 	if pageData := previewData.SiteData.Pages; pageData != nil {
-		return c.JSON(http.StatusOK, pageData)
+		var element = pageengine.PageElement{
+			Type:     "div",
+			Elements: []pageengine.PageElement{},
+		}
+		for pageName := range pageData {
+			span := pageengine.PageElement{
+				Type: "span",
+				Text: pageName,
+			}
+			element.Elements = append(element.Elements, span)
+		}
+		return &element, nil
 	}
-	return c.JSON(http.StatusNotFound, "Page not found")
+	return nil, fmt.Errorf("no pages found")
 }
 
 // return all preview components

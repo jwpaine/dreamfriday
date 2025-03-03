@@ -104,6 +104,13 @@ func RouteInternal(path string, c echo.Context) (*pageengine.PageElement, error)
 			Type: "textarea",
 			Text: string(siteData),
 		}, nil
+	case "/preview/pages":
+		previewHandler := NewPreviewHandler()
+		pages, err := previewHandler.GetPages(c)
+		if err != nil {
+			return nil, err
+		}
+		return pages, nil
 
 	default:
 		return nil, fmt.Errorf("unknown internal route: %s", path)

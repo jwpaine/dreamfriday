@@ -1,4 +1,4 @@
-document.addEventListener('click', function(e) {
+document.addEventListener('click', function (e) {
     var pid = e.target.getAttribute('pid');
     if (pid) {
         console.log(pid);
@@ -12,7 +12,7 @@ document.addEventListener('click', function(e) {
             .then(data => {
                 console.log(data);
                 // Display the edit form overlay with the retrieved JSON data
-                displayEditForm(pid, data);
+                displayEditForm(pid, null, data);
             })
             .catch(error => {
                 console.error('Error fetching preview element:', error);
@@ -20,7 +20,7 @@ document.addEventListener('click', function(e) {
     }
 });
 
-function displayEditForm(pid, data) {
+function displayEditForm(pid, page, data) {
     // Create overlay container
     var overlay = document.createElement('div');
     overlay.style.position = 'fixed';
@@ -48,8 +48,16 @@ function displayEditForm(pid, data) {
     textarea.value = JSON.stringify(data, null, 2);
 
     // Create the update button
-    var updateButton = document.createElement('button');
-    updateButton.textContent = 'Update';
+    var updateElementButton = document.createElement('button');
+    updateElementButton.textContent = 'Update';
+
+    var updatePageButton = document.createElement('button');
+    updatePageButton.textContent = 'Update Page';
+    // hide initially
+    updatePageButton.style.display = 'none';
+
+    var showAllButton = document.createElement('button');
+    showAllButton.textContent = 'Show All';
 
     // Create the cancel button
     var cancelButton = document.createElement('button');
@@ -59,8 +67,10 @@ function displayEditForm(pid, data) {
     // Append textarea and buttons to the form container
     formContainer.appendChild(textarea);
     formContainer.appendChild(document.createElement('br'));
-    formContainer.appendChild(updateButton);
+    formContainer.appendChild(updateElementButton);
     formContainer.appendChild(cancelButton);
+    formContainer.appendChild(showAllButton);
+    formContainer.appendChild(updatePageButton);
 
     // Append form container to the overlay
     overlay.appendChild(formContainer);
@@ -69,12 +79,38 @@ function displayEditForm(pid, data) {
     document.body.appendChild(overlay);
 
     // Cancel button click event: remove the overlay
-    cancelButton.addEventListener('click', function() {
+    cancelButton.addEventListener('click', function () {
         document.body.removeChild(overlay);
     });
 
+    showAllButton.addEventListener('click', function () {
+
+        // get page name from url (ie: /login)
+        page = window.location.pathname;
+        updatePageButton.style.display = 'block';
+        showAllButton.style.display = 'none';
+        updateElementButton.style.display = 'none';
+
+        fetch(`/preview/page${page}`)
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                // Display the edit form overlay with the retrieved JSON data
+               // set inner text to data
+                textarea.value = JSON.stringify(data, null, 2);
+                // hide show all button
+               
+                // show update page button
+                
+            })
+            .catch(error => {
+                console.error('Error fetching preview element:', error);
+            });
+
+    });
+
     // Update button click event: parse the JSON and POST the updated data
-    updateButton.addEventListener('click', function() {
+    updateElementButton.addEventListener('click', function () {
         var updatedData;
         try {
             updatedData = JSON.parse(textarea.value);
@@ -100,6 +136,36 @@ function displayEditForm(pid, data) {
             })
             .catch(error => {
                 console.error('Error updating preview element:', error);
+            });
+    });
+
+    updatePageButton.addEventListener('click', function () {
+        page = window.location.pathname;
+        var updatedData;
+        try {
+            updatedData = JSON.parse(textarea.value);
+        } catch (e) {
+            alert('Invalid JSON. Please fix errors before updating.');
+            return;
+        }
+
+        fetch(`/preview/page${page}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(updatedData)
+        })
+            .then(response => response.json())
+            .then(result => {
+                console.log('Update page result:', result);
+                // Optionally, you could display a success message here
+                document.body.removeChild(overlay);
+                // reload page
+                location.reload();
+            })
+            .catch(error => {
+                console.error('Error updating page element:', error);
             });
     });
 }
