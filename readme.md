@@ -52,6 +52,7 @@ Factory:
 - **POST /preview"** accepts **previewData** (JSON). Update's preview data for specified **domain**
 - **POST /publish** copies **preview** data to **production** (IPFS)
 - **POST /preview/element/:pid** Updates element pid in the preview cache
+- **POST /preview/page/:name** Updates the page in the preview cache
 - **GET /logout** destroys current session
 - **GET /preview** toggle's preview mode for current session. Page routes will render preview data instead of production
 
