@@ -87,6 +87,9 @@ function displayEditForm(pid, page, data) {
 
         // get page name from url (ie: /login)
         page = window.location.pathname;
+        if (page == "/") {
+            page = "/home";
+        }
         updatePageButton.style.display = 'block';
         showAllButton.style.display = 'none';
         updateElementButton.style.display = 'none';
@@ -141,6 +144,9 @@ function displayEditForm(pid, page, data) {
 
     updatePageButton.addEventListener('click', function () {
         page = window.location.pathname;
+        if (page == "/") {
+            page = "/home";
+        }
         var updatedData;
         try {
             updatedData = JSON.parse(textarea.value);

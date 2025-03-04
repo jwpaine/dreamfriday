@@ -189,10 +189,10 @@ func (p *PageElement) RenderElement(pe *PageEngine, classMap map[*PageElement]st
 
 	// if preview mode, set a pid for each element mapping to the pageelement
 	if previewElementMap != nil {
-		if p.Pid == "" {
-			fmt.Println("Generating new pid for", p.Type)
-			p.Pid = generateRandomClassName(6)
-		}
+
+		// fmt.Println("Generating new pid for", p.Type)
+		p.Pid = generateRandomClassName(6)
+
 		// Ensustore the original element reference, not the rendered/imported one
 		if _, exists := previewElementMap[p.Pid]; !exists {
 			previewElementMap[p.Pid] = p // Keep reference to the calling element
