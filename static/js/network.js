@@ -29,7 +29,7 @@
             this.canvas = parent.canvas;
             this.ctx = parent.ctx;
             this.particleColor = getRandomArrayItem(this.network.options.particleColors);
-            this.radius = getLimitedRandom(1.5, 2.5);
+            this.radius = getLimitedRandom(2, 4);
             this.angle = Math.random() * Math.PI * 2;
             this.orbitRadius = getLimitedRandom(20, 60);
             this.centerX = Math.random() * this.canvas.width;
@@ -55,9 +55,10 @@
     class ParticleNetwork {
         constructor(parent) {
             this.options = {
-                netLineDistance: 120,
+                netLineDistance: 300,
                 netLineColor: '#929292',
-                particleColors: ['#aaa']
+                particleColors: ['#aaa'],
+                maxParticles: 10 // Limit to 10 particles at any time
             };
             this.canvas = parent.canvas;
             this.ctx = parent.ctx;
@@ -66,8 +67,7 @@
         }
 
         createParticles() {
-            const quantity = (this.canvas.width * this.canvas.height) / 30000;
-            this.particles = Array.from({ length: Math.floor(quantity) }, () => new Particle(this));
+            this.particles = Array.from({ length: this.options.maxParticles }, () => new Particle(this));
         }
 
         recalculateParticles() {
@@ -80,6 +80,7 @@
         update() {
             this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
+            // Draw edges between particles
             for (let i = 0; i < this.particles.length; i++) {
                 for (let j = i + 1; j < this.particles.length; j++) {
                     let p1 = this.particles[i], p2 = this.particles[j];
@@ -90,7 +91,7 @@
                         this.ctx.beginPath();
                         this.ctx.strokeStyle = this.options.netLineColor;
                         this.ctx.globalAlpha = (this.options.netLineDistance - distance) / this.options.netLineDistance;
-                        this.ctx.lineWidth = 0.7;
+                        this.ctx.lineWidth = 1;
                         this.ctx.moveTo(p1.x, p1.y);
                         this.ctx.lineTo(p2.x, p2.y);
                         this.ctx.stroke();
@@ -98,6 +99,7 @@
                 }
             }
 
+            // Update and draw particles
             this.particles.forEach(p => {
                 p.update();
                 p.draw();
