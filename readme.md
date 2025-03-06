@@ -7,9 +7,16 @@ A tiny, decentralized, multi-tenant, JSON-based CMS for creating and sharing wha
 - **Blockchain** for authentication
 - **Go** for glue
 
-The platform's page rendering engine dynamically constructs a component tree by interpreting JSON data stored on IPFS,based on the sub-domain requested. This 
+JSON data defines the complete topology of your site, including pages, elements, attributes, styling, and nested structures. A component system allows you to import re-usable JSON structures and styling from other sites, and a rendering engine brings everything together and present the page you requested, on the fly. 
 
-JSON data defines the site's complete topology including pages, elements, attributes, styling, and nested structures, and a page rendering engine recursively builds and streams the rendered HTML. Styles are aggregated and injected into the document head, with class names generated on the fly.
+A live preview editor allows you to edit pages in real time, while you view your site.
+
+When you're happy with the design, it gets published to the InterPlanetary File System, an open, connected, and censorship-resistent network of geographically distributed peers.
+
+Oh, and not only do you own your data, you own your access to it.
+
+Happy hacking!
+
 
 ![ALT TEXT](./static/component_chain.png)
 
