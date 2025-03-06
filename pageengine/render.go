@@ -87,7 +87,10 @@ func (pe *PageEngine) CollectCSS(p *PageElement, classMap map[*PageElement]strin
 				for key, value := range p.Style {
 					importedComponent.Style[key] = value
 				}
-				importedComponent.Type = p.Type
+				// locally override the type and text if they are set
+				if p.Type != "" {
+					importedComponent.Type = p.Type
+				}
 				pe.CollectCSS(importedComponent, classMap, visited, routeInternal)
 			}
 
