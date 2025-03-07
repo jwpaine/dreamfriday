@@ -50,7 +50,7 @@ func InitSessionStore() {
 		MaxAge:   3600 * 3, // 3 hours
 		HttpOnly: true,
 		Secure:   useHTTPS,
-		SameSite: http.SameSiteNoneMode,
+		SameSite: http.SameSiteLaxMode,
 	}
 
 }

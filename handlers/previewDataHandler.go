@@ -108,12 +108,7 @@ func (h *PreviewHandler) Update(c echo.Context) error {
 	// Retrieve and validate preview data
 	previewData := strings.TrimSpace(c.FormValue("previewData"))
 	if previewData == "" {
-		log.Println("Bad Request: Preview data is empty")
-		return c.Render(http.StatusOK, "manageButtons.html", map[string]interface{}{
-			"domain":  siteName,
-			"status":  "",
-			"message": "Preview data is required",
-		})
+		return c.JSON(http.StatusBadRequest, "Preview data is required")
 	}
 
 	// Validate JSON structure
@@ -121,12 +116,7 @@ func (h *PreviewHandler) Update(c echo.Context) error {
 	err = json.Unmarshal([]byte(previewData), &parsedPreviewData)
 	if err != nil {
 		log.Printf("Failed to unmarshal site data for domain %s: %v", siteName, err)
-		return c.Render(http.StatusOK, "manageButtons.html", map[string]interface{}{
-			"domain":      siteName,
-			"previewData": previewData,
-			"status":      "",
-			"message":     "Invalid JSON structure",
-		})
+		return c.String(http.StatusBadRequest, "Invalid JSON data")
 	}
 
 	// Save preview data to the database and mark as "unpublished"
@@ -149,11 +139,7 @@ func (h *PreviewHandler) Update(c echo.Context) error {
 	err = models.UpdateSite(siteName, site)
 	if err != nil {
 		log.Printf("Failed to update preview data for site %s: %v", siteName, err)
-		return c.Render(http.StatusOK, "manageButtons.html", map[string]interface{}{
-			"domain":  siteName,
-			"status":  "",
-			"message": "Failed to save, please try again.",
-		})
+		return c.String(http.StatusInternalServerError, "Failed to update preview data")
 	}
 
 	log.Printf("Successfully updated preview data for site: %s (Status: unpublished)", siteName)
@@ -162,12 +148,13 @@ func (h *PreviewHandler) Update(c echo.Context) error {
 	cache.PreviewCache.Delete(handle)
 
 	// Return success response
-	return c.Render(http.StatusOK, "manageButtons.html", map[string]interface{}{
-		"domain":      siteName,
-		"previewData": previewData,
-		"status":      "unpublished",
-		"message":     "Draft saved",
-	})
+	// return c.Render(http.StatusOK, "manageButtons.html", map[string]interface{}{
+	// 	"domain":      siteName,
+	// 	"previewData": previewData,
+	// 	"status":      "unpublished",
+	// 	"message":     "Draft saved",
+	// })
+	return c.JSON(http.StatusOK, "Draft saved")
 }
 
 // return element found anywhere in previewData based on pid

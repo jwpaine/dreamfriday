@@ -157,7 +157,8 @@ func PublishSite(c echo.Context) error {
 	}
 
 	// get domain from form data:
-	domain := strings.TrimSpace(c.FormValue("domain"))
+	domain := utils.GetSubdomain(c.Request().Host)
+
 	if domain == "" {
 		log.Println("Bad Request: Domain is required")
 		return c.String(http.StatusBadRequest, "Domain is required")
@@ -179,11 +180,7 @@ func PublishSite(c echo.Context) error {
 	err = models.PublishSite(site)
 	if err != nil {
 		log.Printf("Failed to publish domain %s for email %s: %v", domain, handle, err)
-		return c.Render(http.StatusOK, "manageButtons.html", map[string]interface{}{
-			"domain":  domain,
-			"status":  "",
-			"message": "Unable to publish. Please try again.",
-		})
+		return c.String(http.StatusInternalServerError, "Failed to publish site")
 	}
 
 	// Purge cache for the domain
@@ -193,11 +190,7 @@ func PublishSite(c echo.Context) error {
 	log.Printf("Successfully published Domain: %s", domain)
 
 	// Return success response
-	return c.Render(http.StatusOK, "manageButtons.html", map[string]interface{}{
-		"domain":  domain,
-		"status":  "published",
-		"message": "Published successfully",
-	})
+	return c.String(http.StatusOK, "Site published successfully")
 }
 func GetPage(c echo.Context) error {
 	siteName := utils.GetSubdomain(c.Request().Host)
