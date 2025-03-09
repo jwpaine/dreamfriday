@@ -1,706 +1,833 @@
 {
     "pages": {
-        "about": {
-            "head": {
-                "elements": [
-                    {
-                        "type": "title",
-                        "text": "Login - Dream Friday",
-                        "pid": "DFGrtP"
-                    },
-                    {
-                        "type": "meta",
-                        "attributes": {
-                            "content": "width=device-width, initial-scale=1",
-                            "name": "viewport"
-                        },
-                        "pid": "ZSihIl"
-                    },
-                    {
-                        "type": "style",
-                        "text": "@font-face { font-family: 'OpenSans_Bold'; src: url('/static/font/OpenSans_Bold.ttf') format('truetype'); font-weight: bold; font-style: normal; }",
-                        "pid": "zJhYfG"
-                    },
-                    {
-                        "type": "script",
-                        "attributes": {
-                            "src": "/static/ethlogin.js"
-                        },
-                        "pid": "ayyecC"
-                    }
-                ]
+      "admin": {
+        "head": {
+          "elements": [
+            {
+              "type": "title",
+              "text": "Dream Friday",
+              "pid": "Pepfts"
             },
-            "body": {
-                "elements": [
-                    {
-                        "import": "Header"
-                    },
-                    {
-                        "type": "main",
-                        "attributes": {
-                            "id": "login"
-                        },
-                        "elements": [
-                            {
-                                "type": "section",
-                                "elements": [
-                                  
-                                    {
-                                        "type": "textarea",
-                                        "import": "/component/TextArea",
-                                        "text": "{ 'type' : 'button', 'text' : 'click me', 'style' : { 'color' : 'lightblue' } }"
-                                    
-                                    },
-                                    {
-                                        "type": "button",
-                                        "text": "Click Me",
-                                        "style": {
-                                            "color": "lightblue"
-                                        }
-                                    },
-                                    {
-                                        "type": "p",
-                                        "import": "https://components.dreamfriday.com/component/Button",
-                                        "text": "When you describe how a page should look and function, you can borrow from other sites, and the rendering engine will splice things together server-side, and present your page as if it were statically generated."
-                                    }
-                                   
-                                ],
-                                "style": {
-                                    "display": "flex",
-                                    "flex-direction": "column",
-                                    "align-items": "center",
-                                    "justify-content": "center",
-                                    "padding": "30px",
-                                    "max-width": "850px",
-                                    "margin": "auto"
-                                },
-                                "pid": "dzuNHK"
-                            }
-                        ],
-                        "style": {
-                            "display": "flex",
-                            "align-items": "center",
-                            "justify-content": "center",
-                            "min-height": "100vh",
-                            "background": "linear-gradient(135deg, #1f1c2c, #928DAB)"
-                        },
-                        "pid": "kqEsox"
-                    }
-                ]
+            {
+              "type": "meta",
+              "attributes": {
+                "content": "width=device-width, initial-scale=1",
+                "name": "viewport"
+              },
+              "pid": "FpQxyG"
+            },
+            {
+              "type": "style",
+              "text": "@font-face { font-family: 'OpenSans_Bold'; src: url('/static/font/OpenSans_Bold.ttf') format('truetype'); font-weight: bold; font-style: normal; } body { margin: 0; } * { font-family: 'OpenSans_Bold', sans-serif; }",
+              "pid": "rNvGxg"
             }
+          ]
         },
-        "admin": {
-            "head": {
-                "elements": [
-                    {
-                        "type": "title",
-                        "text": "Dream Friday"
-                    },
-                    {
-                        "type": "meta",
-                        "attributes": {
-                            "content": "width=device-width, initial-scale=1",
-                            "name": "viewport"
-                        }
-                    },
-                    {
-                        "type": "style",
-                        "text": "@font-face { font-family: 'OpenSans_Bold'; src: url('/static/font/OpenSans_Bold.ttf') format('truetype'); font-weight: bold; font-style: normal; } body { margin: 0; } * { font-family: 'OpenSans_Bold', sans-serif; }"
-                    }
-                ]
+        "body": {
+          "elements": [
+            {
+              "import": "Header",
+              "pid": "oyORbH"
             },
-            "body": {
-                "elements": [
+            {
+              "type": "main",
+              "attributes": {
+                "id": "hero"
+              },
+              "elements": [
+                {
+                  "type": "section",
+                  "elements": [
                     {
-                        "import": "Header"
-                    },
-                    {
-                        "type": "main",
-                        "attributes": {
-                            "id": "hero"
-                        },
-                        "elements": [
-                            {
-                                "type": "section",
-                                "elements": [
-                                    {
-                                        "style": {
-                                            "display": "flex",
-                                            "flex-direction": "column"
-                                        },
-                                        "import": "/myaddress",
-                                        "private": true
-                                    }
-                                ]
-                            },
-                            {
-                                "type": "section",
-                                "elements": [
-                                    {
-                                        "type": "h1",
-                                        "text": "My sites",
-                                        "style": {
-                                            "font-size": "2.5rem",
-                                            "margin": "0"
-                                        }
-                                    },
-                                    {
-                                        "style": {
-                                            "display": "flex",
-                                            "flex-direction": "column"
-                                        },
-                                        "import": "/mysites",
-                                        "private": true
-                                    },
-                                    {
-                                        "type": "a",
-                                        "attributes": {
-                                            "href": "/create"
-                                        },
-                                        "text": "Create a new site",
-                                        "style": {
-                                            "color": "#ff9900",
-                                            "cursor": "pointer",
-                                            "display": "block",
-                                            "margin-top": "1rem",
-                                            "text-align": "center",
-                                            "text-decoration": "none"
-                                        }
-                                    }
-                                ],
-                                "style": {
-                                    "background": "rgba(0,0,0,0.1)",
-                                    "display": "flex",
-                                    "flex-direction": "column",
-                                    "padding": "25px"
-                                }
-                            }
-                        ],
-                        "style": {
-                            "align-items": "center",
-                            "background": "linear-gradient(135deg, #6a11cb, #2575fc)",
-                            "color": "white",
-                            "display": "flex",
-                            "flex-direction": "column",
-                            "gap": "1.5rem",
-                            "height": "100vh",
-                            "justify-content": "center",
-                            "margin": "0",
-                            "padding": "2rem",
-                            "text-align": "center"
-                        }
+                      "text": "0x61884f20ab95407d66bc4ecb0f1e2d7ed35a08f9",
+                      "style": {
+                        "display": "flex",
+                        "flex-direction": "column"
+                      },
+                      "import": "/myaddress",
+                      "private": true,
+                      "pid": "PQHyJh"
                     }
-                ]
-            },
-            "redirectForLogout": "/login"
-        },
-        "create": {
-            "head": {
-                "elements": [
+                  ],
+                  "pid": "EcCWGA"
+                },
+                {
+                  "type": "section",
+                  "elements": [
                     {
-                        "type": "title",
-                        "text": "Login - Dream Friday",
-                        "pid": "pEOXmu"
+                      "type": "h1",
+                      "text": "My sites",
+                      "style": {
+                        "font-size": "2.5rem",
+                        "margin": "0"
+                      },
+                      "pid": "BSaTlU"
                     },
                     {
-                        "type": "meta",
-                        "attributes": {
-                            "content": "width=device-width, initial-scale=1",
-                            "name": "viewport"
-                        },
-                        "pid": "acYBzs"
+                      "style": {
+                        "display": "flex",
+                        "flex-direction": "column"
+                      },
+                      "import": "/mysites",
+                      "private": true,
+                      "pid": "WFBZfF"
                     },
                     {
-                        "type": "style",
-                        "text": "body { margin: 0; * { font-family: 'OpenSans_Bold', sans-serif; }",
-                        "pid": "ZsSDSW"
-                    },
-                    {
-                        "type": "script",
-                        "attributes": {
-                            "src": "/static/htmx.min.js"
-                        },
-                        "pid": "wKZosV"
+                      "type": "a",
+                      "attributes": {
+                        "href": "/create"
+                      },
+                      "text": "Create a new site",
+                      "style": {
+                        "color": "#ff9900",
+                        "cursor": "pointer",
+                        "display": "block",
+                        "margin-top": "1rem",
+                        "text-align": "center",
+                        "text-decoration": "none"
+                      },
+                      "pid": "wKihAe"
                     }
-                ]
-            },
-            "body": {
-                "elements": [
-                    {
-                        "import": "Header"
-                    },
-                    {
-                        "type": "main",
-                        "attributes": {
-                            "id": "login"
-                        },
-                        "elements": [
-                            {
-                                "type": "section",
-                                "elements": [
-                                    {
-                                        "type": "h1",
-                                        "text": "Create a new site",
-                                        "style": {
-                                            "color": "white",
-                                            "font-size": "3rem",
-                                            "margin-bottom": "1rem",
-                                            "text-align": "center"
-                                        },
-                                        "pid": "dMQBko"
-                                    },
-                                    {
-                                        "import": "CreateForm"
-                                    }
-                                ],
-                                "style": {
-                                    "align-items": "center",
-                                    "display": "flex",
-                                    "flex-direction": "column",
-                                    "justify-content": "center",
-                                    "width": "100%"
-                                },
-                                "pid": "kIFbut"
-                            }
-                        ],
-                        "style": {
-                            "align-items": "center",
-                            "background": "linear-gradient(135deg, #6a11cb, #2575fc)",
-                            "color": "white",
-                            "display": "flex",
-                            "height": "100vh",
-                            "justify-content": "center"
-                        },
-                        "pid": "AHSAIh"
-                    }
-                ]
-            },
-            "redirectForLogout": "/login"
-        },
-        "home": {
-            "head": {
-                "elements": [
-                    {
-                        "type": "title",
-                        "text": "Dream Friday",
-                        "pid": "JjdMHL"
-                    },
-                    {
-                        "type": "meta",
-                        "attributes": {
-                            "content": "width=device-width, initial-scale=1",
-                            "name": "viewport"
-                        },
-                        "pid": "HWsdpZ"
-                    },
-                    {
-                        "type": "style",
-                        "text": "@font-face { font-family: 'OpenSans_Bold'; src: url('/static/font/OpenSans_Bold.ttf') format('truetype'); font-weight: bold; font-style: normal; } body { margin: 0; } * { font-family: 'OpenSans_Bold', sans-serif; }",
-                        "pid": "GAORyP"
-                    }
-                ]
-            },
-            "body": {
-                "elements": [
-                    {
-                        "import": "Header"
-                    },
-                    {
-                        "type": "main",
-                        "attributes": {
-                            "id": "hero"
-                        },
-                        "elements": [
-                            {
-                                "type": "h1",
-                                "text": "Hello, world",
-                                "style": {
-                                    "font-size": "4.5rem",
-                                    "margin": "0"
-                                },
-                                "pid": "NWDmeJ"
-                            }
-                        ],
-                        "style": {
-                            "align-items": "center",
-                            "background": "linear-gradient(135deg, #6a11cb, #2575fc)",
-                            "color": "white",
-                            "display": "flex",
-                            "flex-direction": "column",
-                            "gap": "1.5rem",
-                            "height": "100vh",
-                            "justify-content": "center",
-                            "margin": "0",
-                            "padding": "2rem",
-                            "text-align": "center"
-                        },
-                        "pid": "lQQeEm"
-                    }
-                ]
+                  ],
+                  "style": {
+                    "background": "rgba(0,0,0,0.1)",
+                    "display": "flex",
+                    "flex-direction": "column",
+                    "padding": "25px"
+                  },
+                  "pid": "xUnfzQ"
+                }
+              ],
+              "style": {
+                "align-items": "center",
+                "background": "linear-gradient(135deg, #6a11cb, #2575fc)",
+                "color": "white",
+                "display": "flex",
+                "flex-direction": "column",
+                "gap": "1.5rem",
+                "height": "100vh",
+                "justify-content": "center",
+                "margin": "0",
+                "padding": "2rem",
+                "text-align": "center"
+              },
+              "pid": "pWyVKw"
             }
+          ]
         },
-        "login": {
-            "head": {
-                "elements": [
-                    {
-                        "type": "title",
-                        "text": "Login - Dream Friday"
-                    },
-                    {
-                        "type": "meta",
-                        "attributes": {
-                            "content": "width=device-width, initial-scale=1",
-                            "name": "viewport"
-                        }
-                    },
-                    {
-                        "type": "style",
-                        "text": "@font-face { font-family: 'OpenSans_Bold'; src: url('/static/font/OpenSans_Bold.ttf') format('truetype'); font-weight: bold; font-style: normal; } body { margin: 0; } * { font-family: 'OpenSans_Bold', sans-serif; }"
-                    },
-                    {
-                        "type": "script",
-                        "attributes": {
-                            "src": "/static/ethlogin.js"
-                        }
-                    }
-                ]
+        "redirectForLogout": "/login"
+      },
+      "create": {
+        "head": {
+          "elements": [
+            {
+              "type": "title",
+              "text": "Login - Dream Friday",
+              "pid": "bFUAnn"
             },
-            "body": {
-                "elements": [
-                    {
-                        "import": "Header"
-                    },
-                    {
-                        "type": "main",
-                        "attributes": {
-                            "id": "login"
-                        },
-                        "elements": [
-                            {
-                                "type": "section",
-                                "elements": [
-                                    {
-                                        "type": "h1",
-                                        "text": "Login",
-                                        "style": {
-                                            "color": "white",
-                                            "display": "none",
-                                            "font-size": "3rem",
-                                            "margin-bottom": "1rem",
-                                            "text-align": "center"
-                                        }
-                                    },
-                                    {
-                                        "type": "button",
-                                        "attributes": {
-                                            "id": "loginButton",
-                                            "onclick": "loginWithEth()"
-                                        },
-                                        "text": "Login with Ethereum Wallet",
-                                        "style": {
-                                            "background": "rgba(0, 0, 0,0.5)",
-                                            "border": "none",
-                                            "border-radius": "12px",
-                                            "color": "white",
-                                            "cursor": "pointer",
-                                            "font-size": "1.2em",
-                                            "padding": "10px 20px"
-                                        }
-                                    }
-                                ],
-                                "style": {
-                                    "align-items": "center",
-                                    "display": "flex",
-                                    "flex-direction": "column",
-                                    "justify-content": "center",
-                                    "width": "100%"
-                                }
-                            }
-                        ],
-                        "style": {
-                            "align-items": "center",
-                            "background": "linear-gradient(135deg, #6a11cb, #2575fc)",
-                            "color": "white",
-                            "display": "flex",
-                            "height": "100vh",
-                            "justify-content": "center"
-                        }
-                    }
-                ]
+            {
+              "type": "meta",
+              "attributes": {
+                "content": "width=device-width, initial-scale=1",
+                "name": "viewport"
+              },
+              "pid": "hyIrCu"
             },
-            "redirectForLogin": "/admin"
+            {
+              "type": "style",
+              "text": "body { margin: 0; * { font-family: 'OpenSans_Bold', sans-serif; }",
+              "pid": "aUpMKr"
+            },
+            {
+              "type": "script",
+              "attributes": {
+                "src": "/static/htmx.min.js"
+              },
+              "pid": "DVAHtW"
+            }
+          ]
         },
-        "manageme": {
-            "head": {
-                "elements": [
-                    {
-                        "type": "title",
-                        "text": "Dream Friday"
-                    },
-                    {
-                        "type": "meta",
-                        "attributes": {
-                            "content": "width=device-width, initial-scale=1",
-                            "name": "viewport"
-                        }
-                    },
-                    {
-                        "type": "style",
-                        "text": "@font-face { font-family: 'OpenSans_Bold'; src: url('/static/font/OpenSans_Bold.ttf') format('truetype'); font-weight: bold; font-style: normal; } body { margin: 0; } * { font-family: 'OpenSans_Bold', sans-serif; }"
-                    },
-                    {
-                        "type": "script",
-                        "attributes": {
-                            "src": "/static/manage.js"
-                        }
-                    }
-                ]
+        "body": {
+          "elements": [
+            {
+              "import": "Header",
+              "pid": "HxRMJy"
             },
-            "body": {
-                "elements": [
+            {
+              "type": "main",
+              "attributes": {
+                "id": "login"
+              },
+              "elements": [
+                {
+                  "type": "section",
+                  "elements": [
                     {
-                        "import": "Header"
+                      "type": "h1",
+                      "text": "Create a new site",
+                      "style": {
+                        "color": "white",
+                        "font-size": "3rem",
+                        "margin-bottom": "1rem",
+                        "text-align": "center"
+                      },
+                      "pid": "AwKndn"
                     },
                     {
-                        "type": "main",
-                        "attributes": {
-                            "id": "hero"
+                      "style": {
+                        "align-items": "center",
+                        "display": "flex",
+                        "flex-direction": "column"
+                      },
+                      "import": "CreateForm",
+                      "pid": "pIiYfL"
+                    }
+                  ],
+                  "style": {
+                    "align-items": "center",
+                    "display": "flex",
+                    "flex-direction": "column",
+                    "justify-content": "center",
+                    "width": "100%"
+                  },
+                  "pid": "JgIRNA"
+                }
+              ],
+              "style": {
+                "align-items": "center",
+                "background": "linear-gradient(135deg, #6a11cb, #2575fc)",
+                "color": "white",
+                "display": "flex",
+                "height": "100vh",
+                "justify-content": "center"
+              },
+              "pid": "ERaapx"
+            }
+          ]
+        },
+        "redirectForLogout": "/login"
+      },
+      "home": {
+        "head": {
+          "elements": [
+            {
+              "type": "title",
+              "text": "Dream Friday",
+              "pid": "LgeEha"
+            },
+            {
+              "type": "meta",
+              "attributes": {
+                "content": "width=device-width, initial-scale=1",
+                "name": "viewport"
+              },
+              "pid": "oEkmqS"
+            },
+            {
+              "type": "style",
+              "text": "@font-face { font-family: 'OpenSans_Bold'; src: url('/static/font/OpenSans_Bold.ttf') format('truetype'); font-weight: bold; font-style: normal; } body { margin: 0; } * { font-family: 'OpenSans_Bold', sans-serif; }",
+              "pid": "DKPwES"
+            },
+            {
+              "type": "link",
+              "attributes": {
+                "href": "/static/css/network.css",
+                "rel": "stylesheet"
+              },
+              "pid": "AQuHpc"
+            }
+          ]
+        },
+        "body": {
+          "elements": [
+            {
+              "import": "Header",
+              "pid": "kLcOwT"
+            },
+            {
+              "type": "main",
+              "elements": [
+                {
+                  "type": "section",
+                  "attributes": {
+                    "class": "particle-network-animation",
+                    "id": "hero"
+                  },
+                  "elements": [
+                    {
+                      "type": "script",
+                      "attributes": {
+                        "src": "/static/js/network.js"
+                      },
+                      "pid": "bzygfV"
+                    },
+                    {
+                      "type": "div",
+                      "elements": [
+                        {
+                          "type": "h1",
+                          "attributes": {
+                            "id": "foobar"
+                          },
+                          "text": "Hello, world",
+                          "style": {
+                            "font-size": "3.5rem",
+                            "margin": "0"
+                          },
+                          "pid": "PaaxmQ"
                         },
-                        "elements": [
-                            {
-                                "type": "section",
-                                "elements": [
-                                    {
-                                        "type": "h1",
-                                        "text": "Manage",
-                                        "style": {
-                                            "font-size": "2.5rem",
-                                            "margin": "0"
-                                        }
-                                    },
-                                    {
-                                        "type": "h1",
-                                        "import": "/domain"
-                                    },
-                                    {
-                                        "type": "span",
-                                        "import": "/cid"
-                                    },
-                                    {
-                                        "type": "span",
-                                        "attroibutes": {
-                                            "id": "messages"
-                                        }
-                                    }
-                                ],
-                                "style": {
-                                    "background": "rgba(0,0,0,0.1)",
-                                    "display": "flex",
-                                    "flex-direction": "column",
-                                    "padding": "25px"
-                                }
-                            }
-                        ],
-                        "style": {
-                            "align-items": "center",
-                            "background": "linear-gradient(135deg, #6a11cb, #2575fc)",
-                            "color": "white",
-                            "display": "flex",
-                            "flex-direction": "column",
-                            "gap": "1.5rem",
-                            "height": "100vh",
-                            "justify-content": "center",
-                            "margin": "0",
-                            "padding": "2rem",
-                            "text-align": "center"
+                        {
+                          "type": "p",
+                          "text": "This website lives on one big, connected, and censorship-resistant network.",
+                          "style": {
+                            "font-size": "1.1em",
+                            "max-width": "450px"
+                          },
+                          "pid": "XPEhQu"
+                        },
+                        {
+                          "type": "a",
+                          "attributes": {
+                            "href": "#learn"
+                          },
+                          "text": "Learn More",
+                          "style": {
+                            "cursor": "pointer",
+                            "text-decoration": "none"
+                          },
+                          "import": "/component/Button",
+                          "private": true,
+                          "pid": "cfiEdZ"
                         }
+                      ],
+                      "style": {
+                        "align-items": "center",
+                        "display": "flex",
+                        "flex-direction": "column",
+                        "justify-content": "center",
+                        "position": "absolute"
+                      },
+                      "pid": "uzzWsy"
                     }
-                ]
-            },
-            "redirectForLogout": "/login"
+                  ],
+                  "style": {
+                    "align-items": "center",
+                    "display": "flex",
+                    "height": "100vh",
+                    "justify-content": "center",
+                    "padding-bottom": "155px",
+                    "width": "100%"
+                  },
+                  "pid": "lteZhB"
+                },
+                {
+                  "type": "section",
+                  "attributes": {
+                    "id": "learn"
+                  },
+                  "style": {
+                    "height": "100vh"
+                  },
+                  "pid": "UJoTpn"
+                }
+              ],
+              "style": {
+                "align-items": "center",
+                "background": "linear-gradient(135deg, #520da1, #1d5ac9)",
+                "color": "white",
+                "display": "flex",
+                "flex-direction": "column",
+                "gap": "1.5rem",
+                "justify-content": "center",
+                "margin": "0",
+                "padding": "2rem",
+                "text-align": "center"
+              },
+              "pid": "TNBIGu"
+            }
+          ]
         }
+      },
+      "login": {
+        "head": {
+          "elements": [
+            {
+              "type": "title",
+              "text": "Login - Dream Friday",
+              "pid": "wxnqvN"
+            },
+            {
+              "type": "meta",
+              "attributes": {
+                "content": "width=device-width, initial-scale=1",
+                "name": "viewport"
+              },
+              "pid": "QywvPJ"
+            },
+            {
+              "type": "style",
+              "text": "@font-face { font-family: 'OpenSans_Bold'; src: url('/static/font/OpenSans_Bold.ttf') format('truetype'); font-weight: bold; font-style: normal; } body { margin: 0; } * { font-family: 'OpenSans_Bold', sans-serif; }",
+              "pid": "uqWjfu"
+            },
+            {
+              "type": "script",
+              "attributes": {
+                "src": "/static/ethlogin.js"
+              },
+              "pid": "KjQgOB"
+            }
+          ]
+        },
+        "body": {
+          "elements": [
+            {
+              "import": "Header",
+              "pid": "zCmQUA"
+            },
+            {
+              "type": "main",
+              "attributes": {
+                "id": "login"
+              },
+              "elements": [
+                {
+                  "type": "section",
+                  "elements": [
+                    {
+                      "type": "h1",
+                      "text": "Login",
+                      "style": {
+                        "color": "white",
+                        "display": "none",
+                        "font-size": "3rem",
+                        "margin-bottom": "1rem",
+                        "text-align": "center"
+                      },
+                      "pid": "gisTef"
+                    },
+                    {
+                      "type": "button",
+                      "attributes": {
+                        "id": "loginButton",
+                        "onclick": "loginWithEth()"
+                      },
+                      "text": "Login with Ethereum Wallet",
+                      "import": "/component/Button",
+                      "private": true,
+                      "pid": "ghuSHX"
+                    }
+                  ],
+                  "style": {
+                    "align-items": "center",
+                    "display": "flex",
+                    "flex-direction": "column",
+                    "justify-content": "center",
+                    "width": "100%"
+                  },
+                  "pid": "ZIsbyV"
+                }
+              ],
+              "style": {
+                "align-items": "center",
+                "background": "linear-gradient(135deg, #6a11cb, #2575fc)",
+                "color": "white",
+                "display": "flex",
+                "height": "100vh",
+                "justify-content": "center"
+              },
+              "pid": "JfVLGP"
+            }
+          ]
+        },
+        "redirectForLogin": "/admin"
+      },
+      "manage": {
+        "head": {
+          "elements": [
+            {
+              "type": "title",
+              "text": "Dream Friday",
+              "pid": "DKctur"
+            },
+            {
+              "type": "meta",
+              "attributes": {
+                "content": "width=device-width, initial-scale=1",
+                "name": "viewport"
+              },
+              "pid": "bgCEOn"
+            },
+            {
+              "type": "style",
+              "text": "@font-face { font-family: 'OpenSans_Bold'; src: url('/static/font/OpenSans_Bold.ttf') format('truetype'); font-weight: bold; font-style: normal; } body { margin: 0; } * { font-family: 'OpenSans_Bold', sans-serif; }",
+              "pid": "FtrxZW"
+            },
+            {
+              "type": "script",
+              "attributes": {
+                "src": "/static/manage.js"
+              },
+              "pid": "HdtvDL"
+            },
+            {
+              "type": "script",
+              "attributes": {
+                "src": "/static/htmx.min.js"
+              },
+              "pid": "kPjQVY"
+            }
+          ]
+        },
+        "body": {
+          "elements": [
+            {
+              "import": "Header",
+              "pid": "ArQiSZ"
+            },
+            {
+              "type": "main",
+              "attributes": {
+                "id": "hero"
+              },
+              "elements": [
+                {
+                  "type": "section",
+                  "elements": [
+                    {
+                      "type": "h1",
+                      "text": "Manage",
+                      "style": {
+                        "font-size": "2.5rem",
+                        "margin": "0"
+                      },
+                      "pid": "UKkEWG"
+                    },
+                    {
+                      "type": "h1",
+                      "text": "dreamfriday.com",
+                      "import": "/domain",
+                        "private": true,
+                      "pid": "bQddJP"
+                    },
+                    {
+                      "type": "span",
+                      "text": "QmThZcS9X3oprpAersQKqwpGfm4o2CUZmXf5o6URZLJofV",
+                      "import": "/cid",
+                        "private": true,
+                      "pid": "JsygxO"
+                    },
+                    {
+                      "type": "span",
+                      "pid": "PoZaIE"
+                    },
+                    {
+                      "type": "form",
+                      "attributes": {
+                        "id": "previewForm"
+                      },
+                      "elements": [
+                        {
+                          "type": "textarea",
+                          "attributes": {
+                            "hx-get": "/preview/json",
+                            "hx-on::after-request": "this.value=JSON.stringify(JSON.parse(event.detail.xhr.responseText), null, 2)",
+                            "hx-params": "none",
+                            "hx-trigger": "load",
+                            "id": "previewData",
+                            "name": "previewData"
+                          },
+                          "import": "/component/TextArea",
+                          "private": true,
+                          "pid": "IryZQB"
+                        }
+                      ],
+                      "pid": "EWacZd"
+                    },
+                    {
+                      "type": "form",
+                      "attributes": {
+                        "id": "publishForm"
+                      },
+                      "pid": "gxxQFn"
+                    },
+                    {
+                      "type": "div",
+                      "attributes": {
+                        "id": "action",
+                        "style": "margin-top: 20px; display: flex; gap: 10px;"
+                      },
+                      "elements": [
+                        {
+                          "type": "button",
+                          "attributes": {
+                            "hx-include": "form#previewForm",
+                            "hx-post": "/preview",
+                            "hx-swap": "innerHTML",
+                            "hx-target": "#message",
+                            "hx-trigger": "click"
+                          },
+                          "text": "Update Preview",
+                          "import": "/component/Button",
+                          "private": true,
+                          "pid": "AiXBNn"
+                        },
+                        {
+                          "type": "button",
+                          "attributes": {
+                            "hx-include": "form#publishForm",
+                            "hx-post": "/publish",
+                            "hx-target": "#message",
+                            "hx-trigger": "click"
+                          },
+                          "text": "Publish",
+                          "import": "/component/Button",
+                            "private": true,
+                          "pid": "ukWBcE"
+                        },
+                        {
+                          "type": "span",
+                          "attributes": {
+                            "id": "message"
+                          },
+                          "pid": "TNNbXB"
+                        }
+                      ],
+                      "pid": "RJKLfF"
+                    }
+                  ],
+                  "style": {
+                    "background": "rgba(0,0,0,0.1)",
+                    "display": "flex",
+                    "flex-direction": "column",
+                    "padding": "25px"
+                  },
+                  "pid": "OEkpah"
+                }
+              ],
+              "style": {
+                "align-items": "center",
+                "background": "linear-gradient(135deg, #6a11cb, #2575fc)",
+                "color": "white",
+                "display": "flex",
+                "flex-direction": "column",
+                "gap": "1.5rem",
+                "height": "100vh",
+                "justify-content": "center",
+                "margin": "0",
+                "padding": "2rem",
+                "text-align": "center"
+              },
+              "pid": "bZbhFG"
+            }
+          ]
+        },
+        "redirectForLogout": "/login"
+      }
     },
     "components": {
-        "TextArea": {
-            "type": "textarea",
-            "style": {
-                "width": "100%",
-                "height": "120px",
-                "background": "rgba(255, 255, 255, 0.1)",
-                "border": "none",
-                "color": "white",
-                "padding": "12px",
-                "font-size": "14px",
-                "border-radius": "5px",
-                "resize": "none",
-                "text-align": "left"
-            }
-        },
-        "CreateForm": {
-            "type": "form",
-            "attributes": {
-                "class": "form_VyJTBv",
-                "hx-post": "/create",
-                "hx-swap": "innerHTML",
-                "hx-target": "#messages"
-            },
-            "elements": [
-                {
-                    "type": "label",
-                    "attributes": {
-                        "for": "domain"
-                    },
-                    "text": "Site Name",
-                    "style": {
-                        "color": "white",
-                        "display": "block",
-                        "font-size": "1rem",
-                        "margin-bottom": "0.5rem"
-                    },
-                    "pid": "pMQxTk"
-                },
-                {
-                    "type": "input",
-                    "attributes": {
-                        "id": "domain",
-                        "name": "domain",
-                        "placeholder": "myawesomesite",
-                        "required": "",
-                        "type": "text"
-                    },
-                    "style": {
-                        "border": "none",
-                        "border-radius": "5px",
-                        "font-size": "1rem",
-                        "margin-bottom": "1rem",
-                        "padding": "0.8rem",
-                        "width": "100%"
-                    },
-                    "pid": "mPSXZz"
-                },
-                {
-                    "type": "label",
-                    "attributes": {
-                        "for": "template"
-                    },
-                    "text": "template",
-                    "style": {
-                        "color": "white",
-                        "display": "block",
-                        "font-size": "1rem",
-                        "margin-bottom": "0.5rem"
-                    },
-                    "pid": "hArumh"
-                },
-                {
-                    "type": "input",
-                    "attributes": {
-                        "id": "template",
-                        "name": "template",
-                        "placeholder": "https://dreamfriday.com/json",
-                        "required": "",
-                        "type": "text"
-                    },
-                    "style": {
-                        "border": "none",
-                        "border-radius": "5px",
-                        "font-size": "1rem",
-                        "margin-bottom": "1rem",
-                        "padding": "0.8rem",
-                        "width": "100%"
-                    },
-                    "pid": "vgSnBz"
-                },
-                {
-                    "type": "button",
-                    "attributes": {
-                        "type": "submit"
-                    },
-                    "text": "Create Site",
-                    "style": {
-                        "background": "#22255d",
-                        "border": "none",
-                        "border-radius": "5px",
-                        "color": "white",
-                        "cursor": "pointer",
-                        "font-size": "1.2rem",
-                        "padding": "0.8rem",
-                        "transition": "0.3s",
-                        "width": "100%"
-                    },
-                    "pid": "VnGETA"
-                },
-                {
-                    "type": "span",
-                    "attributes": {
-                        "id": "messages"
-                    },
-                    "style": {
-                        "color": "white",
-                        "display": "block",
-                        "font-size": "1rem",
-                        "margin-top": "1rem"
-                    },
-                    "pid": "TDwPGu"
-                }
-            ],
-            "style": {
-                "background": "rgba(255, 255, 255, 0.1)",
-                "border-radius": "10px",
-                "box-shadow": "0 4px 10px rgba(0, 0, 0, 0.2)",
-                "max-width": "400px",
-                "padding": "2rem",
-                "text-align": "center",
-                "width": "100%"
-            }
-        },
-        "Header": {
-            "type": "header",
-            "attributes": {
-                "class": "header_JlxdRW",
-                "id": "header"
-            },
-            "elements": [
-                {
-                    "type": "a",
-                    "attributes": {
-                        "href": "/"
-                    },
-                    "text": "Dream Friday",
-                    "style": {
-                        "color": "white",
-                        "font-size": "1.2rem",
-                        "text-decoration": "none"
-                    },
-                    "pid": "xBAhxQ"
-                }
-            ],
-            "style": {
-                "background": "rgba(0, 0, 0, 0.8)",
-                "display": "flex",
-                "justify-content": "space-between",
-                "padding": "1rem",
-                "position": "fixed",
-                "width": "100%"
-            }
-        },
-        "P": {
-            "type": "p",
-            "style": {
-                "color": "red",
-                "font-size": "1.5em"
-            }
-        },
-        "https://components.dreamfriday.com/component/Button": {
-            "type": "span",
-            "style": {
-                "background": "rgba(0, 0, 0, 0.5)",
-                "border": "none",
-                "border-radius": "12px",
-                "color": "blue",
-                "font-size": "1.2em",
-                "padding": "10px 20px"
-            }
+      "/cid": {
+        "type": "span",
+        "text": "QmfLDaCqCvqwAp2fqTYy9XbcEkTriGtWksubC7ByEtnQFv"
+      },
+      "/component/TextArea": {
+        "type": "textarea",
+        "style": {
+          "background": "rgba(255, 255, 255, 0.1)",
+          "border": "none",
+          "border-radius": "5px",
+          "color": "white",
+          "font-size": "14px",
+          "height": "120px",
+          "padding": "12px",
+          "resize": "none",
+          "text-align": "left",
+          "width": "100%"
         }
+      },
+      "Button": {
+        "type": "button",
+        "style": {
+          "background": "rgba(0, 0, 0,0.5)",
+          "border": "none",
+          "border-radius": "12px",
+          "color": "white",
+          "cursor": "pointer",
+          "font-size": "1.2em",
+          "padding": "10px 20px"
+        },
+        "pid": "ghuSHX"
+      },
+      "CreateForm": {
+        "type": "form",
+        "attributes": {
+          "class": "form_HIiLXS",
+          "hx-post": "/create",
+          "hx-swap": "innerHTML",
+          "hx-target": "#messages"
+        },
+        "elements": [
+          {
+            "type": "label",
+            "attributes": {
+              "for": "domain"
+            },
+            "text": "Site Name",
+            "style": {
+              "color": "white",
+              "display": "block",
+              "font-size": "1rem",
+              "margin-bottom": "0.5rem"
+            },
+            "pid": "uDinkW"
+          },
+          {
+            "type": "input",
+            "attributes": {
+              "id": "domain",
+              "name": "domain",
+              "placeholder": "myawesomesite",
+              "required": "",
+              "type": "text"
+            },
+            "style": {
+              "border": "none",
+              "border-radius": "5px",
+              "font-size": "1rem",
+              "margin-bottom": "1rem",
+              "padding": "0.8rem",
+              "width": "100%"
+            },
+            "pid": "CkKUxE"
+          },
+          {
+            "type": "label",
+            "attributes": {
+              "for": "template"
+            },
+            "text": "template",
+            "style": {
+              "color": "white",
+              "display": "block",
+              "font-size": "1rem",
+              "margin-bottom": "0.5rem"
+            },
+            "pid": "RsAjsr"
+          },
+          {
+            "type": "input",
+            "attributes": {
+              "id": "template",
+              "name": "template",
+              "placeholder": "https://dreamfriday.com/json",
+              "required": "",
+              "type": "text"
+            },
+            "style": {
+              "border": "none",
+              "border-radius": "5px",
+              "font-size": "1rem",
+              "margin-bottom": "1rem",
+              "padding": "0.8rem",
+              "width": "100%"
+            },
+            "pid": "Szypph"
+          },
+          {
+            "type": "button",
+            "attributes": {
+              "type": "submit"
+            },
+            "text": "Create Site",
+            "style": {
+              "background": "#22255d",
+              "border": "none",
+              "border-radius": "5px",
+              "color": "white",
+              "cursor": "pointer",
+              "font-size": "1.2rem",
+              "padding": "0.8rem",
+              "transition": "0.3s",
+              "width": "100%"
+            },
+            "pid": "pAMmCd"
+          },
+          {
+            "type": "span",
+            "attributes": {
+              "id": "messages"
+            },
+            "style": {
+              "color": "white",
+              "display": "block",
+              "font-size": "1rem",
+              "margin-top": "1rem"
+            },
+            "pid": "MHCdBO"
+          }
+        ],
+        "style": {
+          "align-items": "center",
+          "background": "rgba(255, 255, 255, 0.1)",
+          "border-radius": "10px",
+          "box-shadow": "0 4px 10px rgba(0, 0, 0, 0.2)",
+          "display": "flex",
+          "flex-direction": "column",
+          "max-width": "400px",
+          "padding": "2rem",
+          "text-align": "center",
+          "width": "100%"
+        }
+      },
+      "Header": {
+        "type": "header",
+        "attributes": {
+          "class": "header_QHMCQM",
+          "id": "header"
+        },
+        "elements": [
+          {
+            "type": "a",
+            "attributes": {
+              "href": "/"
+            },
+            "text": "Dream Friday",
+            "style": {
+              "color": "white",
+              "font-size": "1.2rem",
+              "text-decoration": "none"
+            },
+            "pid": "isXjmz"
+          }
+        ],
+        "style": {
+          "display": "flex",
+          "justify-content": "space-between",
+          "padding": "1rem",
+          "position": "fixed",
+          "width": "100%"
+        }
+      },
+      "P": {
+        "type": "p",
+        "style": {
+          "color": "white",
+          "font-size": "1em"
+        }
+      },
+      "TextArea": {
+        "type": "textarea",
+        "style": {
+          "background": "rgba(255, 255, 255, 0.1)",
+          "border": "none",
+          "border-radius": "5px",
+          "color": "white",
+          "font-size": "14px",
+          "height": "120px",
+          "padding": "12px",
+          "resize": "none",
+          "text-align": "left",
+          "width": "100%"
+        }
+      }
     }
-}
+  }

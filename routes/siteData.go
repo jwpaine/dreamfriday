@@ -34,7 +34,7 @@ func RegisterProductionRoutes(e *echo.Echo) {
 			return c.JSON(500, err)
 		}
 		return c.JSON(200, sites)
-	}, auth.AuthMiddleware)
+	})
 
 	//e.POST("/delete", handlers.DeleteSite, auth.AuthMiddleware)
 }
