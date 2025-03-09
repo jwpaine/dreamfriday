@@ -78,27 +78,28 @@ func (pe *PageEngine) CollectCSS(p *PageElement, classMap map[*PageElement]strin
 		// now we treat internal and external imports the same way
 
 		if importedComponent, exists := pe.components[p.Import]; exists {
-			// Ensure CSS is only generated once per imported component
-			if _, alreadyProcessed := classMap[importedComponent]; !alreadyProcessed {
-				// copy local styles to the imported component
-				if importedComponent.Style == nil {
-					importedComponent.Style = make(map[string]string)
-				}
-				for key, value := range p.Style {
-					importedComponent.Style[key] = value
-				}
-				// locally override the type and text if they are set
-				if p.Type != "" {
-					importedComponent.Type = p.Type
-				}
-				pe.CollectCSS(importedComponent, classMap, visited, routeInternal)
+			// Clone the imported component before modification
+			clonedComponent := *importedComponent
+			clonedComponent.Style = make(map[string]string)
+
+			// Copy original styles
+			for key, value := range importedComponent.Style {
+				clonedComponent.Style[key] = value
+			}
+			// Apply local styles
+			for key, value := range p.Style {
+				clonedComponent.Style[key] = value
 			}
 
-			// Assign the imported component's class name to the referencing element (`p`)
-			if className, ok := classMap[importedComponent]; ok {
-				classMap[p] = className // Ensure `p` uses the same class
+			// Process the cloned component
+			pe.CollectCSS(&clonedComponent, classMap, visited, routeInternal)
+
+			// Assign the cloned component’s class name to the referencing element
+			if className, ok := classMap[&clonedComponent]; ok {
+				classMap[p] = className
 			}
 		}
+
 		return // Don't generate CSS for the referencing import itself
 	}
 
@@ -185,21 +186,19 @@ func (pe *PageEngine) GetExternalComponent(uri string, routeInternal func(string
 }
 
 // Stream HTML directly using pre-assigned class names
+// Stream HTML directly using pre-assigned class names
 func (p *PageElement) RenderElement(pe *PageEngine, classMap map[*PageElement]string, visited map[string]bool, previewElementMap map[string]*PageElement, nonce string) {
-
 	if p == nil {
 		return
 	}
 
-	// if preview mode, set a pid for each element mapping to the pageelement
+	// If preview mode, set a PID for each element mapping to the PageElement
 	if previewElementMap != nil {
+		p.Pid = generateRandomClassName(6) // Assign a unique identifier
 
-		// fmt.Println("Generating new pid for", p.Type)
-		p.Pid = generateRandomClassName(6)
-
-		// Ensustore the original element reference, not the rendered/imported one
+		// Store the original element reference
 		if _, exists := previewElementMap[p.Pid]; !exists {
-			previewElementMap[p.Pid] = p // Keep reference to the calling element
+			previewElementMap[p.Pid] = p
 		}
 	}
 
@@ -212,29 +211,42 @@ func (p *PageElement) RenderElement(pe *PageEngine, classMap map[*PageElement]st
 		}
 		visited[visitKey] = true
 
-		// handle internal imports
+		// Handle internal imports
 		if importedComponent, exists := pe.components[p.Import]; exists {
-			clonedComponent := *importedComponent // Clone to prevent global state pollution (multiple imports using the same component)
+			// Deep clone the component to prevent global state pollution
+			clonedComponent := *importedComponent
+			clonedComponent.Style = make(map[string]string)
+
+			// Copy original styles
+			for key, value := range importedComponent.Style {
+				clonedComponent.Style[key] = value
+			}
+			// Apply instance-specific modifications
+			for key, value := range p.Style {
+				clonedComponent.Style[key] = value
+			}
 
 			// Ensure cloned component has an attributes map
 			if clonedComponent.Attributes == nil {
 				clonedComponent.Attributes = make(map[string]string)
 			}
 
-			// Copy locally defined values to the cloned component
+			// Copy locally defined attributes to the cloned component
 			for key, value := range p.Attributes {
 				clonedComponent.Attributes[key] = value
 			}
+
+			// Override text if specified
 			if p.Text != "" {
 				clonedComponent.Text = p.Text
 			}
 
-			// Ensure the correct class name is used
+			// Ensure correct class name is used
 			if className, ok := classMap[p]; ok {
 				clonedComponent.Attributes["class"] = className
 			}
 
-			// Ensure the correct pid is used
+			// Ensure correct PID is used
 			if p.Pid != "" {
 				clonedComponent.Pid = p.Pid
 			}
@@ -242,8 +254,10 @@ func (p *PageElement) RenderElement(pe *PageEngine, classMap map[*PageElement]st
 			// Render cloned component
 			clonedComponent.RenderElement(pe, classMap, visited, previewElementMap, nonce)
 
-			delete(visited, p.Import) // Allow reuse in different parts of the page
-			// delete the import from components now if it contains the private flag
+			// Allow reuse in different parts of the page by removing visit lock
+			delete(visited, p.Import)
+
+			// If component is marked as private, delete after use
 			if p.Private {
 				fmt.Println("Private component found, deleting from components")
 				delete(pe.components, p.Import)
@@ -300,6 +314,7 @@ func (p *PageElement) RenderElement(pe *PageEngine, classMap map[*PageElement]st
 
 	fmt.Fprint(pe.writer, ">")
 
+	// Print text content if present
 	if p.Text != "" {
 		fmt.Fprint(pe.writer, p.Text)
 	}
