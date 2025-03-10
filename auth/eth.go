@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math/big"
 	"net/http"
 
 	//	"os"
@@ -16,6 +17,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/decred/dcrd/dcrec/secp256k1"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
 
@@ -86,7 +89,7 @@ func (a *EthAuthenticator) Login(c echo.Context, address, _ string) error {
 	session.Values["ethChallenge"] = challenge
 	session.Save(c.Request(), c.Response())
 
-	log.Printf("Generated challenge for login: %s -> %s", address, challenge)
+	// log.Printf("Generated challenge for login: %s -> %s", address, challenge)
 
 	// Return challenge to frontend for signing
 	return c.JSON(http.StatusOK, ChallengeResponse{Challenge: challenge})
@@ -191,46 +194,55 @@ func (a *EthAuthenticator) AuthCallbackHandler(c echo.Context) error {
 
 // Verify the signature from MetaMask
 func verifySignature(address, challenge, signature string) bool {
+	// Validate Ethereum address format
+	if !common.IsHexAddress(address) {
+		log.Println("Invalid Ethereum address format")
+		return false
+	}
+	normalizedAddress := common.HexToAddress(address).Hex()
+
 	// MetaMask signs a prefixed message
 	prefixedMessage := fmt.Sprintf("\x19Ethereum Signed Message:\n%d%s", len(challenge), challenge)
 	messageHash := crypto.Keccak256Hash([]byte(prefixedMessage))
 
-	// Debugging logs
-	log.Printf("Challenge: %s", challenge)
-	log.Printf("Prefixed Message: %s", prefixedMessage)
-	log.Printf("Hashed Message: %s", messageHash.Hex())
-
 	// Decode the signature from hex
 	sig, err := hexutil.Decode(signature)
-	if err != nil || len(sig) != 65 {
+	if err != nil {
 		log.Println("Error decoding signature:", err)
 		return false
 	}
+	if len(sig) != 65 {
+		log.Println("Invalid signature length:", len(sig))
+		return false
+	}
 
-	// Debug: Log the raw signature
-	log.Printf("Signature: %s", signature)
-	log.Printf("Decoded Signature: %x", sig)
+	// Validate the S value to prevent malleability attacks (EIP-2)
+	// r := new(big.Int).SetBytes(sig[:32])  // R value
+	s := new(big.Int).SetBytes(sig[32:64])                    // S value
+	curveOrderHalf := new(big.Int).Rsh(secp256k1.S256().N, 1) // Half of curve order
 
-	// Adjust the V value (MetaMask sometimes returns 27/28)
+	if s.Cmp(curveOrderHalf) > 0 {
+		log.Println("Invalid signature: S value is too large")
+		return false
+	}
+
+	// Adjust V value (MetaMask sometimes returns 27/28)
 	if sig[64] >= 27 {
 		sig[64] -= 27
 	}
 
-	// Recover the public key from the signature
+	// Recover the public key
 	publicKey, err := crypto.SigToPub(messageHash.Bytes(), sig)
-	if err != nil {
+	if err != nil || publicKey == nil {
 		log.Println("Error recovering public key:", err)
 		return false
 	}
 
-	// Convert the recovered public key to an Ethereum address
+	// Convert public key to Ethereum address
 	recoveredAddress := crypto.PubkeyToAddress(*publicKey).Hex()
 
-	// Debugging log
-	log.Printf("Recovered Address: %s | Expected Address: %s", recoveredAddress, address)
-
-	// Compare addresses in lowercase for case insensitivity
-	if strings.EqualFold(recoveredAddress, address) {
+	// Compare addresses (case insensitive)
+	if strings.EqualFold(recoveredAddress, normalizedAddress) {
 		log.Println("Signature is valid!")
 		return true
 	}
